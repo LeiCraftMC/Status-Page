@@ -70,7 +70,7 @@ export class API {
 			return c.json({
 				success: true,
 				code: 200,
-				message: " API is running",
+				message: "LeiCraft_MC Status Page API is running",
 				data: null
 			});
 		});

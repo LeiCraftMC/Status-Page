@@ -6,9 +6,9 @@ export type DrizzleDB = ReturnType<typeof drizzle>;
 
 export namespace SQLUtils {
 
-    export function getCreatedAtColumn() {
-        // return int("created_at", { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`);
-        return int("created_at", { mode: 'number' }).notNull().default(sql`(unixepoch() * 1000)`);
+    export function getCreatedAtColumn(name: string = "created_at") {
+        // return int(name, { mode: 'timestamp_ms' }).notNull().default(sql`(unixepoch() * 1000)`);
+        return int(name, { mode: 'number' }).notNull().default(sql`(unixepoch() * 1000)`);
     }
 
 }

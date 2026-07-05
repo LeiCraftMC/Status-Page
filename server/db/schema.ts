@@ -54,12 +54,131 @@ export const sessions = sqliteTable('sessions', {
 
 
 /**
- * @deprecated Use DB.Tables.tmp_data to access this table.
+ * @deprecated Use DB.Tables.settings to access this table.
  */
 export const metadata = sqliteTable('metadata', {
     key: text().primaryKey(),
     data: text({ mode: 'json' }).$type<Record<string, any> | Array<any>>().notNull()
 });
 
+export const monitors = sqliteTable('monitors', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    name: text().notNull().unique(),
+    type: text({ enum: ['http', 'tcp'] as const }).notNull(),
+    target: text().notNull(),
+
+    interval_seconds: integer().notNull().default(60),
+    timeout_seconds: integer().notNull().default(10),
+
+    // HTTP-specific fields (ignored for tcp monitors)
+    http_method: text({ enum: ['GET', 'HEAD', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'] as const }),
+    expected_http_status: integer(),
+    follow_redirects: integer({ mode: 'boolean' }).notNull().default(true),
+    verify_tls: integer({ mode: 'boolean' }).notNull().default(true),
+
+    is_enabled: integer({ mode: 'boolean' }).notNull().default(true),
+
+    created_at: SQLUtils.getCreatedAtColumn(),
+});
+
+export const monitorStatusChecks = sqliteTable('monitor_status_checks', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    monitor_id: integer().notNull().references(() => monitors.id, { onDelete: 'cascade' }),
+    status: text({ enum: ['up', 'down', 'degraded', 'unknown'] as const }).notNull().default('unknown'),
+    response_time_ms: integer(),
+    checked_at: SQLUtils.getCreatedAtColumn(),
+});
+
+export const statusPages = sqliteTable('status_pages', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    slug: text().notNull().unique(),
+    title: text().notNull(),
+    description: text(),
+
+    is_public: integer({ mode: 'boolean' }).notNull().default(true),
+    is_enabled: integer({ mode: 'boolean' }).notNull().default(true),
+
+    theme: text({ enum: ['light', 'dark', 'auto'] as const }).notNull().default('auto'),
+
+    created_at: SQLUtils.getCreatedAtColumn(),
+});
+
+export const statusPageGroups = sqliteTable('status_page_groups', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
+    name: text().notNull(),
+    sort_order: integer().notNull().default(0),
+});
+
+export const statusPageMonitorLinks = sqliteTable('status_page_monitor_links', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
+    monitor_id: integer().notNull().references(() => monitors.id, { onDelete: 'cascade' }),
+    group_id: integer().references(() => statusPageGroups.id, { onDelete: 'set null' }),
+
+    display_name: text(),
+    sort_order: integer().notNull().default(0),
+});
+
+export const settings = sqliteTable('settings', {
+    key: text().primaryKey(),
+    value: text({ mode: 'json' }).$type<any>().notNull(),
+});
+
+export const statusPageIncidents = sqliteTable('status_page_incidents', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
+
+    title: text().notNull(),
+    message: text().notNull(),
+
+    status: text({ enum: ['investigating', 'identified', 'monitoring', 'resolved'] as const }).notNull().default('investigating'),
+    severity: text({ enum: ['critical', 'major', 'minor', 'maintenance'] as const }).notNull().default('major'),
+
+    is_resolved: integer({ mode: 'boolean' }).notNull().default(false),
+
+    started_at: SQLUtils.getCreatedAtColumn("started_at"),
+    resolved_at: integer({ mode: 'number' }),
+
+    created_at: SQLUtils.getCreatedAtColumn(),
+    updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
+});
+
+export const statusPageMaintenance = sqliteTable('status_page_maintenance', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
+
+    title: text().notNull(),
+    message: text().notNull(),
+
+    status: text({ enum: ['scheduled', 'in_progress', 'completed', 'cancelled'] as const }).notNull().default('scheduled'),
+
+    scheduled_start_at: integer({ mode: 'number' }).notNull(),
+    scheduled_end_at: integer({ mode: 'number' }),
+
+    created_at: SQLUtils.getCreatedAtColumn(),
+    updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
+});
+
+export const statusPageUpdates = sqliteTable('status_page_updates', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
+
+    title: text().notNull(),
+    message: text().notNull(),
+
+    type: text({ enum: ['general', 'incident', 'maintenance'] as const }).notNull().default('general'),
+
+    created_at: SQLUtils.getCreatedAtColumn(),
+    updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
+});
 
 

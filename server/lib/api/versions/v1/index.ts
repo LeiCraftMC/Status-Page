@@ -5,6 +5,9 @@ import { router as authRouter } from "./routes/auth";
 import { router as accountRouter } from "./routes/account";
 import { router as adminRouter } from "./routes/admin";
 import { router as usersRouter } from "./routes/users";
+import { router as monitorsRouter } from "./routes/monitors";
+import { router as statusPagesRouter } from "./routes/status-pages";
+import { router as publicStatusPagesRouter } from "./routes/status-pages/public";
 import { authMiddlewareV1 } from "./middleware/auth";
 
 const openAPIConfig: Partial<GenerateSpecOptions> = {
@@ -47,6 +50,18 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
                 name: "Admin",
                 tags: [
                     "Admin / Users",
+                    "Admin / Monitors",
+                    "Admin / Status Pages",
+                    "Admin / Settings",
+                ],
+            },
+            {
+                name: "Status Page",
+                tags: [
+                    "Monitors",
+                    "Status Pages",
+                    "Status Page Content",
+                    "Public Status Pages",
                 ],
             },
             {
@@ -68,6 +83,30 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
                 description: "Site-admin user management.",
             },
             {
+                name: "Admin / Monitors",
+                // @ts-ignore
+                "x-displayName": "Monitors",
+                summary: "Monitors",
+                parent: "Admin",
+                description: "Site-admin monitor management.",
+            },
+            {
+                name: "Admin / Status Pages",
+                // @ts-ignore
+                "x-displayName": "Status Pages",
+                summary: "Status Pages",
+                parent: "Admin",
+                description: "Site-admin status page management.",
+            },
+            {
+                name: "Admin / Settings",
+                // @ts-ignore
+                "x-displayName": "Settings",
+                summary: "Settings",
+                parent: "Admin",
+                description: "Site-admin application settings.",
+            },
+            {
                 name: "Account",
                 description: "Endpoints for user account management",
             },
@@ -78,6 +117,22 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
             {
                 name: "Users",
                 description: "Public user search, allowing authenticated users to find other users.",
+            },
+            {
+                name: "Monitors",
+                description: "Authenticated read access to monitors and their status.",
+            },
+            {
+                name: "Status Pages",
+                description: "Authenticated read access to status pages.",
+            },
+            {
+                name: "Status Page Content",
+                description: "Authenticated posting of incidents, maintenance, and updates on status pages.",
+            },
+            {
+                name: "Public Status Pages",
+                description: "Unauthenticated public access to status pages and monitors.",
             }
         ]
     }
@@ -91,6 +146,9 @@ router.route("/", authRouter);
 router.route("/", accountRouter);
 router.route("/", adminRouter);
 router.route("/", usersRouter);
+router.route("/", monitorsRouter);
+router.route("/", statusPagesRouter);
+router.route("/", publicStatusPagesRouter);
 
 export class APIv1Router extends APIVersionRouter {
     constructor() {

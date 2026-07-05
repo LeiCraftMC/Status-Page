@@ -2,6 +2,9 @@ import { Hono } from "hono";
 import { APIResponse } from "../../../../utils/api-res";
 import { AuthHandler } from "../../../../utils/authHandler";
 import { router as usersRouter } from "./users";
+import { router as monitorsRouter } from "./monitors";
+import { router as statusPagesRouter } from "./status-pages";
+import { router as settingsRouter } from "./settings";
 
 export const router = new Hono().basePath('/admin');
 
@@ -21,3 +24,6 @@ router.use('*', async (c, next) => {
 });
 
 router.route('/', usersRouter);
+router.route('/', monitorsRouter);
+router.route('/', statusPagesRouter);
+router.route('/', settingsRouter);
