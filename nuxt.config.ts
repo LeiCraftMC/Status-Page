@@ -18,6 +18,12 @@ export default defineNuxtConfig({
 
 	nitro: {
 		preset: 'cloudflare-pages',
+		experimental: {
+			tasks: true,
+		},
+		scheduledTasks: {
+			'* * * * *': 'check-monitors',
+		},
 	},
 
 	runtimeConfig: {

@@ -22,7 +22,7 @@ export namespace MonitorsModel {
             name: z.string().min(1).max(64),
             type: z.enum(['http', 'tcp']),
             target: z.string().min(1).max(512),
-            interval_seconds: z.coerce.number().int().min(10).max(86400),
+            interval_seconds: z.coerce.number().int().min(60).max(3600),
             timeout_seconds: z.coerce.number().int().min(1).max(300),
         }).omit({
             id: true,
@@ -59,7 +59,7 @@ export namespace MonitorsModel {
             name: z.string().min(1).max(64),
             type: z.enum(['http', 'tcp']),
             target: z.string().min(1).max(512),
-            interval_seconds: z.coerce.number().int().min(10).max(86400),
+            interval_seconds: z.coerce.number().int().min(60).max(3600),
             timeout_seconds: z.coerce.number().int().min(1).max(300),
         }).omit({
             id: true,

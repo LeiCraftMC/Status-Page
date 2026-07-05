@@ -6,6 +6,7 @@ import { APIResponse } from "../../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../../utils/specHelpers";
 import { MonitorsModel } from "./model";
 import { DOCS_TAGS } from "../../../docs";
+import { performMonitorCheck } from "../../../../../../../utils/monitor-checker";
 
 const TARGET_MONITOR_KEY = "targetMonitor";
 
@@ -253,40 +254,3 @@ router.post('/:monitorId/check',
     }
 );
 
-async function performMonitorCheck(monitor: MonitorsModel.BaseMonitor): Promise<{ status: DB.Models.MonitorStatusCheck['status']; response_time_ms: number | null }> {
-    const start = Date.now();
-    try {
-        if (monitor.type === 'http') {
-            const controller = new AbortController();
-            const timeout = setTimeout(() => controller.abort(), monitor.timeout_seconds * 1000);
-
-            const response = await fetch(monitor.target, {
-                method: monitor.http_method || 'GET',
-                redirect: monitor.follow_redirects ? 'follow' : 'manual',
-                signal: controller.signal,
-            });
-
-            clearTimeout(timeout);
-            const elapsed = Date.now() - start;
-
-            const expected = monitor.expected_http_status ?? 200;
-            const status = response.status === expected ? 'up' : 'down';
-
-            return { status, response_time_ms: elapsed };
-        }
-
-        // TCP: attempt a socket connect via Bun.connect
-        const [hostname, portPart] = monitor.target.split(':');
-        if (!hostname) {
-            return { status: 'down', response_time_ms: Date.now() - start };
-        }
-        await Bun.connect({
-            hostname,
-            port: parseInt(portPart || '80', 10),
-        } as any);
-
-        return { status: 'up', response_time_ms: Date.now() - start };
-    } catch {
-        return { status: 'down', response_time_ms: Date.now() - start };
-    }
-}

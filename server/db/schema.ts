@@ -61,6 +61,10 @@ export const metadata = sqliteTable('metadata', {
     data: text({ mode: 'json' }).$type<Record<string, any> | Array<any>>().notNull()
 });
 
+
+/**
+ * @deprecated Use DB.Tables.monitors to access this table.
+ */
 export const monitors = sqliteTable('monitors', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -82,6 +86,9 @@ export const monitors = sqliteTable('monitors', {
     created_at: SQLUtils.getCreatedAtColumn(),
 });
 
+/**
+ * @deprecated Use DB.Tables.monitorStatusChecks to access this table.
+ */
 export const monitorStatusChecks = sqliteTable('monitor_status_checks', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -91,6 +98,9 @@ export const monitorStatusChecks = sqliteTable('monitor_status_checks', {
     checked_at: SQLUtils.getCreatedAtColumn(),
 });
 
+/**
+ * @deprecated Use DB.Tables.statusPages to access this table.
+ */
 export const statusPages = sqliteTable('status_pages', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -106,6 +116,9 @@ export const statusPages = sqliteTable('status_pages', {
     created_at: SQLUtils.getCreatedAtColumn(),
 });
 
+/**
+ * @deprecated Use DB.Tables.statusPageGroups to access this table.
+ */
 export const statusPageGroups = sqliteTable('status_page_groups', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -114,6 +127,9 @@ export const statusPageGroups = sqliteTable('status_page_groups', {
     sort_order: integer().notNull().default(0),
 });
 
+/**
+ * @deprecated Use DB.Tables.statusPageMonitorLinks to access this table.
+ */
 export const statusPageMonitorLinks = sqliteTable('status_page_monitor_links', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -125,11 +141,17 @@ export const statusPageMonitorLinks = sqliteTable('status_page_monitor_links', {
     sort_order: integer().notNull().default(0),
 });
 
+/**
+ * @deprecated Use DB.Tables.settings to access this table.
+ */
 export const settings = sqliteTable('settings', {
     key: text().primaryKey(),
     value: text({ mode: 'json' }).$type<any>().notNull(),
 });
 
+/**
+ * @deprecated Use DB.Tables.statusPageIncidents to access this table.
+ */
 export const statusPageIncidents = sqliteTable('status_page_incidents', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -150,6 +172,9 @@ export const statusPageIncidents = sqliteTable('status_page_incidents', {
     updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
 });
 
+/**
+ * @deprecated Use DB.Tables.statusPageMaintenance to access this table.
+ */
 export const statusPageMaintenance = sqliteTable('status_page_maintenance', {
     id: integer().primaryKey({ autoIncrement: true }),
 
@@ -167,6 +192,9 @@ export const statusPageMaintenance = sqliteTable('status_page_maintenance', {
     updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
 });
 
+/**
+ * @deprecated Use DB.Tables.statusPageUpdates to access this table.
+ */
 export const statusPageUpdates = sqliteTable('status_page_updates', {
     id: integer().primaryKey({ autoIncrement: true }),
 
