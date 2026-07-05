@@ -4,12 +4,7 @@ import UserMenu from "~/components/dashboard/UserMenu.vue";
 import LeiCraftMCLogo from "~/components/img/LeiCraftMCLogo.vue";
 import LeiCraftMCIcon from "~/components/img/LeiCraftMCIcon.vue";
 import { useUserInfoStore } from "~/composables/stores/useUserStore";
-import { useSelectedProjectStore } from "~/composables/stores/useSelectedProjectStore";
-import { useSessionStatus } from "~/composables/useSessionStatus";
-import { deleteClaudeProjectsByAbsolutePathSessionsBySessionId, putClaudeProjectsByAbsolutePathSessionsBySessionId } from "~/api-client";
 import { safeDecodeURIComponent } from "~/utils/url";
-import DeleteSessionModal from "~/components/dashboard/DeleteSessionModal.vue";
-import RenameSessionModal from "~/components/dashboard/RenameSessionModal.vue";
 
 const route = useRoute();
 
@@ -18,71 +13,7 @@ const user = await userInfoStore.use();
 
 const isAdmin = computed(() => user.value?.role === "admin");
 
-const currentProjectStore = await useSelectedProjectStore();
-const currentProject = await currentProjectStore.use();
-const currentProjectSessions = computed(() => currentProject.value?.sessions || []);
-const { isRunning } = useSessionStatus(computed(() => currentProject.value?.absolute_path));
 
-const deleteModalOpen = ref(false);
-const renameModalOpen = ref(false);
-const activeSessionId = ref<string | null>(null);
-const activeSessionTitle = ref('');
-
-function openDeleteModal(sessionId: string, title: string) {
-    activeSessionId.value = sessionId;
-    activeSessionTitle.value = title;
-    deleteModalOpen.value = true;
-}
-
-function openRenameModal(sessionId: string, title: string) {
-    activeSessionId.value = sessionId;
-    activeSessionTitle.value = title;
-    renameModalOpen.value = true;
-}
-
-async function onDeleteSession() {
-    const sessionId = activeSessionId.value;
-    const projectPath = currentProject.value?.absolute_path;
-    if (!sessionId || !projectPath) return;
-
-    const result = await useAPI((api) => api.deleteClaudeProjectsByAbsolutePathSessionsBySessionId({
-        path: {
-            absolute_path: encodeURIComponent(projectPath),
-            session_id: sessionId,
-        }
-    }));
-
-    if (!result.success) {
-        throw new Error(result.message || 'Failed to delete session');
-    }
-
-    await currentProjectStore.refresh();
-
-    const routePath = safeDecodeURIComponent(route.params.absolute_path as string);
-    if (routePath === projectPath && route.params.session_id === sessionId) {
-        await navigateTo(`/projects/${encodeURIComponent(projectPath)}/sessions/new`, { replace: true });
-    }
-}
-
-async function onRenameSession(title: string) {
-    const sessionId = activeSessionId.value;
-    const projectPath = currentProject.value?.absolute_path;
-    if (!sessionId || !projectPath) return;
-
-    const result = await useAPI((api) => api.putClaudeProjectsByAbsolutePathSessionsBySessionId({
-        path: {
-            absolute_path: encodeURIComponent(projectPath),
-            session_id: sessionId,
-        },
-        body: { title }
-    }));
-
-    if (!result.success) {
-        throw new Error(result.message || 'Failed to rename session');
-    }
-
-    await currentProjectStore.refresh();
-}
 
 const sidebarItems = computed(() => {
 
@@ -98,42 +29,6 @@ const sidebarItems = computed(() => {
             exact: false,
         }
     ];
-
-    const projectItems: NavigationMenuItem[] = [
-        {
-            label: currentProject.value?.name || "No Project Name",
-            icon: "i-lucide-folder",
-            type: "label"
-        }
-    ];
-
-    const projectSessionsItems: (NavigationMenuItem & { session_id?: string })[] = [];
-
-    if (currentProjectSessions.value.length > 0) {
-        projectSessionsItems.push({
-            label: "Sessions",
-            icon: "i-lucide-message-square",
-            type: "label"
-        });
-
-        for (const session of currentProjectSessions.value) {
-            projectSessionsItems.push({
-                label: session.title,
-                icon: 'i-lucide-message-square',
-                to: `/projects/${encodeURIComponent(currentProject?.value?.absolute_path || '')}/sessions/${session.session_id}`,
-                exact: false,
-                slot: 'session',
-                class: 'group relative',
-                session_id: session.session_id,
-            });
-        }
-    } else {
-        projectSessionsItems.push({
-            label: 'No Session to show',
-            icon: 'i-lucide-message-square',
-            exact: false,
-        });
-    }
 
     const adminItems: NavigationMenuItem[] = [
         {
@@ -170,9 +65,6 @@ const sidebarItems = computed(() => {
 
     return {
         basic: basicItems,
-
-        project: projectItems,
-        projectSessions: projectSessionsItems,
 
         settings: settings,
         admin: adminItems,
@@ -231,80 +123,6 @@ const displaySidebars = computed(() => {
                     orientation="vertical"
                 />
 
-               <div
-                    v-if="displaySidebars.projectSidebar"
-                    class="flex flex-col main-bg-color"
-                >
-                    <UNavigationMenu
-                        :collapsed="collapsed"
-                        :items="sidebarItems.project"
-                        orientation="vertical"
-                    />
-
-                    <!-- Compose Button - Prominent -->
-                    <div v-if="currentProject" class="px-2 mb-2">
-                            <UButton
-                                v-if="!collapsed"
-                                icon="i-lucide-pen-square"
-                                color="primary"
-                                variant="solid"
-                                size="md"
-                                class="w-full justify-start"
-                                :to="`/projects/${encodeURIComponent(currentProject.absolute_path)}/sessions/new`"
-                            >
-                                New Session
-                            </UButton>
-                            <UTooltip v-else text="New Session">
-                                <UButton
-                                    icon="i-lucide-pen-square"
-                                    color="primary"
-                                    variant="solid"
-                                    size="md"
-                                    :to="`/projects/${encodeURIComponent(currentProject.absolute_path)}/sessions/new`"
-                                />
-                            </UTooltip>
-                        </div>
-
-                    <UNavigationMenu
-                        :collapsed="collapsed"
-                        :items="sidebarItems.projectSessions"
-                        orientation="vertical"
-                        class="mt-0"
-                    >
-                        <template #session-leading="{ item }">
-                            <UIcon
-                                :name="isRunning((item as any).session_id) ? 'i-lucide-loader-2' : 'i-lucide-message-square'"
-                                class="w-5 h-5 shrink-0"
-                                :class="{ 'animate-spin': isRunning((item as any).session_id) }"
-                            />
-                        </template>
-
-                        <template #session-trailing="{ item }">
-                            <div
-                                v-if="!collapsed"
-                                class="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
-                            >
-                                <UButton
-                                    icon="i-lucide-pencil"
-                                    color="neutral"
-                                    variant="ghost"
-                                    size="xs"
-                                    aria-label="Rename session"
-                                    @click.stop.prevent="openRenameModal((item as any).session_id, (item as any).label)"
-                                />
-                                <UButton
-                                    icon="i-lucide-trash-2"
-                                    color="neutral"
-                                    variant="ghost"
-                                    size="xs"
-                                    aria-label="Delete session"
-                                    @click.stop.prevent="openDeleteModal((item as any).session_id, (item as any).label)"
-                                />
-                            </div>
-                        </template>
-                    </UNavigationMenu>
-                </div>
-
                 <UNavigationMenu
                     v-if="isAdmin && displaySidebars.adminSidebar"
                     :collapsed="collapsed"
@@ -320,7 +138,7 @@ const displaySidebars = computed(() => {
                 />
 
                 <UNavigationMenu
-                    v-if="displaySidebars.adminSidebar || displaySidebars.settingsSidebar || displaySidebars.projectSidebar"
+                    v-if="displaySidebars.adminSidebar || displaySidebars.settingsSidebar"
                     :collapsed="collapsed"
                     :items="[{
                         label: 'Go back to Project Selection',
@@ -337,22 +155,6 @@ const displaySidebars = computed(() => {
                 <UserMenu :collapsed="collapsed"></UserMenu>
             </template>
         </UDashboardSidebar>
-
-        <DeleteSessionModal
-            v-if="currentProject"
-            title="Delete Session"
-            :warning-text="`Are you sure you want to delete session '${activeSessionTitle}'? This action cannot be undone.`"
-            v-model:open="deleteModalOpen"
-            :on-delete="onDeleteSession"
-        />
-
-        <RenameSessionModal
-            v-if="currentProject"
-            title="Rename Session"
-            v-model:open="renameModalOpen"
-            :session-title="activeSessionTitle"
-            :on-rename="onRenameSession"
-        />
 
         <slot />
     </UDashboardGroup>
