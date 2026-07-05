@@ -116,13 +116,6 @@ export class ConfigHandler {
         .add("LCCFWSP_CONFIG_BASE_DIR", false)
 
         .add("LCCFWSP_APP_URL", false)
-
-        .add("LCCFWSP_CLAUDE_BINARY_PATH", false)
-        .add("LCCFWSP_CLAUDE_DEFAULT_MODEL", false)
-        .add("LCCFWSP_CLAUDE_DEFAULT_EFFORT", false, ["low", "medium", "high", "xhigh", "max"])
-        .add("LCCFWSP_CLAUDE_ALLOWED_TOOLS", false)
-        .add("LCCFWSP_CLAUDE_MAX_TURNS", false)
-        .add("LCCFWSP_CLAUDE_MAX_BUDGET_USD", false)
     ;
 
 
