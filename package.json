@@ -1,0 +1,41 @@
+{
+    "name": "leicraftmc-status-page",
+    "type": "module",
+    "private": true,
+    "scripts": {
+        "db:generate": "bun scripts/db-utils && bunx --bun drizzle-kit generate --config=drizzle.config.ts",
+        "db:migrate": "bun scripts/db-utils && bunx --bun drizzle-kit migrate --config=drizzle.config.ts",
+        "build": "nuxt build",
+        "start": "PORT=12336 bun run .output/server/index.mjs",
+        "dev": "bunx --bun nuxt dev --port=12336",
+        "generate": "bunx --bun nuxt generate",
+        "preview": "bunx --bun nuxt preview",
+        "postinstall": "bunx --bun nuxt prepare",
+        "api-client:generate": "bun run scripts/api-client-generate.ts",
+        "typecheck": "bunx --bun nuxt typecheck && bunx --bun tsc -p ./tsconfig/tsconfig.typecheck.json && echo 'Typecheck passed!'",
+        "test": "bun test"
+    },
+    "dependencies": {
+        "@hey-api/nuxt": "^0.2.1",
+        "@hey-api/openapi-ts": "^0.99.0",
+        "@nuxt/ui": "^4.9.0",
+        "@scalar/hono-api-reference": "^0.11.7",
+        "bun-types": "^1.3.14",
+        "drizzle-kit": "^0.31.10",
+        "drizzle-orm": "^0.45.2",
+        "drizzle-zod": "^0.8.3",
+        "hono": "^4.12.27",
+        "hono-openapi": "^1.3.0",
+        "nuxt": "^4.4.8",
+        "typescript": "^6.0.3",
+        "vue": "^3.5.39",
+        "vue-router": "^5.1.0",
+        "zod": "^4.4.3"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^5.20260705.1",
+        "@iconify-json/lucide": "^1.2.115",
+        "@types/bun": "^1.3.14",
+        "vue-tsc": "^3.3.6"
+    }
+}

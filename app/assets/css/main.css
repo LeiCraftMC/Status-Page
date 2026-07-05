@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+    --font-sans: "Inter", "Rubik", sans-serif;
+}
+
+/* ===========================
+   Base & Reset Styles
+   =========================== */
+
+:root {
+    color-scheme: dark;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.main-bg-color {
+    background-color: rgb(2 6 23);
+}
