@@ -232,7 +232,7 @@ async function onDeleteAccount() {
 		<DashboardDeleteModal
 			v-model:open="deleteConfirmOpen"
 			title="Delete Account"
-			warning-text="Your account and all associated data — including your Claude Code sessions and projects — will be permanently deleted. This action cannot be reversed."
+			warning-text="Your account and all associated data — will be permanently deleted. This action cannot be reversed."
 			:on-delete="onDeleteAccount"
 		/>
 	</div>
