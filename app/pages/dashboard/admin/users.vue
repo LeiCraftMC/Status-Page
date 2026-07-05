@@ -42,8 +42,7 @@ const userColumns: TableColumn<AdminUser>[] = [
 
 const roleOptions = [
     { label: "Admin", value: "admin" },
-    { label: "Developer", value: "developer" },
-    { label: "User", value: "user" },
+    { label: "Member", value: "member" },
 ];
 
 const {
@@ -104,13 +103,13 @@ const createForm = reactive<CreateSchema>({
     display_name: "",
     email: "",
     password: "",
-    role: "developer",
+    role: "member",
 });
 
 const editForm = reactive({
     display_name: "",
     email: "",
-    role: "developer" as "admin" | "developer" | "user",
+    role: "member" as "admin" | "member",
 });
 
 const passwordForm = reactive({
@@ -130,7 +129,7 @@ async function handleCreate(event: FormSubmitEvent<CreateSchema>) {
         createForm.display_name = "";
         createForm.email = "";
         createForm.password = "";
-        createForm.role = "developer";
+        createForm.role = "member";
 
         toast.add({
             title: "User created",
@@ -272,8 +271,7 @@ async function onDeleteUser() {
                             icon: 'i-lucide-filter',
                             options: [
                                 { label: 'Admin', value: 'admin' },
-                                { label: 'Developer', value: 'developer' },
-                                { label: 'User', value: 'user' },
+                                { label: 'Member', value: 'member' },
                             ],
                         },
                     ]"

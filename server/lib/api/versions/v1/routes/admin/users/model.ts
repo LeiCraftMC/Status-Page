@@ -12,7 +12,7 @@ export namespace UsersModel {
 
     export namespace GetAll {
         export const Query = z.object({
-            role: z.enum(['admin', 'developer', 'user']).optional(),
+            role: z.enum(['admin', 'member']).optional(),
             search: z.string().min(1).max(64).optional(),
             limit: z.coerce.number().int().min(1).max(100).optional(),
             offset: z.coerce.number().int().min(0).optional(),

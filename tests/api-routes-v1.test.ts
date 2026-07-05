@@ -13,7 +13,7 @@ let testUser: SeededUser;
 let testAdmin: SeededUser;
 
 beforeAll(async () => {
-    testUser = await seedUser("user", { username: "testuser" }, "UserP@ss1");
+    testUser = await seedUser("member", { username: "testuser" }, "UserP@ss1");
     testAdmin = await seedUser("admin", { username: "testadmin" }, "AdminP@ss1");
 });
 
@@ -26,7 +26,7 @@ describe("Auth routes", async () => {
             body: { username: testUser.username, password: testUser.password }
         });
 
-        expect(data.token.startsWith("mc_sess_")).toBe(true);
+        expect(data.token.startsWith("lccfwsp_sess_")).toBe(true);
         sessionToken = data.token;
 
         const session = await AuthHandler.getAuthContext(data.token);
@@ -34,7 +34,7 @@ describe("Auth routes", async () => {
         if (!session) return;
 
         expect(session.user_id).toBe(testUser.id);
-        expect(session.user_role).toBe("user");
+        expect(session.user_role).toBe("member");
         expect(session.type).toBe("session");
         expect(session.expires_at).toBeGreaterThan(Date.now());
 
@@ -43,7 +43,7 @@ describe("Auth routes", async () => {
         if (!tokenParts) return;
 
         expect(await AuthUtils.verifyHashedTokenBase(tokenParts.base, session.hashed_token)).toBe(true);
-        expect(tokenParts.prefix).toBe("mc_sess_");
+        expect(tokenParts.prefix).toBe("lccfwsp_sess_");
         expect(tokenParts.id).toBe(session.id);
     });
 
@@ -60,7 +60,7 @@ describe("Auth routes", async () => {
         });
 
         expect(data.user_id).toBe(testUser.id);
-        expect(data.user_role).toBe("user");
+        expect(data.user_role).toBe("member");
     });
 
     test("GET /auth/session with invalid token fails", async () => {
@@ -104,7 +104,7 @@ describe("Account routes", async () => {
         expect(data.username).toBe(testUser.username);
         expect(data.display_name).toBe(testUser.display_name);
         expect(data.email).toBe(testUser.email);
-        expect(data.role).toBe("user");
+        expect(data.role).toBe("member");
     });
 
     test("PUT /account updates profile fields", async () => {
@@ -139,7 +139,7 @@ describe("Account routes", async () => {
         }, 400);
 
         const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
-        expect(dbresult?.role).toBe("user");
+        expect(dbresult?.role).toBe("member");
     });
 
     test("PUT /account/password rotates credentials and invalidates old sessions", async () => {
@@ -171,12 +171,12 @@ describe("Account routes", async () => {
             body: { username: testUser.username, password: newPassword }
         });
 
-        expect(data.token.startsWith("mc_sess_")).toBe(true);
+        expect(data.token.startsWith("lccfwsp_sess_")).toBe(true);
         sessionToken = data.token;
     });
 
     test("DELETE /account removes user", async () => {
-        const tempUser = await seedUser("user", {}, "DeleteP@ss1");
+        const tempUser = await seedUser("member", {}, "DeleteP@ss1");
         const tempToken = await seedSession(tempUser.id);
 
         await makeAPIRequest("/v1/account", {
@@ -221,12 +221,12 @@ describe("Admin users routes", async () => {
                 display_name: "Created User",
                 email: `${randomUUID()}@example.com`,
                 password: "CreatedP@ss1",
-                role: "user"
+                role: "member"
             }
         });
 
         expect(created.username).toBe(username);
-        expect(created.role).toBe("user");
+        expect(created.role).toBe("member");
     });
 
     test("GET /admin/users/:userId returns user details", async () => {
@@ -239,7 +239,7 @@ describe("Admin users routes", async () => {
     });
 
     test("PUT /admin/users/:userId updates user role", async () => {
-        const target = await seedUser("user", {}, "RoleP@ss1");
+        const target = await seedUser("member", {}, "RoleP@ss1");
 
         const updated = await makeAPIRequest(`/v1/admin/users/${target.id}`, {
             method: "PUT",
@@ -251,7 +251,7 @@ describe("Admin users routes", async () => {
     });
 
     test("DELETE /admin/users/:userId removes user", async () => {
-        const target = await seedUser("user", {}, "DeleteAdminP@ss1");
+        const target = await seedUser("member", {}, "DeleteAdminP@ss1");
 
         await makeAPIRequest(`/v1/admin/users/${target.id}`, {
             method: "DELETE",

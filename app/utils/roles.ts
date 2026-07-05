@@ -6,7 +6,7 @@ export function getRoleColor(role: string | null | undefined): 'error' | 'primar
     switch (role) {
         case 'admin':
             return 'error';
-        case 'developer':
+        case 'member':
             return 'primary';
         default:
             return 'neutral';

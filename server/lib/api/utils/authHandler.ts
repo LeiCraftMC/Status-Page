@@ -58,7 +58,7 @@ export class AuthUtils {
 
 export class SessionHandler {
 
-    static readonly SESSION_TOKEN_PREFIX = "mc_sess_";
+    static readonly SESSION_TOKEN_PREFIX = "lccfwsp_sess_";
 
     static async createSession(userID: number) {
 
@@ -75,7 +75,7 @@ export class SessionHandler {
             id: tokenID,
             hashed_token: await AuthUtils.hashTokenBase(tokenBase),
             user_id: userID,
-            user_role: await AuthUtils.getUserRole(userID) || 'user',
+            user_role: await AuthUtils.getUserRole(userID) || 'member',
             expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).getTime() // 7 days from now
         }).returning().get();
 

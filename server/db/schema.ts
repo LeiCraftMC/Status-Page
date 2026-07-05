@@ -21,7 +21,7 @@ export const users = sqliteTable('users', {
 
     role: text({
         enum: UserAccountSettings.Roles
-    }).default("user").notNull(),
+    }).default("member").notNull(),
 
     created_at: SQLUtils.getCreatedAtColumn(),
 });

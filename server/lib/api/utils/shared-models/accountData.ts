@@ -29,7 +29,7 @@ export namespace UserDataPolicys {
 
 export namespace UserAccountSettings {
 
-    export const Roles = ['admin', 'developer', 'user'] as const;
+    export const Roles = ['admin', 'member'] as const;
     export const Role = z.enum(Roles);
     export type Role = z.infer<typeof Role>;
 

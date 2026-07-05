@@ -7,7 +7,7 @@ export type SeededUser = Omit<DB.Models.User, "password_hash"> & { password: str
 const DEFAULT_PASSWORD = "TestP@ssw0rd";
 
 export async function seedUser(
-    role: DB.Models.User["role"] = "user",
+    role: DB.Models.User["role"] = "member",
     overrides: Partial<DB.Models.User> = {},
     password: string = DEFAULT_PASSWORD
 ): Promise<SeededUser> {
