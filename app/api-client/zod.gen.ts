@@ -267,6 +267,560 @@ export const zPutAdminUsersByUserIdPasswordResponse = z.object({
     data: z.null()
 });
 
+/**
+ * Monitors retrieved successfully
+ */
+export const zGetAdminMonitorsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitors retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zPostAdminMonitorsBody = z.object({
+    name: z.string().min(1).max(64),
+    type: z.enum(['http', 'tcp']),
+    target: z.string().min(1).max(512),
+    interval_seconds: z.int().gte(60).lte(3600),
+    timeout_seconds: z.int().gte(1).lte(300),
+    http_method: z.enum([
+        'GET',
+        'HEAD',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE',
+        'OPTIONS'
+    ]).optional(),
+    expected_http_status: z.int().gte(100).lte(599).optional(),
+    follow_redirects: z.boolean().optional(),
+    verify_tls: z.boolean().optional(),
+    is_enabled: z.boolean().optional()
+});
+
+/**
+ * Monitor created successfully
+ */
+export const zPostAdminMonitorsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Monitor created successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zDeleteAdminMonitorsByMonitorIdPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor deleted successfully
+ */
+export const zDeleteAdminMonitorsByMonitorIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor deleted successfully'),
+    data: z.null()
+});
+
+export const zGetAdminMonitorsByMonitorIdPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor retrieved successfully
+ */
+export const zGetAdminMonitorsByMonitorIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor retrieved successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zPutAdminMonitorsByMonitorIdBody = z.object({
+    name: z.string().min(1).max(64).optional(),
+    type: z.enum(['http', 'tcp']).optional(),
+    target: z.string().min(1).max(512).optional(),
+    interval_seconds: z.int().gte(60).lte(3600).optional(),
+    timeout_seconds: z.int().gte(1).lte(300).optional(),
+    http_method: z.enum([
+        'GET',
+        'HEAD',
+        'POST',
+        'PUT',
+        'PATCH',
+        'DELETE',
+        'OPTIONS'
+    ]).optional(),
+    expected_http_status: z.int().gte(100).lte(599).optional(),
+    follow_redirects: z.boolean().optional(),
+    verify_tls: z.boolean().optional(),
+    is_enabled: z.boolean().optional()
+});
+
+export const zPutAdminMonitorsByMonitorIdPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor updated successfully
+ */
+export const zPutAdminMonitorsByMonitorIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor updated successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zPostAdminMonitorsByMonitorIdCheckPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor check completed
+ */
+export const zPostAdminMonitorsByMonitorIdCheckResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor check completed'),
+    data: z.object({
+        check: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            response_time_ms: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            checked_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })
+    })
+});
+
+/**
+ * Status pages retrieved successfully
+ */
+export const zGetAdminStatusPagesResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status pages retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        slug: z.string(),
+        title: z.string(),
+        description: z.string().nullable(),
+        is_public: z.boolean(),
+        is_enabled: z.boolean(),
+        theme: z.enum([
+            'light',
+            'dark',
+            'auto'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zPostAdminStatusPagesBody = z.object({
+    slug: z.string().min(1).max(64).regex(/^[a-z0-9-]+$/),
+    title: z.string().min(1).max(128),
+    description: z.string().max(512).optional(),
+    is_public: z.boolean().optional(),
+    is_enabled: z.boolean().optional(),
+    theme: z.enum([
+        'light',
+        'dark',
+        'auto'
+    ]).optional()
+});
+
+/**
+ * Status page created successfully
+ */
+export const zPostAdminStatusPagesResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Status page created successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        slug: z.string(),
+        title: z.string(),
+        description: z.string().nullable(),
+        is_public: z.boolean(),
+        is_enabled: z.boolean(),
+        theme: z.enum([
+            'light',
+            'dark',
+            'auto'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zDeleteAdminStatusPagesByPageIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Status page deleted successfully
+ */
+export const zDeleteAdminStatusPagesByPageIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status page deleted successfully'),
+    data: z.null()
+});
+
+export const zGetAdminStatusPagesByPageIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Status page retrieved successfully
+ */
+export const zGetAdminStatusPagesByPageIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status page retrieved successfully'),
+    data: z.object({
+        page: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            slug: z.string(),
+            title: z.string(),
+            description: z.string().nullable(),
+            is_public: z.boolean(),
+            is_enabled: z.boolean(),
+            theme: z.enum([
+                'light',
+                'dark',
+                'auto'
+            ]),
+            created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        groups: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            name: z.string(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })),
+        links: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            display_name: z.string().nullable(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_name: z.string()
+        }))
+    })
+});
+
+export const zPutAdminStatusPagesByPageIdBody = z.object({
+    slug: z.string().min(1).max(64).regex(/^[a-z0-9-]+$/).optional(),
+    title: z.string().min(1).max(128).optional(),
+    description: z.string().max(512).optional(),
+    is_public: z.boolean().optional(),
+    is_enabled: z.boolean().optional(),
+    theme: z.enum([
+        'light',
+        'dark',
+        'auto'
+    ]).optional()
+});
+
+export const zPutAdminStatusPagesByPageIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Status page updated successfully
+ */
+export const zPutAdminStatusPagesByPageIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status page updated successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        slug: z.string(),
+        title: z.string(),
+        description: z.string().nullable(),
+        is_public: z.boolean(),
+        is_enabled: z.boolean(),
+        theme: z.enum([
+            'light',
+            'dark',
+            'auto'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zPostAdminStatusPagesByPageIdGroupsBody = z.object({
+    name: z.string().min(1).max(128),
+    sort_order: z.int().gte(-9007199254740991).lte(9007199254740991).optional().default(0)
+});
+
+export const zPostAdminStatusPagesByPageIdGroupsPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Group created successfully
+ */
+export const zPostAdminStatusPagesByPageIdGroupsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Group created successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zDeleteAdminStatusPagesByPageIdGroupsByGroupIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991),
+    groupId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Group deleted successfully
+ */
+export const zDeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Group deleted successfully'),
+    data: z.null()
+});
+
+export const zPutAdminStatusPagesByPageIdGroupsByGroupIdBody = z.object({
+    name: z.string().min(1).max(128).optional(),
+    sort_order: z.int().gte(-9007199254740991).lte(9007199254740991).optional()
+});
+
+export const zPutAdminStatusPagesByPageIdGroupsByGroupIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991),
+    groupId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Group updated successfully
+ */
+export const zPutAdminStatusPagesByPageIdGroupsByGroupIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Group updated successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zPostAdminStatusPagesByPageIdMonitorsBody = z.object({
+    monitor_id: z.int().gt(0).lte(9007199254740991),
+    group_id: z.int().gt(0).lte(9007199254740991).optional(),
+    display_name: z.string().min(1).max(128).optional(),
+    sort_order: z.int().gte(-9007199254740991).lte(9007199254740991).optional().default(0)
+});
+
+export const zPostAdminStatusPagesByPageIdMonitorsPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor linked successfully
+ */
+export const zPostAdminStatusPagesByPageIdMonitorsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Monitor linked successfully'),
+    data: z.object({
+        link: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            display_name: z.string().nullable(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })
+    })
+});
+
+export const zDeleteAdminStatusPagesByPageIdMonitorsByLinkIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991),
+    linkId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor unlinked successfully
+ */
+export const zDeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor unlinked successfully'),
+    data: z.null()
+});
+
+export const zPutAdminStatusPagesByPageIdMonitorsByLinkIdBody = z.object({
+    group_id: z.int().gt(0).lte(9007199254740991).nullish(),
+    display_name: z.string().min(1).max(128).nullish(),
+    sort_order: z.int().gte(-9007199254740991).lte(9007199254740991).optional()
+});
+
+export const zPutAdminStatusPagesByPageIdMonitorsByLinkIdPath = z.object({
+    pageId: z.int().gt(0).lte(9007199254740991),
+    linkId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor link updated successfully
+ */
+export const zPutAdminStatusPagesByPageIdMonitorsByLinkIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor link updated successfully'),
+    data: z.object({
+        link: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            display_name: z.string().nullable(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+        })
+    })
+});
+
+/**
+ * Settings retrieved successfully
+ */
+export const zGetAdminSettingsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Settings retrieved successfully'),
+    data: z.object({
+        root_status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        default_theme: z.enum([
+            'light',
+            'dark',
+            'auto'
+        ])
+    })
+});
+
+export const zPutAdminSettingsBody = z.object({
+    root_status_page_id: z.int().gt(0).lte(9007199254740991).nullish(),
+    default_theme: z.enum([
+        'light',
+        'dark',
+        'auto'
+    ]).optional()
+});
+
+/**
+ * Settings updated successfully
+ */
+export const zPutAdminSettingsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Settings updated successfully'),
+    data: z.object({
+        root_status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        default_theme: z.enum([
+            'light',
+            'dark',
+            'auto'
+        ])
+    })
+});
+
 export const zGetUsersSearchQuery = z.object({
     q: z.string().min(1).max(64)
 });
@@ -283,4 +837,873 @@ export const zGetUsersSearchResponse = z.object({
         username: z.string(),
         display_name: z.string()
     }))
+});
+
+/**
+ * Monitors retrieved successfully
+ */
+export const zGetMonitorsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitors retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        latest_check: z.object({
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            response_time_ms: z.number().nullable(),
+            checked_at: z.number().nullable()
+        }).nullable()
+    }))
+});
+
+export const zGetMonitorsByMonitorIdPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor retrieved successfully
+ */
+export const zGetMonitorsByMonitorIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor retrieved successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        latest_check: z.object({
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            response_time_ms: z.number().nullable(),
+            checked_at: z.number().nullable()
+        }).nullable(),
+        recent_checks: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            response_time_ms: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            checked_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }))
+    })
+});
+
+/**
+ * Status pages retrieved successfully
+ */
+export const zGetStatusPagesResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status pages retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        slug: z.string(),
+        title: z.string(),
+        description: z.string().nullable(),
+        is_public: z.boolean(),
+        is_enabled: z.boolean(),
+        theme: z.enum([
+            'light',
+            'dark',
+            'auto'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zGetStatusPagesBySlugIncidentsPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Incidents retrieved successfully
+ */
+export const zGetStatusPagesBySlugIncidentsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Incidents retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'investigating',
+            'identified',
+            'monitoring',
+            'resolved'
+        ]),
+        severity: z.enum([
+            'critical',
+            'major',
+            'minor',
+            'maintenance'
+        ]),
+        is_resolved: z.boolean(),
+        started_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        resolved_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zPostStatusPagesBySlugIncidentsBody = z.object({
+    title: z.string().min(1).max(128),
+    message: z.string().min(1).max(4096),
+    status: z.enum([
+        'investigating',
+        'identified',
+        'monitoring',
+        'resolved'
+    ]),
+    severity: z.enum([
+        'critical',
+        'major',
+        'minor',
+        'maintenance'
+    ])
+});
+
+export const zPostStatusPagesBySlugIncidentsPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Incident created successfully
+ */
+export const zPostStatusPagesBySlugIncidentsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Incident created successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'investigating',
+            'identified',
+            'monitoring',
+            'resolved'
+        ]),
+        severity: z.enum([
+            'critical',
+            'major',
+            'minor',
+            'maintenance'
+        ]),
+        is_resolved: z.boolean(),
+        started_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        resolved_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zDeleteStatusPagesBySlugIncidentsByIncidentIdPath = z.object({
+    slug: z.string().min(1),
+    incidentId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Incident deleted successfully
+ */
+export const zDeleteStatusPagesBySlugIncidentsByIncidentIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Incident deleted successfully'),
+    data: z.null()
+});
+
+export const zPutStatusPagesBySlugIncidentsByIncidentIdBody = z.object({
+    title: z.string().min(1).max(128).optional(),
+    message: z.string().min(1).max(4096).optional(),
+    status: z.enum([
+        'investigating',
+        'identified',
+        'monitoring',
+        'resolved'
+    ]).optional(),
+    severity: z.enum([
+        'critical',
+        'major',
+        'minor',
+        'maintenance'
+    ]).optional(),
+    is_resolved: z.boolean().optional()
+});
+
+export const zPutStatusPagesBySlugIncidentsByIncidentIdPath = z.object({
+    slug: z.string().min(1),
+    incidentId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Incident updated successfully
+ */
+export const zPutStatusPagesBySlugIncidentsByIncidentIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Incident updated successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'investigating',
+            'identified',
+            'monitoring',
+            'resolved'
+        ]),
+        severity: z.enum([
+            'critical',
+            'major',
+            'minor',
+            'maintenance'
+        ]),
+        is_resolved: z.boolean(),
+        started_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        resolved_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zGetStatusPagesBySlugMaintenancePath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Maintenance retrieved successfully
+ */
+export const zGetStatusPagesBySlugMaintenanceResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Maintenance retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'scheduled',
+            'in_progress',
+            'completed',
+            'cancelled'
+        ]),
+        scheduled_start_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        scheduled_end_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zPostStatusPagesBySlugMaintenanceBody = z.object({
+    title: z.string().min(1).max(128),
+    message: z.string().min(1).max(4096),
+    status: z.enum([
+        'scheduled',
+        'in_progress',
+        'completed',
+        'cancelled'
+    ]),
+    scheduled_start_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+    scheduled_end_at: z.int().gte(-9007199254740991).lte(9007199254740991).optional()
+});
+
+export const zPostStatusPagesBySlugMaintenancePath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Maintenance created successfully
+ */
+export const zPostStatusPagesBySlugMaintenanceResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Maintenance created successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'scheduled',
+            'in_progress',
+            'completed',
+            'cancelled'
+        ]),
+        scheduled_start_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        scheduled_end_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zDeleteStatusPagesBySlugMaintenanceByMaintenanceIdPath = z.object({
+    slug: z.string().min(1),
+    maintenanceId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Maintenance deleted successfully
+ */
+export const zDeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Maintenance deleted successfully'),
+    data: z.null()
+});
+
+export const zPutStatusPagesBySlugMaintenanceByMaintenanceIdBody = z.object({
+    title: z.string().min(1).max(128).optional(),
+    message: z.string().min(1).max(4096).optional(),
+    status: z.enum([
+        'scheduled',
+        'in_progress',
+        'completed',
+        'cancelled'
+    ]).optional(),
+    scheduled_start_at: z.int().gte(-9007199254740991).lte(9007199254740991).optional(),
+    scheduled_end_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullish()
+});
+
+export const zPutStatusPagesBySlugMaintenanceByMaintenanceIdPath = z.object({
+    slug: z.string().min(1),
+    maintenanceId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Maintenance updated successfully
+ */
+export const zPutStatusPagesBySlugMaintenanceByMaintenanceIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Maintenance updated successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'scheduled',
+            'in_progress',
+            'completed',
+            'cancelled'
+        ]),
+        scheduled_start_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        scheduled_end_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zGetStatusPagesBySlugUpdatesPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Updates retrieved successfully
+ */
+export const zGetStatusPagesBySlugUpdatesResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Updates retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        type: z.enum([
+            'general',
+            'incident',
+            'maintenance'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zPostStatusPagesBySlugUpdatesBody = z.object({
+    title: z.string().min(1).max(128),
+    message: z.string().min(1).max(4096),
+    type: z.enum([
+        'general',
+        'incident',
+        'maintenance'
+    ])
+});
+
+export const zPostStatusPagesBySlugUpdatesPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Update created successfully
+ */
+export const zPostStatusPagesBySlugUpdatesResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(201),
+    message: z.literal('Update created successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        type: z.enum([
+            'general',
+            'incident',
+            'maintenance'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zDeleteStatusPagesBySlugUpdatesByUpdateIdPath = z.object({
+    slug: z.string().min(1),
+    updateId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Update deleted successfully
+ */
+export const zDeleteStatusPagesBySlugUpdatesByUpdateIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Update deleted successfully'),
+    data: z.null()
+});
+
+export const zPutStatusPagesBySlugUpdatesByUpdateIdBody = z.object({
+    title: z.string().min(1).max(128).optional(),
+    message: z.string().min(1).max(4096).optional(),
+    type: z.enum([
+        'general',
+        'incident',
+        'maintenance'
+    ]).optional()
+});
+
+export const zPutStatusPagesBySlugUpdatesByUpdateIdPath = z.object({
+    slug: z.string().min(1),
+    updateId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Update updated successfully
+ */
+export const zPutStatusPagesBySlugUpdatesByUpdateIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Update updated successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        type: z.enum([
+            'general',
+            'incident',
+            'maintenance'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zGetStatusPagesBySlugPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Status page retrieved successfully
+ */
+export const zGetStatusPagesBySlugResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status page retrieved successfully'),
+    data: z.object({
+        page: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            slug: z.string(),
+            title: z.string(),
+            description: z.string().nullable(),
+            is_public: z.boolean(),
+            is_enabled: z.boolean(),
+            theme: z.enum([
+                'light',
+                'dark',
+                'auto'
+            ]),
+            created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        groups: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            sort_order: z.number(),
+            monitors: z.array(z.object({
+                id: z.number(),
+                name: z.string(),
+                type: z.enum(['http', 'tcp']),
+                target: z.string(),
+                display_name: z.string().nullable(),
+                sort_order: z.number(),
+                latest_check: z.object({
+                    status: z.enum([
+                        'up',
+                        'down',
+                        'degraded',
+                        'unknown'
+                    ]),
+                    response_time_ms: z.number().nullable(),
+                    checked_at: z.number().nullable()
+                }).nullable()
+            }))
+        })),
+        ungrouped: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            type: z.enum(['http', 'tcp']),
+            target: z.string(),
+            display_name: z.string().nullable(),
+            sort_order: z.number(),
+            latest_check: z.object({
+                status: z.enum([
+                    'up',
+                    'down',
+                    'degraded',
+                    'unknown'
+                ]),
+                response_time_ms: z.number().nullable(),
+                checked_at: z.number().nullable()
+            }).nullable()
+        }))
+    })
+});
+
+/**
+ * Root status page retrieved successfully
+ */
+export const zGetPublicStatusPagesRootResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Root status page retrieved successfully'),
+    data: z.object({
+        page: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            slug: z.string(),
+            title: z.string(),
+            description: z.string().nullable(),
+            is_public: z.boolean(),
+            is_enabled: z.boolean(),
+            theme: z.enum([
+                'light',
+                'dark',
+                'auto'
+            ]),
+            created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        groups: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            sort_order: z.number(),
+            monitors: z.array(z.object({
+                id: z.number(),
+                name: z.string(),
+                type: z.enum(['http', 'tcp']),
+                target: z.string(),
+                display_name: z.string().nullable(),
+                sort_order: z.number(),
+                latest_check: z.object({
+                    status: z.enum([
+                        'up',
+                        'down',
+                        'degraded',
+                        'unknown'
+                    ]),
+                    response_time_ms: z.number().nullable(),
+                    checked_at: z.number().nullable()
+                }).nullable()
+            }))
+        })),
+        ungrouped: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            type: z.enum(['http', 'tcp']),
+            target: z.string(),
+            display_name: z.string().nullable(),
+            sort_order: z.number(),
+            latest_check: z.object({
+                status: z.enum([
+                    'up',
+                    'down',
+                    'degraded',
+                    'unknown'
+                ]),
+                response_time_ms: z.number().nullable(),
+                checked_at: z.number().nullable()
+            }).nullable()
+        }))
+    })
+});
+
+export const zGetPublicStatusPagesBySlugIncidentsPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Incidents retrieved successfully
+ */
+export const zGetPublicStatusPagesBySlugIncidentsResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Incidents retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'investigating',
+            'identified',
+            'monitoring',
+            'resolved'
+        ]),
+        severity: z.enum([
+            'critical',
+            'major',
+            'minor',
+            'maintenance'
+        ]),
+        is_resolved: z.boolean(),
+        started_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        resolved_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zGetPublicStatusPagesBySlugMaintenancePath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Maintenance retrieved successfully
+ */
+export const zGetPublicStatusPagesBySlugMaintenanceResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Maintenance retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        status: z.enum([
+            'scheduled',
+            'in_progress',
+            'completed',
+            'cancelled'
+        ]),
+        scheduled_start_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        scheduled_end_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zGetPublicStatusPagesBySlugUpdatesPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Updates retrieved successfully
+ */
+export const zGetPublicStatusPagesBySlugUpdatesResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Updates retrieved successfully'),
+    data: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        status_page_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        title: z.string(),
+        message: z.string(),
+        type: z.enum([
+            'general',
+            'incident',
+            'maintenance'
+        ]),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+export const zGetPublicStatusPagesBySlugPath = z.object({
+    slug: z.string().min(1)
+});
+
+/**
+ * Status page retrieved successfully
+ */
+export const zGetPublicStatusPagesBySlugResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Status page retrieved successfully'),
+    data: z.object({
+        page: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            slug: z.string(),
+            title: z.string(),
+            description: z.string().nullable(),
+            is_public: z.boolean(),
+            is_enabled: z.boolean(),
+            theme: z.enum([
+                'light',
+                'dark',
+                'auto'
+            ]),
+            created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        groups: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            sort_order: z.number(),
+            monitors: z.array(z.object({
+                id: z.number(),
+                name: z.string(),
+                type: z.enum(['http', 'tcp']),
+                target: z.string(),
+                display_name: z.string().nullable(),
+                sort_order: z.number(),
+                latest_check: z.object({
+                    status: z.enum([
+                        'up',
+                        'down',
+                        'degraded',
+                        'unknown'
+                    ]),
+                    response_time_ms: z.number().nullable(),
+                    checked_at: z.number().nullable()
+                }).nullable()
+            }))
+        })),
+        ungrouped: z.array(z.object({
+            id: z.number(),
+            name: z.string(),
+            type: z.enum(['http', 'tcp']),
+            target: z.string(),
+            display_name: z.string().nullable(),
+            sort_order: z.number(),
+            latest_check: z.object({
+                status: z.enum([
+                    'up',
+                    'down',
+                    'degraded',
+                    'unknown'
+                ]),
+                response_time_ms: z.number().nullable(),
+                checked_at: z.number().nullable()
+            }).nullable()
+        }))
+    })
+});
+
+export const zGetPublicMonitorsByMonitorIdPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor retrieved successfully
+ */
+export const zGetPublicMonitorsByMonitorIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor retrieved successfully'),
+    data: z.object({
+        monitor: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            name: z.string(),
+            type: z.enum(['http', 'tcp']),
+            target: z.string(),
+            interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+            timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+            http_method: z.enum([
+                'GET',
+                'HEAD',
+                'POST',
+                'PUT',
+                'PATCH',
+                'DELETE',
+                'OPTIONS'
+            ]).nullable(),
+            expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            follow_redirects: z.boolean(),
+            verify_tls: z.boolean(),
+            is_enabled: z.boolean(),
+            created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }),
+        latest_check: z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            response_time_ms: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            checked_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }).nullable()
+    })
 });

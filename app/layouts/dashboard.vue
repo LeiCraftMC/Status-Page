@@ -4,7 +4,6 @@ import UserMenu from "~/components/dashboard/UserMenu.vue";
 import LeiCraftMCLogo from "~/components/img/LeiCraftMCLogo.vue";
 import LeiCraftMCIcon from "~/components/img/LeiCraftMCIcon.vue";
 import { useUserInfoStore } from "~/composables/stores/useUserStore";
-import { safeDecodeURIComponent } from "~/utils/url";
 
 const route = useRoute();
 
@@ -13,73 +12,83 @@ const user = await userInfoStore.use();
 
 const isAdmin = computed(() => user.value?.role === "admin");
 
-
-
-const sidebarItems = computed(() => {
-
-    const basicItems: NavigationMenuItem[] = [
-        {
-            label: "No Project Selected",
-            icon: "i-lucide-folder",
-            type: "label"
-        },
-        {
-            label: 'No Session to show',
-            icon: 'i-lucide-message-square',
-            exact: false,
-        }
-    ];
-
-    const adminItems: NavigationMenuItem[] = [
-        {
-            label: "Admin",
-            icon: "i-lucide-shield",
-            type: "label"
-        },
-        {
-            label: "Users",
-            icon: "i-lucide-users",
-            to: "/admin/users",
-        },
-    ];
-
-
-    const settings: NavigationMenuItem[] = [
-        {
-            label: "Settings",
-            icon: "i-lucide-settings",
-            type: "label",
-        },
-        {
-            label: "General",
-            icon: "i-lucide-user",
-            to: "/settings",
-            exact: true,
-        },
-        {
-            label: "Security",
-            icon: "i-lucide-shield",
-            to: "/settings/security",
-        }
-    ];
-
-    return {
-        basic: basicItems,
-
-        settings: settings,
-        admin: adminItems,
+const projectItems = computed<NavigationMenuItem[]>(() => [
+    {
+        label: "Project",
+        icon: "i-lucide-folder",
+        type: "label"
+    },
+    {
+        label: 'Dashboard',
+        icon: 'i-lucide-layout-dashboard',
+        to: '/dashboard',
+        exact: true,
+    },
+    {
+        label: 'Status Pages',
+        icon: 'i-lucide-layout-grid',
+        to: '/status-pages',
+    },
+    {
+        label: 'Monitors',
+        icon: 'i-lucide-heart-pulse',
+        to: '/monitors',
     }
-});
+]);
+
+const adminItems = computed<NavigationMenuItem[]>(() => [
+    {
+        label: "Admin",
+        icon: "i-lucide-shield",
+        type: "label"
+    },
+    {
+        label: "Users",
+        icon: "i-lucide-users",
+        to: "/admin/users",
+    },
+    {
+        label: "Monitors",
+        icon: "i-lucide-heart-pulse",
+        to: "/admin/monitors",
+    },
+    {
+        label: "Status Pages",
+        icon: "i-lucide-layout-grid",
+        to: "/admin/status-pages",
+    },
+    {
+        label: "Settings",
+        icon: "i-lucide-settings",
+        to: "/admin/settings",
+    },
+]);
+
+const settingsItems: NavigationMenuItem[] = [
+    {
+        label: "Settings",
+        icon: "i-lucide-settings",
+        type: "label",
+    },
+    {
+        label: "General",
+        icon: "i-lucide-user",
+        to: "/settings",
+        exact: true,
+    },
+    {
+        label: "Security",
+        icon: "i-lucide-shield",
+        to: "/settings/security",
+    }
+];
 
 const displaySidebars = computed(() => {
-
     const settingsSidebar = route.path.startsWith('/settings');
     const adminSidebar = route.path.startsWith('/admin');
-    const projectSidebar = !!route.params.absolute_path
 
     return {
-        basicSidebar: !settingsSidebar && !adminSidebar && !projectSidebar,
-        projectSidebar: projectSidebar,
+        projectSidebar: !settingsSidebar && !adminSidebar,
         settingsSidebar: settingsSidebar,
         adminSidebar: adminSidebar,
     }
@@ -115,25 +124,24 @@ const displaySidebars = computed(() => {
             </template>
 
             <template #default="{ collapsed }">
-
                 <UNavigationMenu
-                    v-if="displaySidebars.basicSidebar"
+                    v-if="displaySidebars.projectSidebar"
                     :collapsed="collapsed"
-                    :items="sidebarItems.basic"
+                    :items="projectItems"
                     orientation="vertical"
                 />
 
                 <UNavigationMenu
                     v-if="isAdmin && displaySidebars.adminSidebar"
                     :collapsed="collapsed"
-                    :items="sidebarItems.admin"
+                    :items="adminItems"
                     orientation="vertical"
                 />
 
                 <UNavigationMenu
                     v-if="displaySidebars.settingsSidebar"
                     :collapsed="collapsed"
-                    :items="sidebarItems.settings"
+                    :items="settingsItems"
                     orientation="vertical"
                 />
 
@@ -141,14 +149,13 @@ const displaySidebars = computed(() => {
                     v-if="displaySidebars.adminSidebar || displaySidebars.settingsSidebar"
                     :collapsed="collapsed"
                     :items="[{
-                        label: 'Go back to Project Selection',
+                        label: 'Go back to Dashboard',
                         icon: 'i-lucide-arrow-left',
-                        to: '/projects',
+                        to: '/dashboard',
                     }]"
                     orientation="vertical"
                     class="mt-auto"
                 />
-
             </template>
 
             <template #footer="{ collapsed }">

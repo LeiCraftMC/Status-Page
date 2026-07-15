@@ -24,6 +24,9 @@ export default defineNuxtConfig({
 		scheduledTasks: {
 			'* * * * *': 'check-monitors',
 		},
+		rollupConfig: {
+			external: ['bun:sqlite', 'cloudflare:sockets'],
+		},
 	},
 
 	runtimeConfig: {
