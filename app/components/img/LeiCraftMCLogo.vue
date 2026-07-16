@@ -6,6 +6,6 @@ import LCMCIcon from './LeiCraftMCIcon.vue';
 <template>
     <LCMCIcon class="w-10 h-10" />
     <span class="text-3xl font-extrabold">
-        LeiCraft_MC Status Page
+        LeiCraft_MC
     </span>
 </template>
