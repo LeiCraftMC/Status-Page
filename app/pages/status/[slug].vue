@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const route = useRoute()
 const slug = route.params.slug as string
-const colorMode = useColorMode()
+
 
 type PublicPage = GetPublicStatusPagesBySlugResponses[200]['data']
 type Incident = GetPublicStatusPagesBySlugIncidentsResponses[200]['data'][number]
@@ -71,16 +71,7 @@ const activeIncidents = computed(() => (incidents.data.value || []).filter(i => 
 const scheduledMaintenance = computed(() => (maintenance.data.value || []).filter(m => ['scheduled', 'in_progress'].includes(m.status)))
 const recentUpdates = computed(() => (updates.data.value || []).slice(0, 5))
 
-function applySiteTheme(theme: string | null | undefined) {
-    if (!theme || theme === 'auto') {
-        colorMode.preference = 'system'
-    } else {
-        colorMode.preference = theme as 'light' | 'dark'
-    }
-}
 
-const pageTheme = computed(() => pageDetails.value?.page.theme)
-watch(pageTheme, applySiteTheme, { immediate: true })
 </script>
 
 <template>

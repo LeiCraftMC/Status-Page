@@ -1,5 +1,4 @@
 <script setup lang="ts">
-const colorMode = useColorMode()
 
 type PublicPage = GetPublicStatusPagesRootResponses[200]['data']
 
@@ -41,13 +40,7 @@ const overallStatus = computed(() => {
     return 'unknown'
 })
 
-watch(() => pageDetails.value?.page.theme, (theme) => {
-    if (!theme || theme === 'auto') {
-        colorMode.preference = 'system'
-    } else {
-        colorMode.preference = theme as 'light' | 'dark'
-    }
-}, { immediate: true })
+
 </script>
 
 <template>

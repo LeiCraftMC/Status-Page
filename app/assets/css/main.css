@@ -2,7 +2,7 @@
 @import "@nuxt/ui";
 
 @theme {
-    --font-sans: "Inter", "Rubik", sans-serif;
+    --font-sans: "Rubik", sans-serif;
 }
 
 /* ===========================
