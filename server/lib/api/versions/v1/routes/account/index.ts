@@ -64,7 +64,8 @@ router.put('/',
 
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.successNoData("Account information updated successfully"), 
-            APIResponseSpec.unauthorized("Your Auth Context is not a session")
+            APIResponseSpec.unauthorized("Your Auth Context is not a session"),
+            APIResponseSpec.conflict("Username or email already in use")
         )
     }),
 

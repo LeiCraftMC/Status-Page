@@ -84,12 +84,12 @@ const items = computed<DropdownMenuItem[][]>(() => [
         {
             label: "Settings",
             icon: "i-lucide-settings",
-            to: "/settings",
+            to: "/dashboard/settings",
         },
         ...(isAdmin.value ? [{
             label: "Admin Panel",
             icon: "i-lucide-shield",
-            to: "/admin",
+            to: "/dashboard/admin",
         }] : []),
         
     ],

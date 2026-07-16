@@ -3,6 +3,10 @@ import * as z from 'zod'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import { useUserInfoStore } from '~/composables/stores/useUserStore';
 
+definePageMeta({
+	layout: 'dashboard',
+});
+
 useSeoMeta({
 	title: 'Settings | Dashboard | LeiCraft_MC Status Page',
 	description: 'Manage your account settings',
@@ -17,6 +21,8 @@ const profileSchema = z.object({
 		.max(50, 'Must be at most 50 characters')
 		.optional(),
 	email: z.email('Invalid email').trim(),
+	current_password: z.string()
+		.min(1, 'Current password is required to save changes'),
 })
 
 const userInfoStore = await useUserInfoStore();
@@ -33,6 +39,7 @@ const profile = reactive<Partial<ProfileSchema>>({
 	username: userInfo.value.username,
 	display_name: userInfo.value.display_name || '',
 	email: userInfo.value.email,
+	current_password: ''
 })
 
 const toast = useToast()
@@ -45,7 +52,8 @@ async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
 			body: {
 				username: event.data.username,
 				display_name: event.data.display_name || undefined,
-				email: event.data.email
+				email: event.data.email,
+				current_password: event.data.current_password
 			}
 		}))
 
@@ -62,6 +70,8 @@ async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
 				display_name: event.data.display_name || undefined,
 				email: event.data.email
 			});
+
+			profile.current_password = '';
 
 		} else {
 			toast.add({
@@ -145,8 +155,8 @@ async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
 								<UInput v-model="profile.display_name" placeholder="Enter display name" class="w-full sm:w-96" />
 							</UFormField>
 
-							<UFormField 
-								name="email" 
+							<UFormField
+								name="email"
 								label="Email"
 								description="Used to sign in and for notifications."
 								required
@@ -157,6 +167,20 @@ async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
 								}'
 							>
 								<UInput v-model="profile.email" type="email" placeholder="Enter email" class="w-full sm:w-96" />
+							</UFormField>
+
+							<UFormField
+								name="current_password"
+								label="Current Password"
+								description="Enter your current password to confirm changes."
+								required
+								class="flex max-sm:flex-col justify-between items-start gap-4 py-4 first:pt-0 last:pb-0"
+								:ui='{
+									root: "w-full sm:w-auto",
+									container: "w-full sm:w-auto",
+								}'
+							>
+								<UInput v-model="profile.current_password" type="password" placeholder="Enter current password" class="w-full sm:w-96" />
 							</UFormField>
 
 							<div class="pt-4">

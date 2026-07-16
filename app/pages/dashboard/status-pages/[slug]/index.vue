@@ -87,7 +87,7 @@ const overallStatus = computed(() => {
                                 label="Manage Content"
                                 icon="i-lucide-file-text"
                                 color="primary"
-                                :to="`/status-pages/${slug}/content`"
+                                :to="`/dashboard/status-pages/${slug}/content`"
                             />
                         </div>
                     </UCard>

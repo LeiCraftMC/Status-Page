@@ -3,6 +3,10 @@ import * as z from 'zod'
 import type { FormError, FormSubmitEvent } from '@nuxt/ui'
 import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
+definePageMeta({
+	layout: 'dashboard',
+});
+
 useSeoMeta({
 	title: 'Security | Dashboard | LeiCraft_MC Status Page',
 	description: 'Manage your account security',

@@ -382,7 +382,7 @@ function getUpdateItems(row: { original: GetStatusPagesBySlugUpdatesResponses[20
                 icon="i-lucide-file-text"
                 description="Manage incidents, maintenance, and updates"
                 :breadcrumb-items="[
-                    { label: 'Status Page', to: `/status-pages/${slug}`, icon: 'i-lucide-layout-grid' },
+                    { label: 'Status Page', to: `/dashboard/status-pages/${slug}`, icon: 'i-lucide-layout-grid' },
                     { label: 'Content', icon: 'i-lucide-file-text' }
                 ]"
             />

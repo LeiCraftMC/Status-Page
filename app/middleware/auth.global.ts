@@ -25,7 +25,7 @@ export default defineNuxtRouteMiddleware(async(to) => {
         return;
     }
 
-    if (to.path.startsWith('/') || to.path.startsWith('/code')) {
+    if (to.path.startsWith('/dashboard')) {
 
         if (!token) {
             return navigateTo('/auth/login?url=' + encodeURIComponent(to.fullPath));
@@ -40,7 +40,7 @@ export default defineNuxtRouteMiddleware(async(to) => {
             return navigateTo('/auth/login?url=' + encodeURIComponent(to.fullPath));
         }
 
-        if (to.path.startsWith('/admin')) {
+        if (to.path.startsWith('/dashboard/admin')) {
             // Check admin access
             if (user.value.role !== 'admin') {
                 return navigateTo('/');

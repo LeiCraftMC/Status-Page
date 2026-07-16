@@ -13,6 +13,7 @@ export default defineNitroPlugin(async (nitroApp) => {
 	await DB.init(
 		config.LCCFWSP_DB_PATH ?? './data/db.sqlite',
 		config.LCCFWSP_DB_AUTO_MIGRATE,
+		config.LCCFWSP_CONFIG_BASE_DIR
 	)
 
 	await API.init(config.LCCFWSP_API_DISABLE_DOCS === true)

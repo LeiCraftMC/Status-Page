@@ -100,8 +100,8 @@ const sidebarItems = computed(() => {
 
 const displaySidebars = computed(() => {
 
-    const settingsSidebar = route.path.startsWith('/settings');
-    const adminSidebar = route.path.startsWith('/admin');
+    const settingsSidebar = route.path.startsWith('/dashboard/settings');
+    const adminSidebar = route.path.startsWith('/dashboard/admin');
 
     return {
         basicSidebar: !settingsSidebar && !adminSidebar,

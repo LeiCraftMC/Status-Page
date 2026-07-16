@@ -85,17 +85,17 @@ const adminLinks: NavigationMenuItem[] = [
     {
         label: 'Monitors',
         icon: 'i-lucide-heart-pulse',
-        to: '/admin/monitors'
+        to: '/dashboard/admin/monitors'
     },
     {
         label: 'Status Pages',
         icon: 'i-lucide-layout-grid',
-        to: '/admin/status-pages'
+        to: '/dashboard/admin/status-pages'
     },
     {
         label: 'Settings',
         icon: 'i-lucide-settings',
-        to: '/admin/settings'
+        to: '/dashboard/admin/settings'
     }
 ]
 
@@ -201,7 +201,7 @@ function refreshAll() {
                             <NuxtLink
                                 v-for="page in statusPages"
                                 :key="page.id"
-                                :to="`/status-pages/${page.slug}`"
+                                :to="`/dashboard/status-pages/${page.slug}`"
                                 class="group block p-4 rounded-lg border border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 transition-colors"
                             >
                                 <div class="flex items-start justify-between gap-3">

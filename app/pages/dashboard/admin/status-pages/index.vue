@@ -73,12 +73,12 @@ function getPageOptionsDropdownItems(row: { original: StatusPage }): DropdownMen
             {
                 label: 'Edit',
                 icon: 'i-lucide-pencil',
-                onSelect: () => navigateTo(`/admin/status-pages/${row.original.id}`)
+                onSelect: () => navigateTo(`/dashboard/admin/status-pages/${row.original.id}`)
             },
             {
                 label: 'View',
                 icon: 'i-lucide-external-link',
-                onSelect: () => navigateTo(`/status-pages/${row.original.slug}`, { open: { target: '_blank' } })
+                onSelect: () => navigateTo(`/dashboard/status-pages/${row.original.slug}`, { open: { target: '_blank' } })
             }
         ],
         [

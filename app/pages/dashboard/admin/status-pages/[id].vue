@@ -282,7 +282,7 @@ async function onDeleteLink() {
                 icon="i-lucide-layout-grid"
                 description="Configure groups and linked monitors"
                 :breadcrumb-items="[
-                    { label: 'Status Pages', to: '/admin/status-pages', icon: 'i-lucide-layout-grid' },
+                    { label: 'Status Pages', to: '/dashboard/admin/status-pages', icon: 'i-lucide-layout-grid' },
                     { label: page?.title || 'Edit', icon: 'i-lucide-pencil' }
                 ]"
             />
