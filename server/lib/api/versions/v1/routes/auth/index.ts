@@ -9,13 +9,14 @@ import { AuthHandler, SessionHandler } from "../../../../utils/authHandler";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { router as resetPasswordRouter } from "./reset-password";
 import { DOCS_TAGS } from "../../docs";
+import { Runtime } from "../../../../../../utils/runtime";
 
 // Dummy bcrypt hash for timing-normalized login failures — prevents username enumeration
 // Lazy-initialized because top-level await is not available in Nitro's es2019 target
 let DUMMY_PASSWORD_HASH: string | null = null;
 async function getDummyHash(): Promise<string> {
     if (!DUMMY_PASSWORD_HASH) {
-        DUMMY_PASSWORD_HASH = await Bun.password.hash("dummy-timing-constant");
+        DUMMY_PASSWORD_HASH = await Runtime.Password.hashPassword("dummy-timing-constant");
     }
     return DUMMY_PASSWORD_HASH;
 }
@@ -123,15 +124,15 @@ router.post('/login',
             return APIResponse.tooManyRequests(c, `Too many login attempts. Try again in ${retrySeconds}s`);
         }
 
-        const user = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.username, username)).get();
+        const user = await DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.username, username)).get();
         if (!user) {
             // Timing-normalized: always run a bcrypt call to prevent username enumeration
-            await Bun.password.verify("dummy-timing-constant", await getDummyHash());
+            await Runtime.Password.verifyPassword("dummy-timing-constant", await getDummyHash());
             registerFailedLoginAttempt(loginAttemptKey);
             return APIResponse.unauthorized(c, "Invalid username or password");
         }
 
-        const passwordMatch = await Bun.password.verify(password, user.password_hash);
+        const passwordMatch = await Runtime.Password.verifyPassword(password, user.password_hash);
         if (!passwordMatch) {
             registerFailedLoginAttempt(loginAttemptKey);
             return APIResponse.unauthorized(c, "Invalid username or password");

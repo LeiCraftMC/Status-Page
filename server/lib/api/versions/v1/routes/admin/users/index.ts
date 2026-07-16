@@ -7,6 +7,7 @@ import { APIResponseSpec, APIRouteSpec } from "../../../../../utils/specHelpers"
 import { UsersModel } from "./model";
 import { AuthHandler } from "../../../../../utils/authHandler";
 import { DOCS_TAGS } from "../../../docs";
+import { Runtime } from "../../../../../../../utils/runtime";
 
 const TARGET_USER_KEY = "targetUser";
 
@@ -101,7 +102,7 @@ router.post('/',
 
         const createdUser = await DB.instance().insert(DB.Tables.users).values({
             ...userData,
-            password_hash: await Bun.password.hash(password)
+            password_hash: await Runtime.Password.hashPassword(password)
         }).returning().get();
 
         return APIResponse.created(c, "User created successfully", sanitizeUser(createdUser));
@@ -256,7 +257,7 @@ router.put('/:userId/password',
         const user = c.get(TARGET_USER_KEY) as DB.Models.User;
         const { password } = c.req.valid("json") as UsersModel.UpdatePassword.Body;
 
-        const passwordHash = await Bun.password.hash(password);
+        const passwordHash = await Runtime.Password.hashPassword(password);
 
         await DB.instance().update(DB.Tables.users).set({
             password_hash: passwordHash

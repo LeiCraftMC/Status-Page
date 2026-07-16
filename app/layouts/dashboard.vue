@@ -12,83 +12,99 @@ const user = await userInfoStore.use();
 
 const isAdmin = computed(() => user.value?.role === "admin");
 
-const projectItems = computed<NavigationMenuItem[]>(() => [
-    {
-        label: "Project",
-        icon: "i-lucide-folder",
-        type: "label"
-    },
-    {
-        label: 'Dashboard',
-        icon: 'i-lucide-layout-dashboard',
-        to: '/dashboard',
-        exact: true,
-    },
-    {
-        label: 'Status Pages',
-        icon: 'i-lucide-layout-grid',
-        to: '/status-pages',
-    },
-    {
-        label: 'Monitors',
-        icon: 'i-lucide-heart-pulse',
-        to: '/monitors',
-    }
-]);
+const sidebarItems = computed(() => {
 
-const adminItems = computed<NavigationMenuItem[]>(() => [
-    {
-        label: "Admin",
-        icon: "i-lucide-shield",
-        type: "label"
-    },
-    {
-        label: "Users",
-        icon: "i-lucide-users",
-        to: "/admin/users",
-    },
-    {
-        label: "Monitors",
-        icon: "i-lucide-heart-pulse",
-        to: "/admin/monitors",
-    },
-    {
-        label: "Status Pages",
-        icon: "i-lucide-layout-grid",
-        to: "/admin/status-pages",
-    },
-    {
-        label: "Settings",
-        icon: "i-lucide-settings",
-        to: "/admin/settings",
-    },
-]);
+    const basicItems: NavigationMenuItem[] = [
+        {
+            label: "Project",
+            icon: "i-lucide-folder",
+            type: "label"
+        },
+        {
+            label: 'Dashboard',
+            icon: 'i-lucide-layout-dashboard',
+            to: '/dashboard',
+            exact: true,
+        },
+        {
+            label: 'Status Pages',
+            icon: 'i-lucide-layout-grid',
+            to: '/dashboard/status-pages',
+        },
+        {
+            label: 'Monitors',
+            icon: 'i-lucide-heart-pulse',
+            to: '/dashboard/monitors',
+        }
+    ];
 
-const settingsItems: NavigationMenuItem[] = [
-    {
-        label: "Settings",
-        icon: "i-lucide-settings",
-        type: "label",
-    },
-    {
-        label: "General",
-        icon: "i-lucide-user",
-        to: "/settings",
-        exact: true,
-    },
-    {
-        label: "Security",
-        icon: "i-lucide-shield",
-        to: "/settings/security",
+    const adminItems: NavigationMenuItem[] = [
+        {
+            label: "Admin",
+            icon: "i-lucide-shield",
+            type: "label"
+        },
+        {
+            label: "Users",
+            icon: "i-lucide-users",
+            to: "/dashboard/admin/users",
+        },
+        {
+            label: "Monitors",
+            icon: "i-lucide-heart-pulse",
+            to: "/dashboard/admin/monitors",
+        },
+        {
+            label: "Status Pages",
+            icon: "i-lucide-layout-grid",
+            to: "/dashboard/admin/status-pages",
+        },
+        {
+            label: "Settings",
+            icon: "i-lucide-settings",
+            to: "/dashboard/admin/settings",
+        },
+    ];
+
+    const settingsItems: NavigationMenuItem[] = [
+        {
+            label: "Settings",
+            icon: "i-lucide-settings",
+            type: "label",
+        },
+        {
+            label: "General",
+            icon: "i-lucide-user",
+            to: "/dashboard/settings",
+            exact: true,
+        },
+        {
+            label: "Security",
+            icon: "i-lucide-shield",
+            to: "/dashboard/settings/security",
+        },
+        {
+            label: "API Keys",
+            icon: "i-lucide-key",
+            to: "/dashboard/settings/apikeys",
+            active: route.path.startsWith("/dashboard/settings/apikeys"),
+        }
+    ];
+
+    return {
+        basic: basicItems,
+        settings: settingsItems,
+        admin: adminItems,
     }
-];
+});
 
 const displaySidebars = computed(() => {
+
     const settingsSidebar = route.path.startsWith('/settings');
     const adminSidebar = route.path.startsWith('/admin');
 
     return {
-        projectSidebar: !settingsSidebar && !adminSidebar,
+        basicSidebar: !settingsSidebar && !adminSidebar,
         settingsSidebar: settingsSidebar,
         adminSidebar: adminSidebar,
     }
@@ -125,23 +141,9 @@ const displaySidebars = computed(() => {
 
             <template #default="{ collapsed }">
                 <UNavigationMenu
-                    v-if="displaySidebars.projectSidebar"
+                    v-if="displaySidebars.basicSidebar"
                     :collapsed="collapsed"
-                    :items="projectItems"
-                    orientation="vertical"
-                />
-
-                <UNavigationMenu
-                    v-if="isAdmin && displaySidebars.adminSidebar"
-                    :collapsed="collapsed"
-                    :items="adminItems"
-                    orientation="vertical"
-                />
-
-                <UNavigationMenu
-                    v-if="displaySidebars.settingsSidebar"
-                    :collapsed="collapsed"
-                    :items="settingsItems"
+                    :items="sidebarItems.basic"
                     orientation="vertical"
                 />
 
@@ -154,7 +156,21 @@ const displaySidebars = computed(() => {
                         to: '/dashboard',
                     }]"
                     orientation="vertical"
-                    class="mt-auto"
+                    class="mb-2"
+                />
+
+                <UNavigationMenu
+                    v-if="isAdmin && displaySidebars.adminSidebar"
+                    :collapsed="collapsed"
+                    :items="sidebarItems.admin"
+                    orientation="vertical"
+                />
+
+                <UNavigationMenu
+                    v-if="displaySidebars.settingsSidebar"
+                    :collapsed="collapsed"
+                    :items="sidebarItems.settings"
+                    orientation="vertical"
                 />
             </template>
 

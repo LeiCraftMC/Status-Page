@@ -3,9 +3,11 @@
     "type": "module",
     "private": true,
     "scripts": {
-        "db:generate": "bun scripts/db-utils && bunx --bun drizzle-kit generate --config=drizzle.config.ts",
-        "db:migrate": "bun scripts/db-utils && bunx --bun drizzle-kit migrate --config=drizzle.config.ts",
-        "build": "nuxt build",
+        "db:generate": "bun scripts/db-utils && bunx --bun drizzle-kit generate --config=drizzle/configs/drizzle.base.config.ts",
+        "db:bun:migrate": "bun scripts/db-utils && bunx --bun drizzle-kit migrate --config=drizzle/configs/drizzle.bun-sqlite.config.ts",
+        "db:d1:migrate": "bunx --bun drizzle-kit migrate --config=drizzle/configs/drizzle.d1.config.ts",
+        "build:bun": "nuxt build --preset bun",
+        "build:cf": "nuxt build --preset cloudflare_pages",
         "start": "PORT=12336 bun run .output/server/index.mjs",
         "dev": "bunx --bun nuxt dev --port=12336",
         "generate": "bunx --bun nuxt generate",
@@ -28,7 +30,7 @@
         "hono": "^4.12.30",
         "hono-openapi": "^1.3.1",
         "nuxt": "^4.4.8",
-        "typescript": "^7.0.2",
+        "typescript": "5.5.4",
         "vue": "^3.5.39",
         "vue-router": "^5.2.0",
         "zod": "^4.4.3"
@@ -36,7 +38,8 @@
     "devDependencies": {
         "@cloudflare/workers-types": "^5.20260715.1",
         "@iconify-json/lucide": "^1.2.117",
+        "@libsql/client": "^0.17.4",
         "@types/bun": "^1.3.14",
-        "vue-tsc": "^3.3.7"
+        "vue-tsc": "2.0.29"
     }
 }

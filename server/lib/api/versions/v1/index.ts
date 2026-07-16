@@ -43,6 +43,10 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
                 url: "http://localhost:12336/api/v1/",
                 description: "Local development server",
             },
+            {
+                url: "https://status.leicraftmc.com/api/v1/",
+                description: "Production server",
+            }
         ],
 
         "x-tagGroups": [
@@ -68,6 +72,7 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
                 name: "Account & Authentication",
                 tags: [
                     "Account",
+                    "Account / API Keys",
                     "Authentication",
                 ],
             }
@@ -109,6 +114,14 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
             {
                 name: "Account",
                 description: "Endpoints for user account management",
+            },
+            {
+                name: "Account / API Keys",
+                // @ts-ignore
+                "x-displayName": "API Keys",
+                summary: "API Keys",
+                parent: "Account",
+                description: "Endpoints for managing account API keys",
             },
             {
                 name: "Authentication",

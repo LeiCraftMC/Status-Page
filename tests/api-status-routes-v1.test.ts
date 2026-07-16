@@ -17,7 +17,7 @@ describe("Admin monitor routes", async () => {
     let createdMonitorId: number;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
     });
 
     test("POST /admin/monitors creates an HTTP monitor", async () => {
@@ -105,7 +105,7 @@ describe("Admin monitor routes", async () => {
     });
 
     test("Member cannot POST /admin/monitors", async () => {
-        const memberToken = await seedSession(testMember.id);
+        const memberToken = await seedSession(testMember.id).then(s => s.token);
         await makeAPIRequest("/v1/admin/monitors", {
             method: "POST",
             authToken: memberToken,
@@ -139,7 +139,7 @@ describe("Admin monitor routes", async () => {
             authToken: adminToken
         });
 
-        const dbresult = DB.instance().select().from(DB.Tables.monitors).where(
+        const dbresult = await DB.instance().select().from(DB.Tables.monitors).where(
             eq(DB.Tables.monitors.id, monitor.id)
         ).get();
         expect(dbresult).toBeUndefined();
@@ -151,8 +151,8 @@ describe("Authenticated read monitor routes", async () => {
     let memberToken: string;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
-        memberToken = await seedSession(testMember.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
+        memberToken = await seedSession(testMember.id).then(s => s.token);
     });
 
     test("GET /monitors requires authentication", async () => {
@@ -168,7 +168,7 @@ describe("Authenticated read monitor routes", async () => {
     });
 
     test("Member sees disabled monitors on GET /monitors", async () => {
-        const adminToken = await seedSession(testAdmin.id);
+        const adminToken = await seedSession(testAdmin.id).then(s => s.token);
         const disabled = await makeAPIRequest("/v1/admin/monitors", {
             method: "POST",
             authToken: adminToken,
@@ -198,7 +198,7 @@ describe("Admin status page routes", async () => {
     let groupId: number;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
     });
 
     test("POST /admin/status-pages creates a status page", async () => {
@@ -291,7 +291,7 @@ describe("Admin status page routes", async () => {
     });
 
     test("Member cannot write status pages", async () => {
-        const memberToken = await seedSession(testMember.id);
+        const memberToken = await seedSession(testMember.id).then(s => s.token);
         await makeAPIRequest(`/v1/admin/status-pages/${pageId}`, {
             method: "PUT",
             authToken: memberToken,
@@ -305,8 +305,8 @@ describe("Authenticated status page read routes", async () => {
     let memberToken: string;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
-        memberToken = await seedSession(testMember.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
+        memberToken = await seedSession(testMember.id).then(s => s.token);
     });
 
     test("Member can GET /status-pages including private/disabled", async () => {
@@ -344,7 +344,7 @@ describe("Public status page routes", async () => {
     let pageId: number;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
     });
 
     test("GET /public/status-pages/root returns 404 when unset", async () => {
@@ -395,7 +395,7 @@ describe("Admin settings routes", async () => {
     let pageId: number;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
 
         const page = await makeAPIRequest("/v1/admin/status-pages", {
             method: "POST",
@@ -433,7 +433,7 @@ describe("Admin settings routes", async () => {
     });
 
     test("Member cannot PUT /admin/settings", async () => {
-        const memberToken = await seedSession(testMember.id);
+        const memberToken = await seedSession(testMember.id).then(s => s.token);
         await makeAPIRequest("/v1/admin/settings", {
             method: "PUT",
             authToken: memberToken,
@@ -448,8 +448,8 @@ describe("Status page content routes", async () => {
     let pageId: number;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
-        memberToken = await seedSession(testMember.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
+        memberToken = await seedSession(testMember.id).then(s => s.token);
 
         const page = await makeAPIRequest("/v1/admin/status-pages", {
             method: "POST",

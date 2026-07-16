@@ -5,7 +5,7 @@ interface Props extends ModalProps {
     title: string
     description?: string
     icon?: string
-    iconColor?: 'primary' | 'success' | 'warning' | 'error' | 'neutral'
+    iconColor?: 'sky' | 'amber' | 'emerald' | 'error' | 'neutral'
     loading?: boolean
 }
 
@@ -13,13 +13,12 @@ const props = defineProps<Props>()
 
 const open = defineModel<boolean>('open', { required: true })
 
-// Resolve to @nuxt/ui semantic color tokens so the modal follows the theme.
 const iconColorClasses: Record<NonNullable<Props['iconColor']>, string> = {
-    primary: 'text-primary',
-    success: 'text-success',
-    warning: 'text-warning',
-    error: 'text-error',
-    neutral: 'text-muted'
+    sky: 'text-sky-400',
+    amber: 'text-amber-400',
+    emerald: 'text-emerald-400',
+    error: 'text-red-400',
+    neutral: 'text-slate-400'
 }
 </script>
 
@@ -39,7 +38,7 @@ const iconColorClasses: Record<NonNullable<Props['iconColor']>, string> = {
                 <UIcon
                     v-if="icon"
                     :name="icon"
-                    :class="iconColorClasses[iconColor ?? 'primary']"
+                    :class="iconColorClasses[iconColor ?? 'sky']"
                 />
                 <span>{{ title }}</span>
             </div>

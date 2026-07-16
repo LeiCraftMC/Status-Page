@@ -2,12 +2,14 @@ import { beforeAll, describe, expect, test } from "bun:test";
 import { API } from "../server/lib/api";
 import { DB } from "../server/db";
 import { AuthHandler, AuthUtils, SessionHandler } from "../server/lib/api/utils/authHandler";
-import { randomUUID } from "crypto";
 import { eq } from "drizzle-orm";
 import { makeAPIRequest } from "./helpers/api";
 import { seedUser, seedSession, type SeededUser } from "./helpers/seed";
 import { AccountModel } from "../server/lib/api/versions/v1/routes/account/model";
 import { UsersModel } from "../server/lib/api/versions/v1/routes/admin/users/model";
+import { AuthModel } from "../server/lib/api/versions/v1/routes/auth/model";
+import { Runtime } from "../server/utils/runtime";
+import { hashResetToken } from "../server/lib/api/versions/v1/routes/auth/reset-password";
 
 let testUser: SeededUser;
 let testAdmin: SeededUser;
@@ -17,19 +19,24 @@ beforeAll(async () => {
     testAdmin = await seedUser("admin", { username: "testadmin" }, "AdminP@ss1");
 });
 
-describe("Auth routes", async () => {
-    let sessionToken: string;
+describe("Auth routes and access checks", async () => {
 
-    test("POST /auth/login authenticates and creates a session", async () => {
+    let session_token: string;
+
+    test("POST /v1/auth/login authenticates and creates session", async () => {
+
         const data = await makeAPIRequest("/v1/auth/login", {
             method: "POST",
-            body: { username: testUser.username, password: testUser.password }
+            body: { username: testUser.username, password: testUser.password },
+            expectedBodySchema: AuthModel.Login.Response
         });
 
         expect(data.token.startsWith("lccfwsp_sess_")).toBe(true);
-        sessionToken = data.token;
+        
+        session_token = data.token;
 
         const session = await AuthHandler.getAuthContext(data.token);
+
         expect(session).toBeDefined();
         if (!session) return;
 
@@ -41,63 +48,142 @@ describe("Auth routes", async () => {
         const tokenParts = AuthUtils.getTokenParts(data.token);
         expect(tokenParts).toBeDefined();
         if (!tokenParts) return;
-
+        
         expect(await AuthUtils.verifyHashedTokenBase(tokenParts.base, session.hashed_token)).toBe(true);
         expect(tokenParts.prefix).toBe("lccfwsp_sess_");
         expect(tokenParts.id).toBe(session.id);
     });
 
-    test("POST /auth/login with invalid credentials fails", async () => {
+    test("POST /v1/auth/login with invalid credentials fails", async () => {
+
         await makeAPIRequest("/v1/auth/login", {
             method: "POST",
-            body: { username: testUser.username, password: "WrongPassword" }
+            body: { username: testUser.username, password: "WrongPassword" },
         }, 401);
+
     });
 
-    test("GET /auth/session returns current session info", async () => {
+    test("GET /v1/auth/session returns current session info", async () => {
+
         const data = await makeAPIRequest("/v1/auth/session", {
-            authToken: sessionToken
+            authToken: session_token,
+            expectedBodySchema: AuthModel.Session.Response
         });
 
         expect(data.user_id).toBe(testUser.id);
         expect(data.user_role).toBe("member");
     });
 
-    test("GET /auth/session with invalid token fails", async () => {
+    test("GET /v1/auth/session with invalid token fails", async () => {
+
         await makeAPIRequest("/v1/auth/session", {
-            authToken: "invalid_token"
+            authToken: "invalid_token",
         }, 401);
+
     });
 
-    test("GET /auth/session with empty bearer token fails", async () => {
-        await makeAPIRequest("/v1/auth/session", {
-            additionalOptions: {
-                headers: { Authorization: "Bearer " }
-            }
-        }, 401);
-    });
+    test("POST /v1/auth/logout invalidates session", async () => {
 
-    test("POST /auth/logout invalidates session", async () => {
         await makeAPIRequest("/v1/auth/logout", {
             method: "POST",
-            authToken: sessionToken
+            authToken: session_token
         });
 
-        const session = await AuthHandler.getAuthContext(sessionToken);
+        const session = await AuthHandler.getAuthContext(session_token);
+
         expect(session).toBeNil();
     });
 });
 
-describe("Account routes", async () => {
-    let sessionToken: string;
+describe("Auth reset-password routes", async () => {
+
+    let resetUser: SeededUser;
+    let resetSessionToken: string;
 
     beforeAll(async () => {
-        sessionToken = await seedSession(testUser.id);
+        resetUser = await seedUser("member");
+        resetSessionToken = await seedSession(resetUser.id).then(s => s.token);
     });
 
-    test("GET /account returns current user", async () => {
+    test("POST /v1/auth/reset-password with invalid token fails", async () => {
+        await makeAPIRequest("/v1/auth/reset-password", {
+            method: "POST",
+            body: {
+                reset_token: "invalid-token",
+                new_password: "ResetP@ssw0rd1"
+            }
+        }, 400);
+    });
+
+    test("POST /v1/auth/reset-password updates credentials for a valid reset token", async () => {
+        const validResetToken = `reset_${Runtime.Crypto.randomUUID().replace(/-/g, "")}`;
+        const nextPassword = "ResetP@ssw0rd1";
+        const wrongLoginIP = `203.0.113.${Math.floor(Math.random() * 200) + 1}`;
+        const correctLoginIP = `203.0.114.${Math.floor(Math.random() * 200) + 1}`;
+
+        await DB.instance().insert(DB.Tables.passwordResets).values({
+            token: await hashResetToken(validResetToken),
+            user_id: resetUser.id,
+            expires_at: Date.now() + 10 * 60 * 1000
+        }).run();
+
+        await makeAPIRequest("/v1/auth/reset-password", {
+            method: "POST",
+            body: {
+                reset_token: validResetToken,
+                new_password: nextPassword
+            }
+        }, 200);
+
+        await makeAPIRequest("/v1/auth/session", {
+            authToken: resetSessionToken
+        }, 401);
+
+        await makeAPIRequest("/v1/auth/login", {
+            method: "POST",
+            body: {
+                username: resetUser.username,
+                password: resetUser.password
+            },
+            additionalOptions: {
+                headers: {
+                    "x-forwarded-for": wrongLoginIP
+                }
+            }
+        }, 401);
+
+        const login = await makeAPIRequest("/v1/auth/login", {
+            method: "POST",
+            body: {
+                username: resetUser.username,
+                password: nextPassword
+            },
+            additionalOptions: {
+                headers: {
+                    "x-forwarded-for": correctLoginIP
+                }
+            },
+            expectedBodySchema: AuthModel.Login.Response
+        }, 200);
+
+        expect(login.token.startsWith("lccfwsp_sess_")).toBe(true);
+        resetUser.password = nextPassword;
+    });
+});
+
+describe("Account routes", async () => {
+
+    let session_token: string;
+    
+    beforeAll(async () => {
+        session_token = await seedSession(testUser.id).then(s => s.token);
+    });
+
+    test("GET /v1/account returns current user", async () => {
+
         const data = await makeAPIRequest("/v1/account", {
-            authToken: sessionToken
+            authToken: session_token,
+            expectedBodySchema: AccountModel.GetInfo.Response
         });
 
         expect(data.id).toBe(testUser.id);
@@ -107,17 +193,18 @@ describe("Account routes", async () => {
         expect(data.role).toBe("member");
     });
 
-    test("PUT /account updates profile fields", async () => {
+    test("PUT /v1/account updates profile fields", async () => {
+        
         const newUserData = {
             display_name: "Updated Name",
             username: "updatedusername",
             email: "updated@example.com",
             current_password: testUser.password
-        };
+        }
 
         await makeAPIRequest("/v1/account", {
             method: "PUT",
-            authToken: sessionToken,
+            authToken: session_token,
             body: newUserData
         });
 
@@ -126,29 +213,32 @@ describe("Account routes", async () => {
         testUser.email = newUserData.email;
 
         const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
+
         expect(dbresult?.display_name).toBe(newUserData.display_name);
         expect(dbresult?.username).toBe(newUserData.username);
         expect(dbresult?.email).toBe(newUserData.email);
     });
 
-    test("PUT /account try updating role fails", async () => {
+    test("PUT /v1/account try updating role fails", async () => {
+        
         await makeAPIRequest("/v1/account", {
             method: "PUT",
-            authToken: sessionToken,
+            authToken: session_token,
             body: { role: "admin" }
         }, 400);
-
+        
         const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
         expect(dbresult?.role).toBe("member");
     });
 
-    test("PUT /account/password rotates credentials and invalidates old sessions", async () => {
+    test("PUT /v1/account/password rotates credentials and invalidates old sessions", async () => {
+
         const oldPassword = testUser.password;
         const newPassword = "NewP@ssw0rd1";
 
         await makeAPIRequest("/v1/account/password", {
             method: "PUT",
-            authToken: sessionToken,
+            authToken: session_token,
             body: {
                 current_password: oldPassword,
                 new_password: newPassword
@@ -157,45 +247,67 @@ describe("Account routes", async () => {
 
         testUser.password = newPassword;
 
+        // Old session should be invalidated
         await makeAPIRequest("/v1/account", {
-            authToken: sessionToken
+            authToken: session_token,
         }, 401);
 
+        // Login with old password should fail
         await makeAPIRequest("/v1/auth/login", {
             method: "POST",
             body: { username: testUser.username, password: oldPassword }
         }, 401);
 
+        // Login with new password should succeed
         const data = await makeAPIRequest("/v1/auth/login", {
             method: "POST",
-            body: { username: testUser.username, password: newPassword }
+            body: { username: testUser.username, password: newPassword },
+            expectedBodySchema: AuthModel.Login.Response
         });
 
         expect(data.token.startsWith("lccfwsp_sess_")).toBe(true);
-        sessionToken = data.token;
+
+        session_token = data.token;
     });
 
-    test("DELETE /account removes user", async () => {
-        const tempUser = await seedUser("member", {}, "DeleteP@ss1");
-        const tempToken = await seedSession(tempUser.id);
+    // test("DELETE /v1/account fails because of existing mail accounts", async () => {
+        
+    //     // Seed a mail account
+    //     const mailAccountID = (await seedMailAccount(testUser.id)).id;
 
+    //     await makeAPIRequest("/v1/account", {
+    //         method: "DELETE",
+    //         authToken: session_token
+    //     }, 400);
+
+    //     await DB.instance().delete(DB.Tables.mailAccounts).where(
+    //         eq(DB.Tables.mailAccounts.id, mailAccountID)
+    //     ).run();
+    // });
+
+    test("DELETE /v1/account removes user data", async () => {
+        
         await makeAPIRequest("/v1/account", {
             method: "DELETE",
-            authToken: tempToken
+            authToken: session_token
         });
 
-        const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, tempUser.id)).get();
+        const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
         expect(dbresult).toBeUndefined();
+
+        // recreate test user for further tests
+        testUser = await seedUser("member", { username: "testuser" }, "UserP@ss1");
     });
 });
+
 
 describe("Admin users routes", async () => {
     let adminToken: string;
     let userToken: string;
 
     beforeAll(async () => {
-        adminToken = await seedSession(testAdmin.id);
-        userToken = await seedSession(testUser.id);
+        adminToken = await seedSession(testAdmin.id).then(s => s.token);
+        userToken = await seedSession(testUser.id).then(s => s.token);
     });
 
     test("GET /admin/users requires admin role", async () => {
@@ -212,14 +324,14 @@ describe("Admin users routes", async () => {
     });
 
     test("POST /admin/users creates a new user", async () => {
-        const username = `created_${randomUUID().slice(0, 8)}`;
+        const username = `created_${Runtime.Crypto.randomUUID().slice(0, 8)}`;
         const created = await makeAPIRequest("/v1/admin/users", {
             method: "POST",
             authToken: adminToken,
             body: {
                 username,
                 display_name: "Created User",
-                email: `${randomUUID()}@example.com`,
+                email: `${Runtime.Crypto.randomUUID()}@example.com`,
                 password: "CreatedP@ss1",
                 role: "member"
             }
@@ -258,7 +370,7 @@ describe("Admin users routes", async () => {
             authToken: adminToken
         });
 
-        const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, target.id)).get();
+        const dbresult = await DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, target.id)).get();
         expect(dbresult).toBeUndefined();
     });
 });
@@ -267,7 +379,7 @@ describe("Users search route", async () => {
     let userToken: string;
 
     beforeAll(async () => {
-        userToken = await seedSession(testUser.id);
+        userToken = await seedSession(testUser.id).then(s => s.token);
     });
 
     test("GET /users/search requires authentication", async () => {

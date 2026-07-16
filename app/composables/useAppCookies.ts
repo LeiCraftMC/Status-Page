@@ -1,5 +1,4 @@
 import type { CookieOptions } from "#app";
-import type { H3Event } from "h3";
 
 type CookieOptionsWithoutReadonly<T> = CookieOptions<T> & {
     readonly?: false;
@@ -27,6 +26,6 @@ export function useAppCookies() {
     return {
 
         sessionToken: new AppCookie<string | null>("lccfwsp_session_token"),
-        
+
     } as const;
 }

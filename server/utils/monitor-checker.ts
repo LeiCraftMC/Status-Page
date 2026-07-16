@@ -1,4 +1,5 @@
 import { DB } from "../db";
+import { Runtime } from '../utils/runtime';
 
 export interface CheckResult {
     status: "up" | "down";
@@ -21,19 +22,29 @@ interface CfSocketsModule {
 }
 
 async function tcpCheck(hostname: string, port: number, timeoutMs: number): Promise<boolean> {
-    // Try CF Workers connect API (cloudflare:sockets) first
-    try {
+    if (Runtime.isCloudflare) {
         // @ts-expect-error — cloudflare:sockets is a Workers built-in, not an npm package
         const mod: CfSocketsModule = await import("cloudflare:sockets");
         const socket = mod.connect({ hostname, port });
-        await Promise.race([
-            socket.opened,
-            new Promise((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)),
-        ]);
-        socket.close();
-        return true;
-    } catch {
-        // Fall back to Bun.connect for local dev (Bun provides this globally)
+        try {
+            await Promise.race([
+                socket.opened,
+                new Promise<void>((_, reject) => setTimeout(() => reject(new Error("timeout")), timeoutMs)),
+            ]);
+            return true;
+        } catch {
+            return false;
+        } finally {
+            try {
+                await socket.close();
+            } catch {
+                // ignore close errors
+            }
+        }
+    }
+
+    // Bun / Node fallback
+    if (Runtime.isBun) {
         try {
             await Bun.connect({ hostname, port } as any);
             return true;
@@ -41,6 +52,11 @@ async function tcpCheck(hostname: string, port: number, timeoutMs: number): Prom
             return false;
         }
     }
+
+    // Node.js does not expose a builtin one-liner TCP connection helper.
+    // Return unknown/down so we don't break, but log a warning.
+    Logger.warn(`[Runtime] TCP check is not implemented for runtime "${Runtime.name}"`);
+    return false;
 }
 
 export async function performMonitorCheck(monitor: DB.Models.Monitor): Promise<CheckResult> {

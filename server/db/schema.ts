@@ -51,6 +51,22 @@ export const sessions = sqliteTable('sessions', {
     expires_at: integer().notNull()
 });
 
+/**
+ * @deprecated Use DB.Tables.apiKeys to access this table.
+ */
+export const apiKeys = sqliteTable('api_keys', {
+    id: text().primaryKey(),
+    hashed_token: text().notNull(),
+    user_id: integer().notNull().references(() => users.id, { onDelete: 'cascade' }),
+    // we cache user role here for easier permission checking without having to join the users table, and we will check the role in users table on every update to make sure it's still valid
+    user_role: text({
+        enum: UserAccountSettings.Roles
+    }).notNull(),
+    description: text().notNull(),
+    created_at: SQLUtils.getCreatedAtColumn(),
+    expires_at: integer(),
+});
+
 
 
 /**

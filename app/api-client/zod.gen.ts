@@ -137,6 +137,78 @@ export const zPutAccountPasswordResponse = z.object({
     data: z.null()
 });
 
+/**
+ * API keys retrieved successfully
+ */
+export const zGetAccountApikeysResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('API keys retrieved successfully'),
+    data: z.array(z.object({
+        id: z.string(),
+        description: z.string(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        expires_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable()
+    }))
+});
+
+export const zPostAccountApikeysBody = z.object({
+    description: z.string().min(1).max(255),
+    expires_at: z.union([
+        z.literal('7d'),
+        z.literal('30d'),
+        z.literal('90d'),
+        z.literal('180d'),
+        z.literal('365d')
+    ]).nullable()
+});
+
+/**
+ * API key created successfully
+ */
+export const zPostAccountApikeysResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('API key created successfully'),
+    data: z.object({
+        id: z.string(),
+        token: z.string()
+    })
+});
+
+export const zDeleteAccountApikeysByApiKeyIdPath = z.object({
+    apiKeyID: z.string().min(1).max(255)
+});
+
+/**
+ * API key deleted successfully
+ */
+export const zDeleteAccountApikeysByApiKeyIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('API key deleted successfully'),
+    data: z.null()
+});
+
+export const zGetAccountApikeysByApiKeyIdPath = z.object({
+    apiKeyID: z.string().min(1).max(255)
+});
+
+/**
+ * API key retrieved successfully
+ */
+export const zGetAccountApikeysByApiKeyIdResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('API key retrieved successfully'),
+    data: z.object({
+        id: z.string(),
+        description: z.string(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
+        expires_at: z.int().gte(-9007199254740991).lte(9007199254740991).nullable()
+    })
+});
+
 export const zGetAdminUsersQuery = z.object({
     role: z.enum(['admin', 'member']).optional(),
     search: z.string().min(1).max(64).optional(),

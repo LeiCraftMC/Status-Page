@@ -165,10 +165,7 @@ export async function useAPI<TReturn>(handler: (api: UseAPITypes.APIClient) => T
 
             const result = await handler(baseAPIClient);
 
-            // Any 401 means the stored token is no longer valid — clear it and redirect.
-            // (Previously this matched specific server messages, which had drifted and
-            // silently stopped triggering the redirect.)
-            if ((result as any)?.success === false && (result as any)?.code === 401) {
+            if ((result as any)?.success === false && (result as any)?.code === 401 && ((result as any)?.message === "Invalid or expired token") || ((result as any)?.message === "Missing or invalid Authorization header")) {
                 updateAPIClient(null);
                 sessionToken.value = null;
                 if (!disableAuthRedirect) {

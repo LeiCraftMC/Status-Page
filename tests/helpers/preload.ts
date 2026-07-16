@@ -27,10 +27,51 @@ function setTestEnv(rootDir: string) {
     }
 }
 
+
+async function runCommand(cmd: string[]) {
+    const process = Bun.spawn({
+        cmd,
+        stdin: "ignore",
+        stdout: "pipe",
+        stderr: "pipe",
+    });
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+        process.stdout ? new Response(process.stdout).text() : Promise.resolve(""),
+        process.stderr ? new Response(process.stderr).text() : Promise.resolve(""),
+        process.exited,
+    ]);
+
+    if (exitCode !== 0) {
+        throw new Error(`Command failed: ${cmd.join(" ")}\n${stderr || stdout}`.trim());
+    }
+}
+
+
 async function createIsolatedDataDir(): Promise<string> {
     const root = await fs.mkdtemp(path.join(process.cwd(), "tmp-data-"));
     return root;
 }
+
+/**
+ * On Windows, file handles (e.g. the SQLite DB file) can take a moment to be
+ * released after closing, making an immediate recursive removal flaky (EBUSY).
+ * Retries manually since Bun's `fs.rm` doesn't reliably honor `maxRetries`/`retryDelay`.
+ */
+async function removeDirWithRetry(dir: string, attempts = 10, delayMs = 300) {
+    for (let attempt = 1; attempt <= attempts; attempt++) {
+        try {
+            await fs.rm(dir, { recursive: true, force: true });
+            return;
+        } catch (err: any) {
+            if (attempt === attempts || (err?.code !== "EBUSY" && err?.code !== "ENOTEMPTY" && err?.code !== "EPERM")) {
+                throw err;
+            }
+            await Bun.sleep(delayMs);
+        }
+    }
+}
+
 
 let TMP_ROOT: string | null = null;
 
@@ -54,15 +95,6 @@ afterAll(async () => {
     await DB.close();
 
     if (TMP_ROOT) {
-        // On Windows, SQLite may hold a file lock preventing fs.rm.
-        // Fall back to PowerShell for resilient cleanup.
-        try {
-            await fs.rm(TMP_ROOT, { recursive: true, force: true });
-        } catch {
-            await Bun.sleep(200);
-            Bun.spawnSync(["powershell", "-Command",
-                `Remove-Item -Path '${TMP_ROOT.replace(/'/g, "''")}' -Recurse -Force`],
-                { stdin: "ignore", stdout: "ignore", stderr: "ignore" });
-        }
+        await removeDirWithRetry(TMP_ROOT);
     }
 });

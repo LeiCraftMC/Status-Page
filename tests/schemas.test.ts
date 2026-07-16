@@ -28,7 +28,7 @@ describe("User Account Policy Schema Testing", () => {
         ];
 
         for (const username of validUsernames) {
-            // console.log(`Testing valid username: ${username}`);
+            // Logger.log(`Testing valid username: ${username}`);
             expect(UserDataPolicys.Username.safeParse(username)).toEqual({ success: true, data: expect.anything() });
         }
 

@@ -1,5 +1,7 @@
 import type {
+    GetAccountApikeysResponses,
     GetAccountResponses,
+    PostAccountApikeysData,
 } from "~/api-client";
 
 export namespace UtilityTypes {
@@ -11,3 +13,5 @@ export namespace UtilityTypes {
 
 export type UserInfo = GetAccountResponses["200"]["data"];
 
+export type APIKey = GetAccountApikeysResponses["200"]["data"][number];
+export type NewAPIKey = NonNullable<PostAccountApikeysData["body"]>;

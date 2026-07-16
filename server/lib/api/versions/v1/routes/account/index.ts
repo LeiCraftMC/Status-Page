@@ -7,13 +7,15 @@ import { APIResponse } from "../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { AuthHandler } from "../../../../utils/authHandler";
 import { DOCS_TAGS } from "../../docs";
+import { Runtime } from "../../../../../../utils/runtime";
+import { router as apiKeyRouter } from "./apikeys";
 
 export const router = new Hono().basePath('/account');
 
 // all routes below require authentication via session
 router.use("*", async (c, next) => {
-    // @ts-ignore
-    const authContext = c.get("authContext") as AuthHandler.AuthContext;
+    
+    const authContext = AuthHandler.AuthContext.get(c);
 
     if (authContext.type !== 'session') {
         return APIResponse.unauthorized(c, "Your Auth Context is not a session");
@@ -39,7 +41,7 @@ router.get('/',
         // @ts-ignore
         const authContext = c.get("authContext") as AuthHandler.SessionAuthContext;
 
-        const user = DB.instance().select().from(DB.Tables.users).where(
+        const user = await DB.instance().select().from(DB.Tables.users).where(
             eq(DB.Tables.users.id, authContext.user_id)
         ).get();
 
@@ -69,14 +71,14 @@ router.put('/',
     validator("json", AccountModel.UpdateInfo.Body),
 
     async (c) => {
-        // @ts-ignore
-        const authContext = c.get("authContext") as AuthHandler.SessionAuthContext;
+        
+        const authContext = AuthHandler.AuthContext.getAsSession(c);
 
         const body = c.req.valid("json") as AccountModel.UpdateInfo.Body;
         const { current_password, ...updates } = body;
 
         // Verify current password before allowing changes
-        const user = DB.instance().select().from(DB.Tables.users).where(
+        const user = await DB.instance().select().from(DB.Tables.users).where(
             eq(DB.Tables.users.id, authContext.user_id)
         ).get();
 
@@ -84,7 +86,7 @@ router.put('/',
             throw new Error("User not found but session exists");
         }
 
-        if (!(await Bun.password.verify(current_password, user.password_hash))) {
+        if (!(await Runtime.Password.verifyPassword(current_password, user.password_hash))) {
             return APIResponse.unauthorized(c, "Current password is incorrect");
         }
 
@@ -107,7 +109,7 @@ router.put('/',
             }
         }
 
-        DB.instance().update(DB.Tables.users).set(updates).where(
+        await DB.instance().update(DB.Tables.users).set(updates).where(
             eq(DB.Tables.users.id, authContext.user_id)
         ).run();
 
@@ -141,7 +143,7 @@ router.put('/password',
 
         const body = c.req.valid("json")
 
-        const user = DB.instance().select().from(DB.Tables.users).where(
+        const user = await DB.instance().select().from(DB.Tables.users).where(
             eq(DB.Tables.users.id, authContext.user_id)
         ).get();
     
@@ -149,13 +151,13 @@ router.put('/password',
             throw new Error("User not found but session exists");
         }
 
-        if ((await Bun.password.verify(body.current_password, user.password_hash)) === false) {
+        if ((await Runtime.Password.verifyPassword(body.current_password, user.password_hash)) === false) {
             return APIResponse.unauthorized(c, "Current password is incorrect");
         }
 
-        const newPasswordHash = await Bun.password.hash(body.new_password);
+        const newPasswordHash = await Runtime.Password.hashPassword(body.new_password);
 
-        DB.instance().update(DB.Tables.users).set({
+        await DB.instance().update(DB.Tables.users).set({
             password_hash: newPasswordHash
         }).where(
             eq(DB.Tables.users.id, authContext.user_id)
@@ -193,12 +195,12 @@ router.delete('/',
         await AuthHandler.invalidateAllAuthContextsForUser(authContext.user_id);
 
         // delete password resets
-        DB.instance().delete(DB.Tables.passwordResets).where(
+        await DB.instance().delete(DB.Tables.passwordResets).where(
             eq(DB.Tables.passwordResets.user_id, authContext.user_id)
         ).run();
 
         // finally, delete the user account
-        DB.instance().delete(DB.Tables.users).where(
+        await DB.instance().delete(DB.Tables.users).where(
             eq(DB.Tables.users.id, authContext.user_id)
         ).run();
 
@@ -206,3 +208,5 @@ router.delete('/',
     },
 );
 
+
+router.route("/", apiKeyRouter);

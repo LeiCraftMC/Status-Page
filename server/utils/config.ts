@@ -111,7 +111,7 @@ export class ConfigHandler {
         .add("LCCFWSP_API_DISABLE_DOCS", false, [true, false])
 
         .add("LCCFWSP_DB_PATH", false)
-        .add("LCCFWSP_DB_AUTO_MIGRATE", false, [true, false])
+        .add("LCCFWSP_DB_AUTO_MIGRATE", true, [true, false])
 
         .add("LCCFWSP_CONFIG_BASE_DIR", false)
 
