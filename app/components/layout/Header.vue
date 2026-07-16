@@ -34,7 +34,7 @@ const links = computed<NavigationMenuItem[]>(() => [
 const socialLinks = [
     { icon: "i-lucide-github", to: "https://github.com/LeiCraftMC/Status-Page", label: "GitHub" },
     { icon: "i-lucide-gitlab", to: "https://git.leicraftmc.de/LeiCraftMC/Status-Page", label: "GitLab" },
-    { icon: "i-lucide-discord", to: "https://discord.com/invite/3cdazADhtv", label: "Discord" },
+    { icon: "i-lucide-message-circle", to: "https://discord.com/invite/3cdazADhtv", label: "Discord" },
 ];
 
 const mobileLinks = computed<NavigationMenuItem[][]>(() => [
