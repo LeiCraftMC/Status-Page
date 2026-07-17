@@ -58,6 +58,28 @@ const sidebarItems = computed(() => {
             label: "Status Page",
             icon: "i-lucide-layout-grid",
             to: "/dashboard/admin/status-page",
+            active: route.path.startsWith('/dashboard/admin/status-page')
+        },
+        {
+            label: "Content",
+            icon: "i-lucide-pen-line",
+            children: [
+                {
+                    label: "Incidents",
+                    icon: "i-lucide-alert-triangle",
+                    to: "/dashboard/admin/status-page/incidents",
+                },
+                {
+                    label: "Maintenance",
+                    icon: "i-lucide-calendar-clock",
+                    to: "/dashboard/admin/status-page/maintenance",
+                },
+                {
+                    label: "Updates",
+                    icon: "i-lucide-megaphone",
+                    to: "/dashboard/admin/status-page/updates",
+                }
+            ]
         },
         {
             label: "Settings",

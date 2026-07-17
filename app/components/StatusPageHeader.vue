@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import type { GetStatusPagesBySlugResponses, GetPublicStatusPagesBySlugResponses } from '@/api-client/types.gen';
+import type { GetStatusPageResponses, GetPublicStatusPageResponses } from '@/api-client/types.gen';
 
-type Page = GetStatusPagesBySlugResponses[200]['data']['page'] | GetPublicStatusPagesBySlugResponses[200]['data']['page'];
+type Page = GetStatusPageResponses[200]['data']['page'] | GetPublicStatusPageResponses[200]['data']['page'];
 
 interface Props {
     page: Page;

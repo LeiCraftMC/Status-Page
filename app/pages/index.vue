@@ -102,7 +102,10 @@ const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0,
 
                 <!-- Active incidents -->
                 <div v-if="activeIncidents.length">
-                    <h2 class="text-lg font-semibold text-white mb-3">Active Incidents</h2>
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold text-white">Active Incidents</h2>
+                        <NuxtLink to="/incidents" class="text-sm text-primary-400 hover:text-primary-300">View all</NuxtLink>
+                    </div>
                     <div class="space-y-3">
                         <UCard
                             v-for="incident in activeIncidents"
@@ -133,7 +136,10 @@ const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0,
 
                 <!-- Scheduled maintenance -->
                 <div v-if="scheduledMaintenance.length">
-                    <h2 class="text-lg font-semibold text-white mb-3">Scheduled Maintenance</h2>
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold text-white">Scheduled Maintenance</h2>
+                        <NuxtLink to="/scheduled-events" class="text-sm text-primary-400 hover:text-primary-300">View all</NuxtLink>
+                    </div>
                     <div class="space-y-3">
                         <UCard
                             v-for="item in scheduledMaintenance"

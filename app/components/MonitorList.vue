@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import type { GetStatusPagesBySlugResponses, GetPublicStatusPagesBySlugResponses } from '@/api-client/types.gen';
+import type { GetStatusPageResponses, GetPublicStatusPageResponses } from '@/api-client/types.gen';
 
-type GroupedMonitor = GetStatusPagesBySlugResponses[200]['data']['groups'][number];
-type UngroupedMonitor = GetStatusPagesBySlugResponses[200]['data']['ungrouped'][number];
+type GroupedMonitor = GetStatusPageResponses[200]['data']['groups'][number];
+type UngroupedMonitor = GetStatusPageResponses[200]['data']['ungrouped'][number];
 
-type PublicGroupedMonitor = GetPublicStatusPagesBySlugResponses[200]['data']['groups'][number];
-type PublicUngroupedMonitor = GetPublicStatusPagesBySlugResponses[200]['data']['ungrouped'][number];
+type PublicGroupedMonitor = GetPublicStatusPageResponses[200]['data']['groups'][number];
+type PublicUngroupedMonitor = GetPublicStatusPageResponses[200]['data']['ungrouped'][number];
 
 interface Props {
     groups: GroupedMonitor[] | PublicGroupedMonitor[];

@@ -2,34 +2,23 @@
 import type { NavigationMenuItem } from "@nuxt/ui";
 import LeiCraftMCLogo from "../img/LeiCraftMCLogo.vue";
 
-const currentStatusPageBasePath = computed(() => {
-    const route = useRoute();
-    const match = route.path.match(/^\/status\/[^/]+/);
-    if (match) {
-        return "/status/" + match[0].split("/")[2];
-    }
-    return ""
-});
-
 const links = computed<NavigationMenuItem[]>(() => [
     {
         label: "Overview",
-        to: currentStatusPageBasePath.value + "/",
+        to: "/",
         icon: "i-lucide-layout-dashboard",
     },
     {
         label: "Incidents",
-        to: currentStatusPageBasePath.value + "/incidents",
+        to: "/incidents",
         icon: "i-lucide-alert-circle",
     },
     {
         label: "Scheduled Events",
-        to: currentStatusPageBasePath.value + "/scheduled-events",
+        to: "/scheduled-events",
         icon: "i-lucide-clock",
     }
 ]);
-
-
 
 const socialLinks = [
     { icon: "i-lucide-github", to: "https://github.com/LeiCraftMC/Status-Page", label: "GitHub" },

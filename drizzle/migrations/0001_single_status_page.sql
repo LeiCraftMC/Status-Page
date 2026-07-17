@@ -1,18 +1,17 @@
 -- Migration: collapse multi-status-page support into a single status page.
 -- 1. Create new tables for the single status page.
 -- 2. Copy data from the configured root status page (or the first available page) into the new tables.
--- 3. Drop the old multi-page tables and the root_status_page_id setting.
-
-PRAGMA foreign_keys = OFF;
+-- 3. Rename old multi-page tables out of the way (safer than DROP TABLE in SQLite).
+-- 4. Remove the root_status_page_id setting.
 
 --> statement-breakpoint
-CREATE TABLE `monitor_groups` (
+CREATE TABLE IF NOT EXISTS `monitor_groups` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,
 	`sort_order` integer DEFAULT 0 NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `monitor_group_assignments` (
+CREATE TABLE IF NOT EXISTS `monitor_group_assignments` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`monitor_id` integer NOT NULL,
 	`group_id` integer,
@@ -22,7 +21,7 @@ CREATE TABLE `monitor_group_assignments` (
 	FOREIGN KEY (`group_id`) REFERENCES `monitor_groups`(`id`) ON UPDATE no action ON DELETE set null
 );
 --> statement-breakpoint
-CREATE TABLE `status_page_config` (
+CREATE TABLE IF NOT EXISTS `status_page_config` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`title` text NOT NULL,
 	`description` text,
@@ -33,7 +32,7 @@ CREATE TABLE `status_page_config` (
 	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `incidents` (
+CREATE TABLE IF NOT EXISTS `incidents` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`title` text NOT NULL,
 	`message` text NOT NULL,
@@ -46,7 +45,7 @@ CREATE TABLE `incidents` (
 	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `maintenance` (
+CREATE TABLE IF NOT EXISTS `maintenance` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`title` text NOT NULL,
 	`message` text NOT NULL,
@@ -57,7 +56,7 @@ CREATE TABLE `maintenance` (
 	`updated_at` integer DEFAULT (unixepoch() * 1000) NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE `status_updates` (
+CREATE TABLE IF NOT EXISTS `status_updates` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`title` text NOT NULL,
 	`message` text NOT NULL,
@@ -185,18 +184,19 @@ WHERE `status_page_id` = (
 );
 
 --> statement-breakpoint
-DROP TABLE `status_page_groups`;
+-- Rename old tables out of the way instead of dropping them. This avoids
+-- foreign-key/schema-change issues in SQLite/Drizzle migrations and leaves a
+-- backup of the previous multi-page data.
+ALTER TABLE `status_page_groups` RENAME TO `_old_status_page_groups`;
 --> statement-breakpoint
-DROP TABLE `status_page_monitor_links`;
+ALTER TABLE `status_page_monitor_links` RENAME TO `_old_status_page_monitor_links`;
 --> statement-breakpoint
-DROP TABLE `status_page_incidents`;
+ALTER TABLE `status_page_incidents` RENAME TO `_old_status_page_incidents`;
 --> statement-breakpoint
-DROP TABLE `status_page_maintenance`;
+ALTER TABLE `status_page_maintenance` RENAME TO `_old_status_page_maintenance`;
 --> statement-breakpoint
-DROP TABLE `status_page_updates`;
+ALTER TABLE `status_page_updates` RENAME TO `_old_status_page_updates`;
 --> statement-breakpoint
-DROP TABLE `status_pages`;
+ALTER TABLE `status_pages` RENAME TO `_old_status_pages`;
 --> statement-breakpoint
 DELETE FROM `settings` WHERE `key` = 'root_status_page_id';
-
-PRAGMA foreign_keys = ON;
