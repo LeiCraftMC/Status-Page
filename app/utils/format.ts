@@ -4,7 +4,7 @@
 
 export function formatDate(ts: number | null | undefined): string {
     if (!ts) return '-';
-    return new Date(ts * 1000).toLocaleString('en-US', {
+    return new Date(ts).toLocaleString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
@@ -15,14 +15,14 @@ export function formatDate(ts: number | null | undefined): string {
 
 export function formatDateISO(ts: number | null | undefined): string {
     if (!ts) return '';
-    const d = new Date(ts * 1000);
+    const d = new Date(ts);
     d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
     return d.toISOString().slice(0, 16);
 }
 
 export function parseDateISO(value: string): number {
     if (!value) return 0;
-    return Math.floor(new Date(value).getTime() / 1000);
+    return new Date(value).getTime();
 }
 
 export function formatDuration(seconds: number): string {

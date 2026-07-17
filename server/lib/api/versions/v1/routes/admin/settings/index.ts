@@ -1,6 +1,5 @@
 import { Hono } from "hono";
 import { validator as zValidator } from "hono-openapi";
-import { eq } from "drizzle-orm";
 import { DB } from "../../../../../../../db";
 import { APIResponse } from "../../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../../utils/specHelpers";
@@ -33,14 +32,13 @@ router.put('/',
 
     APIRouteSpec.authenticated({
         summary: "Update settings",
-        description: "Update global application settings such as the root status page.",
+        description: "Update global application settings such as the default theme.",
         tags: [DOCS_TAGS.ADMIN_SETTINGS],
 
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.success("Settings updated successfully", SettingsModel.Response),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Referenced status page does not exist")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
@@ -48,16 +46,6 @@ router.put('/',
 
     async (c) => {
         const body = c.req.valid("json") as SettingsModel.Body;
-
-        const rootPageId = body.root_status_page_id;
-        if (rootPageId !== undefined && rootPageId !== null) {
-            const page = await DB.instance().select().from(DB.Tables.statusPages).where(
-                eq(DB.Tables.statusPages.id, rootPageId)
-            ).get();
-            if (!page) {
-                return APIResponse.notFound(c, "Referenced status page does not exist");
-            }
-        }
 
         for (const [key, value] of Object.entries(body)) {
             if (value === undefined) continue;
@@ -82,7 +70,6 @@ export async function getSettings(): Promise<SettingsModel.Response> {
     const map = new Map(rows.map((r) => [r.key, r.value]));
 
     return {
-        root_status_page_id: map.get(SettingsModel.SettingsKeys.ROOT_STATUS_PAGE_ID) ?? null,
         default_theme: map.get(SettingsModel.SettingsKeys.DEFAULT_THEME) ?? 'auto',
     };
 }

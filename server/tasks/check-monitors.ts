@@ -35,7 +35,7 @@ export default defineTask({
             const intervalMs = (monitor.interval_seconds ?? 60) * 1000;
 
             // Get the latest check timestamp for this monitor
-            const lastCheck = db.select()
+            const lastCheck = await db.select()
                 .from(DB.Tables.monitorStatusChecks)
                 .where(eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id))
                 .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at))

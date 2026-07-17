@@ -1,5 +1,6 @@
 import { DB } from "../db";
-import { Runtime } from '../utils/runtime';
+import { Runtime } from './runtime';
+import { Logger } from './logger';
 
 export interface CheckResult {
     status: "up" | "down";

@@ -1,239 +1,169 @@
 import { Hono } from "hono";
 import { validator as zValidator } from "hono-openapi";
+import z from "zod";
 import { and, eq, isNull } from "drizzle-orm";
 import { DB } from "../../../../../../../db";
 import { APIResponse } from "../../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../../utils/specHelpers";
-import { StatusPagesModel } from "./model";
+import { StatusPageAdminModel } from "./model";
+import { router as contentRouter } from "./content";
 import { DOCS_TAGS } from "../../../docs";
 
-const TARGET_PAGE_KEY = "targetStatusPage";
+const CONFIG_ID = 1;
 const TARGET_GROUP_KEY = "targetGroup";
 const TARGET_LINK_KEY = "targetLink";
 
-export const router = new Hono().basePath('/status-pages');
+export const router = new Hono().basePath('/status-page');
+
+export async function getOrCreateConfig(): Promise<DB.Models.StatusPageConfig> {
+    const existing = await DB.instance()
+        .select()
+        .from(DB.Tables.statusPageConfig)
+        .where(eq(DB.Tables.statusPageConfig.id, CONFIG_ID))
+        .get();
+
+    if (existing) {
+        return existing;
+    }
+
+    const now = Date.now();
+    return DB.instance()
+        .insert(DB.Tables.statusPageConfig)
+        .values({
+            id: CONFIG_ID,
+            title: "Status Page",
+            description: null,
+            is_public: true,
+            is_enabled: true,
+            theme: "auto",
+            created_at: now,
+            updated_at: now,
+        })
+        .returning()
+        .get();
+}
+
+export async function buildFullPage(): Promise<StatusPageAdminModel.FullPage.Response> {
+    const config = await getOrCreateConfig();
+
+    const groups = await DB.instance()
+        .select()
+        .from(DB.Tables.monitorGroups)
+        .orderBy(DB.Tables.monitorGroups.sort_order);
+
+    const rawLinks = await DB.instance()
+        .select({
+            link: DB.Tables.monitorGroupAssignments,
+            monitor_name: DB.Tables.monitors.name,
+        })
+        .from(DB.Tables.monitorGroupAssignments)
+        .innerJoin(DB.Tables.monitors, eq(DB.Tables.monitorGroupAssignments.monitor_id, DB.Tables.monitors.id))
+        .orderBy(DB.Tables.monitorGroupAssignments.sort_order);
+
+    const links = rawLinks.map(({ link, monitor_name }) => ({
+        ...link,
+        monitor_name,
+    }));
+
+    return { config, groups, links };
+}
 
 router.get('/',
 
     APIRouteSpec.authenticated({
-        summary: "List status pages",
-        description: "Retrieve all status pages, including disabled or private ones.",
+        summary: "Get status page configuration",
+        description: "Retrieve the single status page configuration with groups and linked monitors.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Status pages retrieved successfully", StatusPagesModel.GetAll.Response),
+            APIResponseSpec.success("Status page retrieved successfully", StatusPageAdminModel.FullPage.Response),
             APIResponseSpec.unauthorized("Authentication required"),
             APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     async (c) => {
-        const pages = await DB.instance()
-            .select()
-            .from(DB.Tables.statusPages)
-            .orderBy(DB.Tables.statusPages.id);
-
-        return APIResponse.success(c, "Status pages retrieved successfully", pages);
-    }
-);
-
-router.post('/',
-
-    APIRouteSpec.authenticated({
-        summary: "Create status page",
-        description: "Create a new public or internal status page.",
-        tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
-
-        responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.created("Status page created successfully", StatusPagesModel.Create.Response),
-            APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.conflict("A status page with this slug already exists")
-        )
-    }),
-
-    zValidator("json", StatusPagesModel.Create.Body),
-
-    async (c) => {
-        const body = c.req.valid("json") as StatusPagesModel.Create.Body;
-
-        const duplicate = await DB.instance().select().from(DB.Tables.statusPages).where(
-            eq(DB.Tables.statusPages.slug, body.slug)
-        ).get();
-
-        if (duplicate) {
-            return APIResponse.conflict(c, "A status page with this slug already exists");
-        }
-
-        const created = await DB.instance().insert(DB.Tables.statusPages).values(body).returning().get();
-
-        return APIResponse.created(c, "Status page created successfully", created);
-    }
-);
-
-// @ts-ignore
-router.use('/:pageId/*',
-
-    zValidator("param", StatusPagesModel.PageId.Params),
-
-    async (c, next) => {
-        // @ts-ignore
-        const { pageId } = c.req.valid("param") as StatusPagesModel.PageId.Params;
-
-        const page = await DB.instance().select().from(DB.Tables.statusPages).where(
-            eq(DB.Tables.statusPages.id, pageId)
-        ).get();
-
-        if (!page) {
-            return APIResponse.notFound(c, "Status page not found");
-        }
-
-        // @ts-ignore
-        c.set(TARGET_PAGE_KEY, page);
-
-        await next();
-    }
-);
-
-router.get('/:pageId',
-
-    APIRouteSpec.authenticated({
-        summary: "Get status page details",
-        description: "Retrieve a status page with its groups and linked monitors.",
-        tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
-
-        responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Status page retrieved successfully", StatusPagesModel.FullPage.Response),
-            APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Status page not found")
-        )
-    }),
-
-    async (c) => {
-        // @ts-ignore
-        const page = c.get(TARGET_PAGE_KEY) as StatusPagesModel.BasePage;
-
-        const full = await buildFullPage(page);
+        const full = await buildFullPage();
         return APIResponse.success(c, "Status page retrieved successfully", full);
     }
 );
 
-router.put('/:pageId',
+router.put('/',
 
     APIRouteSpec.authenticated({
-        summary: "Update status page",
-        description: "Update a status page's metadata, visibility, or theme.",
+        summary: "Update status page configuration",
+        description: "Update the single status page's metadata, visibility, or theme.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.success("Status page updated successfully", StatusPagesModel.Update.Response),
+            APIResponseSpec.success("Status page updated successfully", StatusPageAdminModel.Config.Response),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Status page not found"),
-            APIResponseSpec.conflict("A status page with this slug already exists")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
-    zValidator("json", StatusPagesModel.Update.Body),
+    zValidator("json", StatusPageAdminModel.Config.Body),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get(TARGET_PAGE_KEY) as StatusPagesModel.BasePage;
-        const body = c.req.valid("json") as StatusPagesModel.Update.Body;
+        const body = c.req.valid("json") as StatusPageAdminModel.Config.Body;
 
-        const updates = Object.fromEntries(
-            Object.entries(body).filter(([, value]) => value !== undefined)
-        ) as Partial<StatusPagesModel.Update.Body>;
+        const updates: Record<string, unknown> = { ...body, updated_at: Date.now() };
 
-        if (Object.keys(updates).length === 0) {
-            return APIResponse.badRequest(c, "Provide at least one field to update");
-        }
+        await DB.instance()
+            .update(DB.Tables.statusPageConfig)
+            .set(updates)
+            .where(eq(DB.Tables.statusPageConfig.id, CONFIG_ID))
+            .run();
 
-        if (updates.slug && updates.slug !== page.slug) {
-            const duplicate = await DB.instance().select().from(DB.Tables.statusPages).where(
-                eq(DB.Tables.statusPages.slug, updates.slug)
-            ).get();
-            if (duplicate) {
-                return APIResponse.conflict(c, "A status page with this slug already exists");
-            }
-        }
-
-        await DB.instance().update(DB.Tables.statusPages).set(updates).where(
-            eq(DB.Tables.statusPages.id, page.id)
-        ).run();
-
-        const refreshed = await DB.instance().select().from(DB.Tables.statusPages).where(
-            eq(DB.Tables.statusPages.id, page.id)
-        ).get();
-
-        if (!refreshed) {
-            throw new Error("Status page not found after update");
-        }
-
+        const refreshed = await getOrCreateConfig();
         return APIResponse.success(c, "Status page updated successfully", refreshed);
     }
 );
 
-router.delete('/:pageId',
+router.get('/groups',
 
     APIRouteSpec.authenticated({
-        summary: "Delete status page",
-        description: "Permanently remove a status page and its groups/links.",
+        summary: "List monitor groups",
+        description: "Retrieve all monitor groups for the status page.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.successNoData("Status page deleted successfully"),
+            APIResponseSpec.success("Groups retrieved successfully", z.array(StatusPageAdminModel.BaseGroup)),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get(TARGET_PAGE_KEY) as StatusPagesModel.BasePage;
+        const groups = await DB.instance()
+            .select()
+            .from(DB.Tables.monitorGroups)
+            .orderBy(DB.Tables.monitorGroups.sort_order);
 
-        await DB.instance().delete(DB.Tables.statusPageGroups).where(
-            eq(DB.Tables.statusPageGroups.status_page_id, page.id)
-        ).run();
-
-        await DB.instance().delete(DB.Tables.statusPageMonitorLinks).where(
-            eq(DB.Tables.statusPageMonitorLinks.status_page_id, page.id)
-        ).run();
-
-        await DB.instance().delete(DB.Tables.statusPages).where(
-            eq(DB.Tables.statusPages.id, page.id)
-        ).run();
-
-        return APIResponse.successNoData(c, "Status page deleted successfully");
+        return APIResponse.success(c, "Groups retrieved successfully", groups);
     }
 );
 
-router.post('/:pageId/groups',
+router.post('/groups',
 
     APIRouteSpec.authenticated({
-        summary: "Add status page group",
-        description: "Add a new group to a status page.",
+        summary: "Add monitor group",
+        description: "Add a new monitor group to the status page.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.created("Group created successfully", StatusPagesModel.CreateGroup.Response),
+            APIResponseSpec.created("Group created successfully", StatusPageAdminModel.CreateGroup.Response),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
-    zValidator("json", StatusPagesModel.CreateGroup.Body),
+    zValidator("json", StatusPageAdminModel.CreateGroup.Body),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get(TARGET_PAGE_KEY) as StatusPagesModel.BasePage;
-        const body = c.req.valid("json") as StatusPagesModel.CreateGroup.Body;
+        const body = c.req.valid("json") as StatusPageAdminModel.CreateGroup.Body;
 
-        const created = await DB.instance().insert(DB.Tables.statusPageGroups).values({
-            status_page_id: page.id,
+        const created = await DB.instance().insert(DB.Tables.monitorGroups).values({
             name: body.name,
             sort_order: body.sort_order,
         }).returning().get();
@@ -243,19 +173,16 @@ router.post('/:pageId/groups',
 );
 
 // @ts-ignore
-router.use('/:pageId/groups/:groupId/*',
+router.use('/groups/:groupId/*',
 
-    zValidator("param", StatusPagesModel.GroupId.Params),
+    zValidator("param", StatusPageAdminModel.GroupId.Params),
 
     async (c, next) => {
         // @ts-ignore
-        const { pageId, groupId } = c.req.valid("param") as StatusPagesModel.GroupId.Params;
+        const { groupId } = c.req.valid("param") as StatusPageAdminModel.GroupId.Params;
 
-        const group = await DB.instance().select().from(DB.Tables.statusPageGroups).where(
-            and(
-                eq(DB.Tables.statusPageGroups.id, groupId),
-                eq(DB.Tables.statusPageGroups.status_page_id, pageId)
-            )
+        const group = await DB.instance().select().from(DB.Tables.monitorGroups).where(
+            eq(DB.Tables.monitorGroups.id, groupId)
         ).get();
 
         if (!group) {
@@ -269,34 +196,34 @@ router.use('/:pageId/groups/:groupId/*',
     }
 );
 
-router.put('/:pageId/groups/:groupId',
+router.put('/groups/:groupId',
 
     APIRouteSpec.authenticated({
-        summary: "Update status page group",
-        description: "Rename or reorder a status page group.",
+        summary: "Update monitor group",
+        description: "Rename or reorder a monitor group.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.success("Group updated successfully", StatusPagesModel.UpdateGroup.Response),
+            APIResponseSpec.success("Group updated successfully", StatusPageAdminModel.UpdateGroup.Response),
             APIResponseSpec.unauthorized("Authentication required"),
             APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Group not found")
         )
     }),
 
-    zValidator("json", StatusPagesModel.UpdateGroup.Body),
+    zValidator("json", StatusPageAdminModel.UpdateGroup.Body),
 
     async (c) => {
         // @ts-ignore
-        const group = c.get(TARGET_GROUP_KEY) as StatusPagesModel.BaseGroup;
-        const body = c.req.valid("json") as StatusPagesModel.UpdateGroup.Body;
+        const group = c.get(TARGET_GROUP_KEY) as StatusPageAdminModel.BaseGroup;
+        const body = c.req.valid("json") as StatusPageAdminModel.UpdateGroup.Body;
 
-        await DB.instance().update(DB.Tables.statusPageGroups).set(body).where(
-            eq(DB.Tables.statusPageGroups.id, group.id)
+        await DB.instance().update(DB.Tables.monitorGroups).set(body).where(
+            eq(DB.Tables.monitorGroups.id, group.id)
         ).run();
 
-        const refreshed = await DB.instance().select().from(DB.Tables.statusPageGroups).where(
-            eq(DB.Tables.statusPageGroups.id, group.id)
+        const refreshed = await DB.instance().select().from(DB.Tables.monitorGroups).where(
+            eq(DB.Tables.monitorGroups.id, group.id)
         ).get();
 
         if (!refreshed) {
@@ -307,10 +234,10 @@ router.put('/:pageId/groups/:groupId',
     }
 );
 
-router.delete('/:pageId/groups/:groupId',
+router.delete('/groups/:groupId',
 
     APIRouteSpec.authenticated({
-        summary: "Delete status page group",
+        summary: "Delete monitor group",
         description: "Remove a group. Linked monitors become ungrouped.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
@@ -324,44 +251,77 @@ router.delete('/:pageId/groups/:groupId',
 
     async (c) => {
         // @ts-ignore
-        const group = c.get(TARGET_GROUP_KEY) as StatusPagesModel.BaseGroup;
+        const group = c.get(TARGET_GROUP_KEY) as StatusPageAdminModel.BaseGroup;
 
-        await DB.instance().update(DB.Tables.statusPageMonitorLinks).set({
+        await DB.instance().update(DB.Tables.monitorGroupAssignments).set({
             group_id: null
         }).where(
-            eq(DB.Tables.statusPageMonitorLinks.group_id, group.id)
+            eq(DB.Tables.monitorGroupAssignments.group_id, group.id)
         ).run();
 
-        await DB.instance().delete(DB.Tables.statusPageGroups).where(
-            eq(DB.Tables.statusPageGroups.id, group.id)
+        await DB.instance().delete(DB.Tables.monitorGroups).where(
+            eq(DB.Tables.monitorGroups.id, group.id)
         ).run();
 
         return APIResponse.successNoData(c, "Group deleted successfully");
     }
 );
 
-router.post('/:pageId/monitors',
+router.get('/monitors',
 
     APIRouteSpec.authenticated({
-        summary: "Link monitor to status page",
-        description: "Attach an existing monitor to a status page, optionally within a group.",
+        summary: "List linked monitors",
+        description: "Retrieve all monitors linked to the status page.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
-        responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.created("Monitor linked successfully", StatusPagesModel.CreateLink.Response),
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Links retrieved successfully", z.array(StatusPageAdminModel.BaseLink.extend({
+                monitor_name: z.string(),
+            }))),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Status page or monitor not found"),
-            APIResponseSpec.conflict("Monitor is already linked to this page")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
-    zValidator("json", StatusPagesModel.CreateLink.Body),
+    async (c) => {
+        const rawLinks = await DB.instance()
+            .select({
+                link: DB.Tables.monitorGroupAssignments,
+                monitor_name: DB.Tables.monitors.name,
+            })
+            .from(DB.Tables.monitorGroupAssignments)
+            .innerJoin(DB.Tables.monitors, eq(DB.Tables.monitorGroupAssignments.monitor_id, DB.Tables.monitors.id))
+            .orderBy(DB.Tables.monitorGroupAssignments.sort_order);
+
+        const links = rawLinks.map(({ link, monitor_name }) => ({
+            ...link,
+            monitor_name,
+        }));
+
+        return APIResponse.success(c, "Links retrieved successfully", links);
+    }
+);
+
+router.post('/monitors',
+
+    APIRouteSpec.authenticated({
+        summary: "Link monitor to status page",
+        description: "Attach an existing monitor to the status page, optionally within a group.",
+        tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
+
+        responses: APIResponseSpec.describeWithWrongInputs(
+            APIResponseSpec.created("Monitor linked successfully", StatusPageAdminModel.CreateLink.Response),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Status page or monitor not found"),
+            APIResponseSpec.conflict("Monitor is already linked to the status page")
+        )
+    }),
+
+    zValidator("json", StatusPageAdminModel.CreateLink.Body),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get(TARGET_PAGE_KEY) as StatusPagesModel.BasePage;
-        const body = c.req.valid("json") as StatusPagesModel.CreateLink.Body;
+        const body = c.req.valid("json") as StatusPageAdminModel.CreateLink.Body;
 
         const monitor = await DB.instance().select().from(DB.Tables.monitors).where(
             eq(DB.Tables.monitors.id, body.monitor_id)
@@ -372,30 +332,23 @@ router.post('/:pageId/monitors',
         }
 
         if (body.group_id) {
-            const group = await DB.instance().select().from(DB.Tables.statusPageGroups).where(
-                and(
-                    eq(DB.Tables.statusPageGroups.id, body.group_id),
-                    eq(DB.Tables.statusPageGroups.status_page_id, page.id)
-                )
+            const group = await DB.instance().select().from(DB.Tables.monitorGroups).where(
+                eq(DB.Tables.monitorGroups.id, body.group_id)
             ).get();
             if (!group) {
-                return APIResponse.notFound(c, "Group not found on this status page");
+                return APIResponse.notFound(c, "Group not found");
             }
         }
 
-        const existing = await DB.instance().select().from(DB.Tables.statusPageMonitorLinks).where(
-            and(
-                eq(DB.Tables.statusPageMonitorLinks.status_page_id, page.id),
-                eq(DB.Tables.statusPageMonitorLinks.monitor_id, body.monitor_id)
-            )
+        const existing = await DB.instance().select().from(DB.Tables.monitorGroupAssignments).where(
+            eq(DB.Tables.monitorGroupAssignments.monitor_id, body.monitor_id)
         ).get();
 
         if (existing) {
-            return APIResponse.conflict(c, "Monitor is already linked to this page");
+            return APIResponse.conflict(c, "Monitor is already linked to the status page");
         }
 
-        const link = await DB.instance().insert(DB.Tables.statusPageMonitorLinks).values({
-            status_page_id: page.id,
+        const link = await DB.instance().insert(DB.Tables.monitorGroupAssignments).values({
             monitor_id: body.monitor_id,
             group_id: body.group_id ?? null,
             display_name: body.display_name ?? null,
@@ -407,19 +360,16 @@ router.post('/:pageId/monitors',
 );
 
 // @ts-ignore
-router.use('/:pageId/monitors/:linkId/*',
+router.use('/monitors/:linkId/*',
 
-    zValidator("param", StatusPagesModel.LinkId.Params),
+    zValidator("param", StatusPageAdminModel.LinkId.Params),
 
     async (c, next) => {
         // @ts-ignore
-        const { pageId, linkId } = c.req.valid("param") as StatusPagesModel.LinkId.Params;
+        const { linkId } = c.req.valid("param") as StatusPageAdminModel.LinkId.Params;
 
-        const link = await DB.instance().select().from(DB.Tables.statusPageMonitorLinks).where(
-            and(
-                eq(DB.Tables.statusPageMonitorLinks.id, linkId),
-                eq(DB.Tables.statusPageMonitorLinks.status_page_id, pageId)
-            )
+        const link = await DB.instance().select().from(DB.Tables.monitorGroupAssignments).where(
+            eq(DB.Tables.monitorGroupAssignments.id, linkId)
         ).get();
 
         if (!link) {
@@ -433,7 +383,7 @@ router.use('/:pageId/monitors/:linkId/*',
     }
 );
 
-router.put('/:pageId/monitors/:linkId',
+router.put('/monitors/:linkId',
 
     APIRouteSpec.authenticated({
         summary: "Update monitor link",
@@ -441,40 +391,35 @@ router.put('/:pageId/monitors/:linkId',
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.success("Monitor link updated successfully", StatusPagesModel.UpdateLink.Response),
+            APIResponseSpec.success("Monitor link updated successfully", StatusPageAdminModel.UpdateLink.Response),
             APIResponseSpec.unauthorized("Authentication required"),
             APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Monitor link not found")
         )
     }),
 
-    zValidator("json", StatusPagesModel.UpdateLink.Body),
+    zValidator("json", StatusPageAdminModel.UpdateLink.Body),
 
     async (c) => {
         // @ts-ignore
-        const link = c.get(TARGET_LINK_KEY) as StatusPagesModel.BaseLink;
-        const body = c.req.valid("json") as StatusPagesModel.UpdateLink.Body;
+        const link = c.get(TARGET_LINK_KEY) as StatusPageAdminModel.BaseLink;
+        const body = c.req.valid("json") as StatusPageAdminModel.UpdateLink.Body;
 
         if (body.group_id) {
-            // @ts-ignore
-            const page = c.get(TARGET_PAGE_KEY) as StatusPagesModel.BasePage;
-            const group = await DB.instance().select().from(DB.Tables.statusPageGroups).where(
-                and(
-                    eq(DB.Tables.statusPageGroups.id, body.group_id),
-                    eq(DB.Tables.statusPageGroups.status_page_id, page.id)
-                )
+            const group = await DB.instance().select().from(DB.Tables.monitorGroups).where(
+                eq(DB.Tables.monitorGroups.id, body.group_id)
             ).get();
             if (!group) {
-                return APIResponse.notFound(c, "Group not found on this status page");
+                return APIResponse.notFound(c, "Group not found");
             }
         }
 
-        await DB.instance().update(DB.Tables.statusPageMonitorLinks).set(body).where(
-            eq(DB.Tables.statusPageMonitorLinks.id, link.id)
+        await DB.instance().update(DB.Tables.monitorGroupAssignments).set(body).where(
+            eq(DB.Tables.monitorGroupAssignments.id, link.id)
         ).run();
 
-        const refreshed = await DB.instance().select().from(DB.Tables.statusPageMonitorLinks).where(
-            eq(DB.Tables.statusPageMonitorLinks.id, link.id)
+        const refreshed = await DB.instance().select().from(DB.Tables.monitorGroupAssignments).where(
+            eq(DB.Tables.monitorGroupAssignments.id, link.id)
         ).get();
 
         if (!refreshed) {
@@ -485,11 +430,11 @@ router.put('/:pageId/monitors/:linkId',
     }
 );
 
-router.delete('/:pageId/monitors/:linkId',
+router.delete('/monitors/:linkId',
 
     APIRouteSpec.authenticated({
         summary: "Unlink monitor from status page",
-        description: "Remove a monitor from a status page.",
+        description: "Remove a monitor from the status page.",
         tags: [DOCS_TAGS.ADMIN_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
@@ -502,37 +447,14 @@ router.delete('/:pageId/monitors/:linkId',
 
     async (c) => {
         // @ts-ignore
-        const link = c.get(TARGET_LINK_KEY) as StatusPagesModel.BaseLink;
+        const link = c.get(TARGET_LINK_KEY) as StatusPageAdminModel.BaseLink;
 
-        await DB.instance().delete(DB.Tables.statusPageMonitorLinks).where(
-            eq(DB.Tables.statusPageMonitorLinks.id, link.id)
+        await DB.instance().delete(DB.Tables.monitorGroupAssignments).where(
+            eq(DB.Tables.monitorGroupAssignments.id, link.id)
         ).run();
 
         return APIResponse.successNoData(c, "Monitor unlinked successfully");
     }
 );
 
-export async function buildFullPage(page: StatusPagesModel.BasePage): Promise<StatusPagesModel.FullPage.Response> {
-    const groups = await DB.instance()
-        .select()
-        .from(DB.Tables.statusPageGroups)
-        .where(eq(DB.Tables.statusPageGroups.status_page_id, page.id))
-        .orderBy(DB.Tables.statusPageGroups.sort_order);
-
-    const rawLinks = await DB.instance()
-        .select({
-            link: DB.Tables.statusPageMonitorLinks,
-            monitor_name: DB.Tables.monitors.name,
-        })
-        .from(DB.Tables.statusPageMonitorLinks)
-        .innerJoin(DB.Tables.monitors, eq(DB.Tables.statusPageMonitorLinks.monitor_id, DB.Tables.monitors.id))
-        .where(eq(DB.Tables.statusPageMonitorLinks.status_page_id, page.id))
-        .orderBy(DB.Tables.statusPageMonitorLinks.sort_order);
-
-    const links = rawLinks.map(({ link, monitor_name }) => ({
-        ...link,
-        monitor_name,
-    }));
-
-    return { page, groups, links };
-}
+router.route('/', contentRouter);

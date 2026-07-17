@@ -27,9 +27,9 @@ const sidebarItems = computed(() => {
             exact: true,
         },
         {
-            label: 'Status Pages',
+            label: 'Status Page',
             icon: 'i-lucide-layout-grid',
-            to: '/dashboard/status-pages',
+            to: '/dashboard/status-page',
         },
         {
             label: 'Monitors',
@@ -55,9 +55,9 @@ const sidebarItems = computed(() => {
             to: "/dashboard/admin/monitors",
         },
         {
-            label: "Status Pages",
+            label: "Status Page",
             icon: "i-lucide-layout-grid",
-            to: "/dashboard/admin/status-pages",
+            to: "/dashboard/admin/status-page",
         },
         {
             label: "Settings",

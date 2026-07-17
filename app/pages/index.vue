@@ -1,6 +1,7 @@
 <script setup lang="ts">
+import type { GetPublicStatusPageResponses } from '@/api-client/types.gen'
 
-type PublicPage = GetPublicStatusPagesRootResponses[200]['data']
+type PublicPage = GetPublicStatusPageResponses[200]['data']
 
 definePageMeta({
     layout: 'public'
@@ -13,8 +14,8 @@ useSeoMeta({
 const {
     data: pageDetails,
     pending: loading
-} = await useLazyAsyncData<PublicPage | null>('public-root-status-page', async () => {
-    const res = await useAPI((api) => api.getPublicStatusPagesRoot({}), true)
+} = await useLazyAsyncData<PublicPage | null>('public-status-page', async () => {
+    const res = await useAPI((api) => api.getPublicStatusPage({}), true)
     if (!res.success) {
         return null
     }
@@ -31,15 +32,18 @@ watchEffect(() => {
 const overallStatus = computed(() => {
     if (!pageDetails.value) return 'unknown'
     const all = [
-        ...pageDetails.value.groups.flatMap(g => g.monitors),
+        ...pageDetails.value.groups.flatMap((g: any) => g.monitors),
         ...pageDetails.value.ungrouped
     ]
-    if (all.some(m => m.latest_check?.status === 'down')) return 'down'
-    if (all.some(m => m.latest_check?.status === 'degraded')) return 'degraded'
-    if (all.every(m => m.latest_check?.status === 'up')) return 'up'
+    if (all.some((m: any) => m.latest_check?.status === 'down')) return 'down'
+    if (all.some((m: any) => m.latest_check?.status === 'degraded')) return 'degraded'
+    if (all.every((m: any) => m.latest_check?.status === 'up')) return 'up'
     return 'unknown'
 })
 
+const activeIncidents = computed(() => (pageDetails.value?.incidents || []).filter((i: any) => !i.is_resolved))
+const scheduledMaintenance = computed(() => (pageDetails.value?.maintenance || []).filter((m: any) => ['scheduled', 'in_progress'].includes(m.status)))
+const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0, 5))
 
 </script>
 
@@ -53,7 +57,7 @@ const overallStatus = computed(() => {
             <UEmpty
                 icon="i-lucide-layout-grid"
                 title="No status page configured"
-                description="An administrator can set a root status page in the admin settings."
+                description="An administrator can configure the status page in the admin settings."
                 variant="naked"
             />
         </div>
@@ -96,10 +100,82 @@ const overallStatus = computed(() => {
                     </div>
                 </div>
 
+                <!-- Active incidents -->
+                <div v-if="activeIncidents.length">
+                    <h2 class="text-lg font-semibold text-white mb-3">Active Incidents</h2>
+                    <div class="space-y-3">
+                        <UCard
+                            v-for="incident in activeIncidents"
+                            :key="incident.id"
+                            class="border-slate-800 bg-slate-900/60"
+                        >
+                            <template #header>
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <h3 class="font-semibold text-white">{{ incident.title }}</h3>
+                                        <p class="text-xs text-slate-400">{{ formatDate(incident.started_at) }}</p>
+                                    </div>
+                                    <UBadge :color="getIncidentStatusColor(incident.status)" variant="soft" class="capitalize">
+                                        {{ incident.status }}
+                                    </UBadge>
+                                </div>
+                            </template>
+                            <p class="text-slate-300 whitespace-pre-line">{{ incident.message }}</p>
+                        </UCard>
+                    </div>
+                </div>
+
                 <!-- Monitors -->
                 <div>
                     <h2 class="text-lg font-semibold text-white mb-3">Services</h2>
                     <MonitorList :groups="pageDetails.groups" :ungrouped="pageDetails.ungrouped" />
+                </div>
+
+                <!-- Scheduled maintenance -->
+                <div v-if="scheduledMaintenance.length">
+                    <h2 class="text-lg font-semibold text-white mb-3">Scheduled Maintenance</h2>
+                    <div class="space-y-3">
+                        <UCard
+                            v-for="item in scheduledMaintenance"
+                            :key="item.id"
+                            class="border-slate-800 bg-slate-900/60"
+                        >
+                            <template #header>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-semibold text-white">{{ item.title }}</h3>
+                                    <UBadge :color="getMaintenanceStatusColor(item.status)" variant="soft" class="capitalize">
+                                        {{ item.status.replace('_', ' ') }}
+                                    </UBadge>
+                                </div>
+                            </template>
+                            <p class="text-sm text-slate-400 mb-2">
+                                {{ formatDate(item.scheduled_start_at) }}
+                                <span v-if="item.scheduled_end_at"> — {{ formatDate(item.scheduled_end_at) }}</span>
+                            </p>
+                            <p class="text-slate-300 whitespace-pre-line">{{ item.message }}</p>
+                        </UCard>
+                    </div>
+                </div>
+
+                <!-- Recent updates -->
+                <div v-if="recentUpdates.length">
+                    <h2 class="text-lg font-semibold text-white mb-3">Recent Updates</h2>
+                    <div class="space-y-3">
+                        <UCard
+                            v-for="update in recentUpdates"
+                            :key="update.id"
+                            class="border-slate-800 bg-slate-900/60"
+                        >
+                            <template #header>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-semibold text-white">{{ update.title }}</h3>
+                                    <span class="text-xs text-slate-400 capitalize">{{ update.type }}</span>
+                                </div>
+                            </template>
+                            <p class="text-sm text-slate-400 mb-2">{{ formatDate(update.created_at) }}</p>
+                            <p class="text-slate-300 whitespace-pre-line">{{ update.message }}</p>
+                        </UCard>
+                    </div>
                 </div>
             </div>
         </template>

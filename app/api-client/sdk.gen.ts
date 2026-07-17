@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Composable, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAccountApikeysByApiKeyIdData, DeleteAccountApikeysByApiKeyIdError, DeleteAccountApikeysByApiKeyIdResponse, DeleteAccountData, DeleteAccountError, DeleteAccountResponse, DeleteAdminMonitorsByMonitorIdData, DeleteAdminMonitorsByMonitorIdError, DeleteAdminMonitorsByMonitorIdResponse, DeleteAdminStatusPagesByPageIdData, DeleteAdminStatusPagesByPageIdError, DeleteAdminStatusPagesByPageIdGroupsByGroupIdData, DeleteAdminStatusPagesByPageIdGroupsByGroupIdError, DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdData, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdError, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse, DeleteAdminStatusPagesByPageIdResponse, DeleteAdminUsersByUserIdData, DeleteAdminUsersByUserIdError, DeleteAdminUsersByUserIdResponse, DeleteStatusPagesBySlugIncidentsByIncidentIdData, DeleteStatusPagesBySlugIncidentsByIncidentIdError, DeleteStatusPagesBySlugIncidentsByIncidentIdResponse, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdData, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdError, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse, DeleteStatusPagesBySlugUpdatesByUpdateIdData, DeleteStatusPagesBySlugUpdatesByUpdateIdError, DeleteStatusPagesBySlugUpdatesByUpdateIdResponse, GetAccountApikeysByApiKeyIdData, GetAccountApikeysByApiKeyIdError, GetAccountApikeysByApiKeyIdResponse, GetAccountApikeysData, GetAccountApikeysResponse, GetAccountData, GetAccountError, GetAccountResponse, GetAdminMonitorsByMonitorIdData, GetAdminMonitorsByMonitorIdError, GetAdminMonitorsByMonitorIdResponse, GetAdminMonitorsData, GetAdminMonitorsError, GetAdminMonitorsResponse, GetAdminSettingsData, GetAdminSettingsError, GetAdminSettingsResponse, GetAdminStatusPagesByPageIdData, GetAdminStatusPagesByPageIdError, GetAdminStatusPagesByPageIdResponse, GetAdminStatusPagesData, GetAdminStatusPagesError, GetAdminStatusPagesResponse, GetAdminUsersByUserIdData, GetAdminUsersByUserIdError, GetAdminUsersByUserIdResponse, GetAdminUsersData, GetAdminUsersResponse, GetAuthSessionData, GetAuthSessionError, GetAuthSessionResponse, GetMonitorsByMonitorIdData, GetMonitorsByMonitorIdError, GetMonitorsByMonitorIdResponse, GetMonitorsData, GetMonitorsError, GetMonitorsResponse, GetPublicMonitorsByMonitorIdData, GetPublicMonitorsByMonitorIdError, GetPublicMonitorsByMonitorIdResponse, GetPublicStatusPagesBySlugData, GetPublicStatusPagesBySlugError, GetPublicStatusPagesBySlugIncidentsData, GetPublicStatusPagesBySlugIncidentsError, GetPublicStatusPagesBySlugIncidentsResponse, GetPublicStatusPagesBySlugMaintenanceData, GetPublicStatusPagesBySlugMaintenanceError, GetPublicStatusPagesBySlugMaintenanceResponse, GetPublicStatusPagesBySlugResponse, GetPublicStatusPagesBySlugUpdatesData, GetPublicStatusPagesBySlugUpdatesError, GetPublicStatusPagesBySlugUpdatesResponse, GetPublicStatusPagesRootData, GetPublicStatusPagesRootError, GetPublicStatusPagesRootResponse, GetStatusPagesBySlugData, GetStatusPagesBySlugError, GetStatusPagesBySlugIncidentsData, GetStatusPagesBySlugIncidentsError, GetStatusPagesBySlugIncidentsResponse, GetStatusPagesBySlugMaintenanceData, GetStatusPagesBySlugMaintenanceError, GetStatusPagesBySlugMaintenanceResponse, GetStatusPagesBySlugResponse, GetStatusPagesBySlugUpdatesData, GetStatusPagesBySlugUpdatesError, GetStatusPagesBySlugUpdatesResponse, GetStatusPagesData, GetStatusPagesError, GetStatusPagesResponse, GetUsersSearchData, GetUsersSearchError, GetUsersSearchResponse, PostAccountApikeysData, PostAccountApikeysError, PostAccountApikeysResponse, PostAdminMonitorsByMonitorIdCheckData, PostAdminMonitorsByMonitorIdCheckError, PostAdminMonitorsByMonitorIdCheckResponse, PostAdminMonitorsData, PostAdminMonitorsError, PostAdminMonitorsResponse, PostAdminStatusPagesByPageIdGroupsData, PostAdminStatusPagesByPageIdGroupsError, PostAdminStatusPagesByPageIdGroupsResponse, PostAdminStatusPagesByPageIdMonitorsData, PostAdminStatusPagesByPageIdMonitorsError, PostAdminStatusPagesByPageIdMonitorsResponse, PostAdminStatusPagesData, PostAdminStatusPagesError, PostAdminStatusPagesResponse, PostAdminUsersData, PostAdminUsersError, PostAdminUsersResponse, PostAuthLoginData, PostAuthLoginError, PostAuthLoginResponse, PostAuthLogoutData, PostAuthLogoutError, PostAuthLogoutResponse, PostAuthResetPasswordData, PostAuthResetPasswordError, PostAuthResetPasswordRequestData, PostAuthResetPasswordRequestError, PostAuthResetPasswordRequestResponse, PostAuthResetPasswordResponse, PostStatusPagesBySlugIncidentsData, PostStatusPagesBySlugIncidentsError, PostStatusPagesBySlugIncidentsResponse, PostStatusPagesBySlugMaintenanceData, PostStatusPagesBySlugMaintenanceError, PostStatusPagesBySlugMaintenanceResponse, PostStatusPagesBySlugUpdatesData, PostStatusPagesBySlugUpdatesError, PostStatusPagesBySlugUpdatesResponse, PutAccountData, PutAccountError, PutAccountPasswordData, PutAccountPasswordError, PutAccountPasswordResponse, PutAccountResponse, PutAdminMonitorsByMonitorIdData, PutAdminMonitorsByMonitorIdError, PutAdminMonitorsByMonitorIdResponse, PutAdminSettingsData, PutAdminSettingsError, PutAdminSettingsResponse, PutAdminStatusPagesByPageIdData, PutAdminStatusPagesByPageIdError, PutAdminStatusPagesByPageIdGroupsByGroupIdData, PutAdminStatusPagesByPageIdGroupsByGroupIdError, PutAdminStatusPagesByPageIdGroupsByGroupIdResponse, PutAdminStatusPagesByPageIdMonitorsByLinkIdData, PutAdminStatusPagesByPageIdMonitorsByLinkIdError, PutAdminStatusPagesByPageIdMonitorsByLinkIdResponse, PutAdminStatusPagesByPageIdResponse, PutAdminUsersByUserIdData, PutAdminUsersByUserIdError, PutAdminUsersByUserIdPasswordData, PutAdminUsersByUserIdPasswordError, PutAdminUsersByUserIdPasswordResponse, PutAdminUsersByUserIdResponse, PutStatusPagesBySlugIncidentsByIncidentIdData, PutStatusPagesBySlugIncidentsByIncidentIdError, PutStatusPagesBySlugIncidentsByIncidentIdResponse, PutStatusPagesBySlugMaintenanceByMaintenanceIdData, PutStatusPagesBySlugMaintenanceByMaintenanceIdError, PutStatusPagesBySlugMaintenanceByMaintenanceIdResponse, PutStatusPagesBySlugUpdatesByUpdateIdData, PutStatusPagesBySlugUpdatesByUpdateIdError, PutStatusPagesBySlugUpdatesByUpdateIdResponse } from './types.gen';
+import type { DeleteAccountApikeysByApiKeyIdData, DeleteAccountApikeysByApiKeyIdError, DeleteAccountApikeysByApiKeyIdResponse, DeleteAccountData, DeleteAccountError, DeleteAccountResponse, DeleteAdminMonitorsByMonitorIdData, DeleteAdminMonitorsByMonitorIdError, DeleteAdminMonitorsByMonitorIdResponse, DeleteAdminStatusPageGroupsByGroupIdData, DeleteAdminStatusPageGroupsByGroupIdError, DeleteAdminStatusPageGroupsByGroupIdResponse, DeleteAdminStatusPageIncidentsByIncidentIdData, DeleteAdminStatusPageIncidentsByIncidentIdError, DeleteAdminStatusPageIncidentsByIncidentIdResponse, DeleteAdminStatusPageMaintenanceByMaintenanceIdData, DeleteAdminStatusPageMaintenanceByMaintenanceIdError, DeleteAdminStatusPageMaintenanceByMaintenanceIdResponse, DeleteAdminStatusPageMonitorsByLinkIdData, DeleteAdminStatusPageMonitorsByLinkIdError, DeleteAdminStatusPageMonitorsByLinkIdResponse, DeleteAdminStatusPageUpdatesByUpdateIdData, DeleteAdminStatusPageUpdatesByUpdateIdError, DeleteAdminStatusPageUpdatesByUpdateIdResponse, DeleteAdminUsersByUserIdData, DeleteAdminUsersByUserIdError, DeleteAdminUsersByUserIdResponse, GetAccountApikeysByApiKeyIdData, GetAccountApikeysByApiKeyIdError, GetAccountApikeysByApiKeyIdResponse, GetAccountApikeysData, GetAccountApikeysResponse, GetAccountData, GetAccountError, GetAccountResponse, GetAdminMonitorsByMonitorIdData, GetAdminMonitorsByMonitorIdError, GetAdminMonitorsByMonitorIdResponse, GetAdminMonitorsData, GetAdminMonitorsError, GetAdminMonitorsResponse, GetAdminSettingsData, GetAdminSettingsError, GetAdminSettingsResponse, GetAdminStatusPageData, GetAdminStatusPageError, GetAdminStatusPageGroupsData, GetAdminStatusPageGroupsError, GetAdminStatusPageGroupsResponse, GetAdminStatusPageIncidentsData, GetAdminStatusPageIncidentsError, GetAdminStatusPageIncidentsResponse, GetAdminStatusPageMaintenanceData, GetAdminStatusPageMaintenanceError, GetAdminStatusPageMaintenanceResponse, GetAdminStatusPageMonitorsData, GetAdminStatusPageMonitorsError, GetAdminStatusPageMonitorsResponse, GetAdminStatusPageResponse, GetAdminStatusPageUpdatesData, GetAdminStatusPageUpdatesError, GetAdminStatusPageUpdatesResponse, GetAdminUsersByUserIdData, GetAdminUsersByUserIdError, GetAdminUsersByUserIdResponse, GetAdminUsersData, GetAdminUsersResponse, GetAuthSessionData, GetAuthSessionError, GetAuthSessionResponse, GetMonitorsByMonitorIdData, GetMonitorsByMonitorIdError, GetMonitorsByMonitorIdResponse, GetMonitorsData, GetMonitorsError, GetMonitorsResponse, GetPublicMonitorsByMonitorIdData, GetPublicMonitorsByMonitorIdError, GetPublicMonitorsByMonitorIdResponse, GetPublicStatusPageData, GetPublicStatusPageError, GetPublicStatusPageIncidentsData, GetPublicStatusPageIncidentsError, GetPublicStatusPageIncidentsResponse, GetPublicStatusPageMaintenanceData, GetPublicStatusPageMaintenanceError, GetPublicStatusPageMaintenanceResponse, GetPublicStatusPageResponse, GetPublicStatusPageUpdatesData, GetPublicStatusPageUpdatesError, GetPublicStatusPageUpdatesResponse, GetStatusPageData, GetStatusPageError, GetStatusPageIncidentsData, GetStatusPageIncidentsError, GetStatusPageIncidentsResponse, GetStatusPageMaintenanceData, GetStatusPageMaintenanceError, GetStatusPageMaintenanceResponse, GetStatusPageResponse, GetStatusPageUpdatesData, GetStatusPageUpdatesError, GetStatusPageUpdatesResponse, GetUsersSearchData, GetUsersSearchError, GetUsersSearchResponse, PostAccountApikeysData, PostAccountApikeysError, PostAccountApikeysResponse, PostAdminMonitorsByMonitorIdCheckData, PostAdminMonitorsByMonitorIdCheckError, PostAdminMonitorsByMonitorIdCheckResponse, PostAdminMonitorsData, PostAdminMonitorsError, PostAdminMonitorsResponse, PostAdminStatusPageGroupsData, PostAdminStatusPageGroupsError, PostAdminStatusPageGroupsResponse, PostAdminStatusPageIncidentsData, PostAdminStatusPageIncidentsError, PostAdminStatusPageIncidentsResponse, PostAdminStatusPageMaintenanceData, PostAdminStatusPageMaintenanceError, PostAdminStatusPageMaintenanceResponse, PostAdminStatusPageMonitorsData, PostAdminStatusPageMonitorsError, PostAdminStatusPageMonitorsResponse, PostAdminStatusPageUpdatesData, PostAdminStatusPageUpdatesError, PostAdminStatusPageUpdatesResponse, PostAdminUsersData, PostAdminUsersError, PostAdminUsersResponse, PostAuthLoginData, PostAuthLoginError, PostAuthLoginResponse, PostAuthLogoutData, PostAuthLogoutError, PostAuthLogoutResponse, PostAuthResetPasswordData, PostAuthResetPasswordError, PostAuthResetPasswordResponse, PutAccountData, PutAccountError, PutAccountPasswordData, PutAccountPasswordError, PutAccountPasswordResponse, PutAccountResponse, PutAdminMonitorsByMonitorIdData, PutAdminMonitorsByMonitorIdError, PutAdminMonitorsByMonitorIdResponse, PutAdminSettingsData, PutAdminSettingsError, PutAdminSettingsResponse, PutAdminStatusPageData, PutAdminStatusPageError, PutAdminStatusPageGroupsByGroupIdData, PutAdminStatusPageGroupsByGroupIdError, PutAdminStatusPageGroupsByGroupIdResponse, PutAdminStatusPageIncidentsByIncidentIdData, PutAdminStatusPageIncidentsByIncidentIdError, PutAdminStatusPageIncidentsByIncidentIdResponse, PutAdminStatusPageMaintenanceByMaintenanceIdData, PutAdminStatusPageMaintenanceByMaintenanceIdError, PutAdminStatusPageMaintenanceByMaintenanceIdResponse, PutAdminStatusPageMonitorsByLinkIdData, PutAdminStatusPageMonitorsByLinkIdError, PutAdminStatusPageMonitorsByLinkIdResponse, PutAdminStatusPageResponse, PutAdminStatusPageUpdatesByUpdateIdData, PutAdminStatusPageUpdatesByUpdateIdError, PutAdminStatusPageUpdatesByUpdateIdResponse, PutAdminUsersByUserIdData, PutAdminUsersByUserIdError, PutAdminUsersByUserIdPasswordData, PutAdminUsersByUserIdPasswordError, PutAdminUsersByUserIdPasswordResponse, PutAdminUsersByUserIdResponse } from './types.gen';
 
 export type Options<TComposable extends Composable = '$fetch', TData extends TDataShape = TDataShape, ResT = unknown, DefaultT = undefined> = Options2<TComposable, TData, ResT, DefaultT> & {
     /**
@@ -61,20 +61,6 @@ export const postAuthLogout = <TComposable extends Composable = '$fetch', Defaul
  */
 export const postAuthResetPassword = <TComposable extends Composable = '$fetch', DefaultT extends PostAuthResetPasswordResponse = PostAuthResetPasswordResponse>(options: Options<TComposable, PostAuthResetPasswordData, PostAuthResetPasswordResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAuthResetPasswordResponse | DefaultT, PostAuthResetPasswordError, DefaultT>({
     url: '/auth/reset-password',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Request Password Reset
- *
- * Request a password reset for a user using their username
- */
-export const postAuthResetPasswordRequest = <TComposable extends Composable = '$fetch', DefaultT extends PostAuthResetPasswordRequestResponse = PostAuthResetPasswordRequestResponse>(options: Options<TComposable, PostAuthResetPasswordRequestData, PostAuthResetPasswordRequestResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAuthResetPasswordRequestResponse | DefaultT, PostAuthResetPasswordRequestError, DefaultT>({
-    url: '/auth/reset-password/request',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -335,24 +321,24 @@ export const postAdminMonitorsByMonitorIdCheck = <TComposable extends Composable
 });
 
 /**
- * List status pages
+ * Get status page configuration
  *
- * Retrieve all status pages, including disabled or private ones.
+ * Retrieve the single status page configuration with groups and linked monitors.
  */
-export const getAdminStatusPages = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPagesResponse = GetAdminStatusPagesResponse>(options: Options<TComposable, GetAdminStatusPagesData, GetAdminStatusPagesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPagesResponse | DefaultT, GetAdminStatusPagesError, DefaultT>({
+export const getAdminStatusPage = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPageResponse = GetAdminStatusPageResponse>(options: Options<TComposable, GetAdminStatusPageData, GetAdminStatusPageResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPageResponse | DefaultT, GetAdminStatusPageError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages',
+    url: '/admin/status-page',
     ...options
 });
 
 /**
- * Create status page
+ * Update status page configuration
  *
- * Create a new public or internal status page.
+ * Update the single status page's metadata, visibility, or theme.
  */
-export const postAdminStatusPages = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPagesResponse = PostAdminStatusPagesResponse>(options: Options<TComposable, PostAdminStatusPagesData, PostAdminStatusPagesResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPagesResponse | DefaultT, PostAdminStatusPagesError, DefaultT>({
+export const putAdminStatusPage = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPageResponse = PutAdminStatusPageResponse>(options: Options<TComposable, PutAdminStatusPageData, PutAdminStatusPageResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPageResponse | DefaultT, PutAdminStatusPageError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages',
+    url: '/admin/status-page',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -361,35 +347,24 @@ export const postAdminStatusPages = <TComposable extends Composable = '$fetch', 
 });
 
 /**
- * Delete status page
+ * List monitor groups
  *
- * Permanently remove a status page and its groups/links.
+ * Retrieve all monitor groups for the status page.
  */
-export const deleteAdminStatusPagesByPageId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPagesByPageIdResponse = DeleteAdminStatusPagesByPageIdResponse>(options: Options<TComposable, DeleteAdminStatusPagesByPageIdData, DeleteAdminStatusPagesByPageIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPagesByPageIdResponse | DefaultT, DeleteAdminStatusPagesByPageIdError, DefaultT>({
+export const getAdminStatusPageGroups = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPageGroupsResponse = GetAdminStatusPageGroupsResponse>(options: Options<TComposable, GetAdminStatusPageGroupsData, GetAdminStatusPageGroupsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPageGroupsResponse | DefaultT, GetAdminStatusPageGroupsError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}',
+    url: '/admin/status-page/groups',
     ...options
 });
 
 /**
- * Get status page details
+ * Add monitor group
  *
- * Retrieve a status page with its groups and linked monitors.
+ * Add a new monitor group to the status page.
  */
-export const getAdminStatusPagesByPageId = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPagesByPageIdResponse = GetAdminStatusPagesByPageIdResponse>(options: Options<TComposable, GetAdminStatusPagesByPageIdData, GetAdminStatusPagesByPageIdResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPagesByPageIdResponse | DefaultT, GetAdminStatusPagesByPageIdError, DefaultT>({
+export const postAdminStatusPageGroups = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPageGroupsResponse = PostAdminStatusPageGroupsResponse>(options: Options<TComposable, PostAdminStatusPageGroupsData, PostAdminStatusPageGroupsResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPageGroupsResponse | DefaultT, PostAdminStatusPageGroupsError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}',
-    ...options
-});
-
-/**
- * Update status page
- *
- * Update a status page's metadata, visibility, or theme.
- */
-export const putAdminStatusPagesByPageId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPagesByPageIdResponse = PutAdminStatusPagesByPageIdResponse>(options: Options<TComposable, PutAdminStatusPagesByPageIdData, PutAdminStatusPagesByPageIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPagesByPageIdResponse | DefaultT, PutAdminStatusPagesByPageIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}',
+    url: '/admin/status-page/groups',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -398,54 +373,50 @@ export const putAdminStatusPagesByPageId = <TComposable extends Composable = '$f
 });
 
 /**
- * Add status page group
- *
- * Add a new group to a status page.
- */
-export const postAdminStatusPagesByPageIdGroups = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPagesByPageIdGroupsResponse = PostAdminStatusPagesByPageIdGroupsResponse>(options: Options<TComposable, PostAdminStatusPagesByPageIdGroupsData, PostAdminStatusPagesByPageIdGroupsResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPagesByPageIdGroupsResponse | DefaultT, PostAdminStatusPagesByPageIdGroupsError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}/groups',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete status page group
+ * Delete monitor group
  *
  * Remove a group. Linked monitors become ungrouped.
  */
-export const deleteAdminStatusPagesByPageIdGroupsByGroupId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse = DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse>(options: Options<TComposable, DeleteAdminStatusPagesByPageIdGroupsByGroupIdData, DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse | DefaultT, DeleteAdminStatusPagesByPageIdGroupsByGroupIdError, DefaultT>({
+export const deleteAdminStatusPageGroupsByGroupId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPageGroupsByGroupIdResponse = DeleteAdminStatusPageGroupsByGroupIdResponse>(options: Options<TComposable, DeleteAdminStatusPageGroupsByGroupIdData, DeleteAdminStatusPageGroupsByGroupIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPageGroupsByGroupIdResponse | DefaultT, DeleteAdminStatusPageGroupsByGroupIdError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}/groups/{groupId}',
+    url: '/admin/status-page/groups/{groupId}',
     ...options
 });
 
 /**
- * Update status page group
+ * Update monitor group
  *
- * Rename or reorder a status page group.
+ * Rename or reorder a monitor group.
  */
-export const putAdminStatusPagesByPageIdGroupsByGroupId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPagesByPageIdGroupsByGroupIdResponse = PutAdminStatusPagesByPageIdGroupsByGroupIdResponse>(options: Options<TComposable, PutAdminStatusPagesByPageIdGroupsByGroupIdData, PutAdminStatusPagesByPageIdGroupsByGroupIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPagesByPageIdGroupsByGroupIdResponse | DefaultT, PutAdminStatusPagesByPageIdGroupsByGroupIdError, DefaultT>({
+export const putAdminStatusPageGroupsByGroupId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPageGroupsByGroupIdResponse = PutAdminStatusPageGroupsByGroupIdResponse>(options: Options<TComposable, PutAdminStatusPageGroupsByGroupIdData, PutAdminStatusPageGroupsByGroupIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPageGroupsByGroupIdResponse | DefaultT, PutAdminStatusPageGroupsByGroupIdError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}/groups/{groupId}',
+    url: '/admin/status-page/groups/{groupId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
         ...options.headers
     }
+});
+
+/**
+ * List linked monitors
+ *
+ * Retrieve all monitors linked to the status page.
+ */
+export const getAdminStatusPageMonitors = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPageMonitorsResponse = GetAdminStatusPageMonitorsResponse>(options: Options<TComposable, GetAdminStatusPageMonitorsData, GetAdminStatusPageMonitorsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPageMonitorsResponse | DefaultT, GetAdminStatusPageMonitorsError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/monitors',
+    ...options
 });
 
 /**
  * Link monitor to status page
  *
- * Attach an existing monitor to a status page, optionally within a group.
+ * Attach an existing monitor to the status page, optionally within a group.
  */
-export const postAdminStatusPagesByPageIdMonitors = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPagesByPageIdMonitorsResponse = PostAdminStatusPagesByPageIdMonitorsResponse>(options: Options<TComposable, PostAdminStatusPagesByPageIdMonitorsData, PostAdminStatusPagesByPageIdMonitorsResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPagesByPageIdMonitorsResponse | DefaultT, PostAdminStatusPagesByPageIdMonitorsError, DefaultT>({
+export const postAdminStatusPageMonitors = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPageMonitorsResponse = PostAdminStatusPageMonitorsResponse>(options: Options<TComposable, PostAdminStatusPageMonitorsData, PostAdminStatusPageMonitorsResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPageMonitorsResponse | DefaultT, PostAdminStatusPageMonitorsError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}/monitors',
+    url: '/admin/status-page/monitors',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -456,11 +427,11 @@ export const postAdminStatusPagesByPageIdMonitors = <TComposable extends Composa
 /**
  * Unlink monitor from status page
  *
- * Remove a monitor from a status page.
+ * Remove a monitor from the status page.
  */
-export const deleteAdminStatusPagesByPageIdMonitorsByLinkId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse = DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse>(options: Options<TComposable, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdData, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse | DefaultT, DeleteAdminStatusPagesByPageIdMonitorsByLinkIdError, DefaultT>({
+export const deleteAdminStatusPageMonitorsByLinkId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPageMonitorsByLinkIdResponse = DeleteAdminStatusPageMonitorsByLinkIdResponse>(options: Options<TComposable, DeleteAdminStatusPageMonitorsByLinkIdData, DeleteAdminStatusPageMonitorsByLinkIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPageMonitorsByLinkIdResponse | DefaultT, DeleteAdminStatusPageMonitorsByLinkIdError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}/monitors/{linkId}',
+    url: '/admin/status-page/monitors/{linkId}',
     ...options
 });
 
@@ -469,9 +440,165 @@ export const deleteAdminStatusPagesByPageIdMonitorsByLinkId = <TComposable exten
  *
  * Change the display name, group, or order of a linked monitor.
  */
-export const putAdminStatusPagesByPageIdMonitorsByLinkId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPagesByPageIdMonitorsByLinkIdResponse = PutAdminStatusPagesByPageIdMonitorsByLinkIdResponse>(options: Options<TComposable, PutAdminStatusPagesByPageIdMonitorsByLinkIdData, PutAdminStatusPagesByPageIdMonitorsByLinkIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPagesByPageIdMonitorsByLinkIdResponse | DefaultT, PutAdminStatusPagesByPageIdMonitorsByLinkIdError, DefaultT>({
+export const putAdminStatusPageMonitorsByLinkId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPageMonitorsByLinkIdResponse = PutAdminStatusPageMonitorsByLinkIdResponse>(options: Options<TComposable, PutAdminStatusPageMonitorsByLinkIdData, PutAdminStatusPageMonitorsByLinkIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPageMonitorsByLinkIdResponse | DefaultT, PutAdminStatusPageMonitorsByLinkIdError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/admin/status-pages/{pageId}/monitors/{linkId}',
+    url: '/admin/status-page/monitors/{linkId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List incidents
+ *
+ * Retrieve all incidents for the status page.
+ */
+export const getAdminStatusPageIncidents = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPageIncidentsResponse = GetAdminStatusPageIncidentsResponse>(options: Options<TComposable, GetAdminStatusPageIncidentsData, GetAdminStatusPageIncidentsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPageIncidentsResponse | DefaultT, GetAdminStatusPageIncidentsError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/incidents',
+    ...options
+});
+
+/**
+ * Create incident
+ *
+ * Publish a new incident on the status page.
+ */
+export const postAdminStatusPageIncidents = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPageIncidentsResponse = PostAdminStatusPageIncidentsResponse>(options: Options<TComposable, PostAdminStatusPageIncidentsData, PostAdminStatusPageIncidentsResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPageIncidentsResponse | DefaultT, PostAdminStatusPageIncidentsError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/incidents',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete incident
+ *
+ * Remove an incident from the status page.
+ */
+export const deleteAdminStatusPageIncidentsByIncidentId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPageIncidentsByIncidentIdResponse = DeleteAdminStatusPageIncidentsByIncidentIdResponse>(options: Options<TComposable, DeleteAdminStatusPageIncidentsByIncidentIdData, DeleteAdminStatusPageIncidentsByIncidentIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPageIncidentsByIncidentIdResponse | DefaultT, DeleteAdminStatusPageIncidentsByIncidentIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/incidents/{incidentId}',
+    ...options
+});
+
+/**
+ * Update incident
+ *
+ * Update an incident's status, severity, or message.
+ */
+export const putAdminStatusPageIncidentsByIncidentId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPageIncidentsByIncidentIdResponse = PutAdminStatusPageIncidentsByIncidentIdResponse>(options: Options<TComposable, PutAdminStatusPageIncidentsByIncidentIdData, PutAdminStatusPageIncidentsByIncidentIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPageIncidentsByIncidentIdResponse | DefaultT, PutAdminStatusPageIncidentsByIncidentIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/incidents/{incidentId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List maintenance
+ *
+ * Retrieve all scheduled maintenance entries for the status page.
+ */
+export const getAdminStatusPageMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPageMaintenanceResponse = GetAdminStatusPageMaintenanceResponse>(options: Options<TComposable, GetAdminStatusPageMaintenanceData, GetAdminStatusPageMaintenanceResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPageMaintenanceResponse | DefaultT, GetAdminStatusPageMaintenanceError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/maintenance',
+    ...options
+});
+
+/**
+ * Create maintenance
+ *
+ * Publish a new scheduled maintenance entry on the status page.
+ */
+export const postAdminStatusPageMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPageMaintenanceResponse = PostAdminStatusPageMaintenanceResponse>(options: Options<TComposable, PostAdminStatusPageMaintenanceData, PostAdminStatusPageMaintenanceResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPageMaintenanceResponse | DefaultT, PostAdminStatusPageMaintenanceError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/maintenance',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete maintenance
+ *
+ * Remove a scheduled maintenance entry.
+ */
+export const deleteAdminStatusPageMaintenanceByMaintenanceId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPageMaintenanceByMaintenanceIdResponse = DeleteAdminStatusPageMaintenanceByMaintenanceIdResponse>(options: Options<TComposable, DeleteAdminStatusPageMaintenanceByMaintenanceIdData, DeleteAdminStatusPageMaintenanceByMaintenanceIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPageMaintenanceByMaintenanceIdResponse | DefaultT, DeleteAdminStatusPageMaintenanceByMaintenanceIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/maintenance/{maintenanceId}',
+    ...options
+});
+
+/**
+ * Update maintenance
+ *
+ * Update a scheduled maintenance entry.
+ */
+export const putAdminStatusPageMaintenanceByMaintenanceId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPageMaintenanceByMaintenanceIdResponse = PutAdminStatusPageMaintenanceByMaintenanceIdResponse>(options: Options<TComposable, PutAdminStatusPageMaintenanceByMaintenanceIdData, PutAdminStatusPageMaintenanceByMaintenanceIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPageMaintenanceByMaintenanceIdResponse | DefaultT, PutAdminStatusPageMaintenanceByMaintenanceIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/maintenance/{maintenanceId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List updates
+ *
+ * Retrieve all general updates for the status page.
+ */
+export const getAdminStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetAdminStatusPageUpdatesResponse = GetAdminStatusPageUpdatesResponse>(options: Options<TComposable, GetAdminStatusPageUpdatesData, GetAdminStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetAdminStatusPageUpdatesResponse | DefaultT, GetAdminStatusPageUpdatesError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/updates',
+    ...options
+});
+
+/**
+ * Create update
+ *
+ * Publish a new update on the status page.
+ */
+export const postAdminStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends PostAdminStatusPageUpdatesResponse = PostAdminStatusPageUpdatesResponse>(options: Options<TComposable, PostAdminStatusPageUpdatesData, PostAdminStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostAdminStatusPageUpdatesResponse | DefaultT, PostAdminStatusPageUpdatesError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/updates',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete update
+ *
+ * Remove a status page update.
+ */
+export const deleteAdminStatusPageUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteAdminStatusPageUpdatesByUpdateIdResponse = DeleteAdminStatusPageUpdatesByUpdateIdResponse>(options: Options<TComposable, DeleteAdminStatusPageUpdatesByUpdateIdData, DeleteAdminStatusPageUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteAdminStatusPageUpdatesByUpdateIdResponse | DefaultT, DeleteAdminStatusPageUpdatesByUpdateIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/updates/{updateId}',
+    ...options
+});
+
+/**
+ * Update update
+ *
+ * Update a status page update.
+ */
+export const putAdminStatusPageUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminStatusPageUpdatesByUpdateIdResponse = PutAdminStatusPageUpdatesByUpdateIdResponse>(options: Options<TComposable, PutAdminStatusPageUpdatesByUpdateIdData, PutAdminStatusPageUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminStatusPageUpdatesByUpdateIdResponse | DefaultT, PutAdminStatusPageUpdatesByUpdateIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/admin/status-page/updates/{updateId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -493,7 +620,7 @@ export const getAdminSettings = <TComposable extends Composable = '$fetch', Defa
 /**
  * Update settings
  *
- * Update global application settings such as the root status page.
+ * Update global application settings such as the default theme.
  */
 export const putAdminSettings = <TComposable extends Composable = '$fetch', DefaultT extends PutAdminSettingsResponse = PutAdminSettingsResponse>(options: Options<TComposable, PutAdminSettingsData, PutAdminSettingsResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutAdminSettingsResponse | DefaultT, PutAdminSettingsError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
@@ -539,221 +666,80 @@ export const getMonitorsByMonitorId = <TComposable extends Composable = '$fetch'
 });
 
 /**
- * List status pages
+ * Get status page
  *
- * Retrieve all status pages, including disabled or private ones.
+ * Retrieve the single status page with its groups, linked monitors, and recent content. Members can read this regardless of the public flag.
  */
-export const getStatusPages = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPagesResponse = GetStatusPagesResponse>(options: Options<TComposable, GetStatusPagesData, GetStatusPagesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPagesResponse | DefaultT, GetStatusPagesError, DefaultT>({
+export const getStatusPage = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageResponse = GetStatusPageResponse>(options: Options<TComposable, GetStatusPageData, GetStatusPageResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageResponse | DefaultT, GetStatusPageError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages',
+    url: '/status-page',
     ...options
 });
 
 /**
  * List incidents
  *
- * Retrieve all incidents for a status page.
+ * Retrieve all incidents for the status page (member read-only).
  */
-export const getStatusPagesBySlugIncidents = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPagesBySlugIncidentsResponse = GetStatusPagesBySlugIncidentsResponse>(options: Options<TComposable, GetStatusPagesBySlugIncidentsData, GetStatusPagesBySlugIncidentsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPagesBySlugIncidentsResponse | DefaultT, GetStatusPagesBySlugIncidentsError, DefaultT>({
+export const getStatusPageIncidents = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageIncidentsResponse = GetStatusPageIncidentsResponse>(options: Options<TComposable, GetStatusPageIncidentsData, GetStatusPageIncidentsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageIncidentsResponse | DefaultT, GetStatusPageIncidentsError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/incidents',
+    url: '/status-page/incidents',
     ...options
-});
-
-/**
- * Create incident
- *
- * Post a new incident to a status page.
- */
-export const postStatusPagesBySlugIncidents = <TComposable extends Composable = '$fetch', DefaultT extends PostStatusPagesBySlugIncidentsResponse = PostStatusPagesBySlugIncidentsResponse>(options: Options<TComposable, PostStatusPagesBySlugIncidentsData, PostStatusPagesBySlugIncidentsResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostStatusPagesBySlugIncidentsResponse | DefaultT, PostStatusPagesBySlugIncidentsError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/incidents',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete incident
- *
- * Remove an incident from a status page.
- */
-export const deleteStatusPagesBySlugIncidentsByIncidentId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteStatusPagesBySlugIncidentsByIncidentIdResponse = DeleteStatusPagesBySlugIncidentsByIncidentIdResponse>(options: Options<TComposable, DeleteStatusPagesBySlugIncidentsByIncidentIdData, DeleteStatusPagesBySlugIncidentsByIncidentIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteStatusPagesBySlugIncidentsByIncidentIdResponse | DefaultT, DeleteStatusPagesBySlugIncidentsByIncidentIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/incidents/{incidentId}',
-    ...options
-});
-
-/**
- * Update incident
- *
- * Update an incident's status, severity, or message.
- */
-export const putStatusPagesBySlugIncidentsByIncidentId = <TComposable extends Composable = '$fetch', DefaultT extends PutStatusPagesBySlugIncidentsByIncidentIdResponse = PutStatusPagesBySlugIncidentsByIncidentIdResponse>(options: Options<TComposable, PutStatusPagesBySlugIncidentsByIncidentIdData, PutStatusPagesBySlugIncidentsByIncidentIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutStatusPagesBySlugIncidentsByIncidentIdResponse | DefaultT, PutStatusPagesBySlugIncidentsByIncidentIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/incidents/{incidentId}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
 });
 
 /**
  * List maintenance
  *
- * Retrieve all scheduled maintenance entries for a status page.
+ * Retrieve all scheduled maintenance entries for the status page (member read-only).
  */
-export const getStatusPagesBySlugMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPagesBySlugMaintenanceResponse = GetStatusPagesBySlugMaintenanceResponse>(options: Options<TComposable, GetStatusPagesBySlugMaintenanceData, GetStatusPagesBySlugMaintenanceResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPagesBySlugMaintenanceResponse | DefaultT, GetStatusPagesBySlugMaintenanceError, DefaultT>({
+export const getStatusPageMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageMaintenanceResponse = GetStatusPageMaintenanceResponse>(options: Options<TComposable, GetStatusPageMaintenanceData, GetStatusPageMaintenanceResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageMaintenanceResponse | DefaultT, GetStatusPageMaintenanceError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/maintenance',
+    url: '/status-page/maintenance',
     ...options
-});
-
-/**
- * Create maintenance
- *
- * Post a new scheduled maintenance entry to a status page.
- */
-export const postStatusPagesBySlugMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends PostStatusPagesBySlugMaintenanceResponse = PostStatusPagesBySlugMaintenanceResponse>(options: Options<TComposable, PostStatusPagesBySlugMaintenanceData, PostStatusPagesBySlugMaintenanceResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostStatusPagesBySlugMaintenanceResponse | DefaultT, PostStatusPagesBySlugMaintenanceError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/maintenance',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete maintenance
- *
- * Remove a scheduled maintenance entry.
- */
-export const deleteStatusPagesBySlugMaintenanceByMaintenanceId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse = DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse>(options: Options<TComposable, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdData, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse | DefaultT, DeleteStatusPagesBySlugMaintenanceByMaintenanceIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/maintenance/{maintenanceId}',
-    ...options
-});
-
-/**
- * Update maintenance
- *
- * Update a scheduled maintenance entry.
- */
-export const putStatusPagesBySlugMaintenanceByMaintenanceId = <TComposable extends Composable = '$fetch', DefaultT extends PutStatusPagesBySlugMaintenanceByMaintenanceIdResponse = PutStatusPagesBySlugMaintenanceByMaintenanceIdResponse>(options: Options<TComposable, PutStatusPagesBySlugMaintenanceByMaintenanceIdData, PutStatusPagesBySlugMaintenanceByMaintenanceIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutStatusPagesBySlugMaintenanceByMaintenanceIdResponse | DefaultT, PutStatusPagesBySlugMaintenanceByMaintenanceIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/maintenance/{maintenanceId}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
 });
 
 /**
  * List updates
  *
- * Retrieve all general updates for a status page.
+ * Retrieve all updates for the status page (member read-only).
  */
-export const getStatusPagesBySlugUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPagesBySlugUpdatesResponse = GetStatusPagesBySlugUpdatesResponse>(options: Options<TComposable, GetStatusPagesBySlugUpdatesData, GetStatusPagesBySlugUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPagesBySlugUpdatesResponse | DefaultT, GetStatusPagesBySlugUpdatesError, DefaultT>({
+export const getStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageUpdatesResponse = GetStatusPageUpdatesResponse>(options: Options<TComposable, GetStatusPageUpdatesData, GetStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageUpdatesResponse | DefaultT, GetStatusPageUpdatesError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/updates',
+    url: '/status-page/updates',
     ...options
 });
-
-/**
- * Create update
- *
- * Post a new update to a status page.
- */
-export const postStatusPagesBySlugUpdates = <TComposable extends Composable = '$fetch', DefaultT extends PostStatusPagesBySlugUpdatesResponse = PostStatusPagesBySlugUpdatesResponse>(options: Options<TComposable, PostStatusPagesBySlugUpdatesData, PostStatusPagesBySlugUpdatesResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostStatusPagesBySlugUpdatesResponse | DefaultT, PostStatusPagesBySlugUpdatesError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/updates',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Delete update
- *
- * Remove a status page update.
- */
-export const deleteStatusPagesBySlugUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteStatusPagesBySlugUpdatesByUpdateIdResponse = DeleteStatusPagesBySlugUpdatesByUpdateIdResponse>(options: Options<TComposable, DeleteStatusPagesBySlugUpdatesByUpdateIdData, DeleteStatusPagesBySlugUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteStatusPagesBySlugUpdatesByUpdateIdResponse | DefaultT, DeleteStatusPagesBySlugUpdatesByUpdateIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/updates/{updateId}',
-    ...options
-});
-
-/**
- * Update update
- *
- * Update a status page update.
- */
-export const putStatusPagesBySlugUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends PutStatusPagesBySlugUpdatesByUpdateIdResponse = PutStatusPagesBySlugUpdatesByUpdateIdResponse>(options: Options<TComposable, PutStatusPagesBySlugUpdatesByUpdateIdData, PutStatusPagesBySlugUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutStatusPagesBySlugUpdatesByUpdateIdResponse | DefaultT, PutStatusPagesBySlugUpdatesByUpdateIdError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}/updates/{updateId}',
-    ...options,
-    headers: {
-        'Content-Type': 'application/json',
-        ...options.headers
-    }
-});
-
-/**
- * Get status page by slug
- *
- * Retrieve a status page with its groups and linked monitors.
- */
-export const getStatusPagesBySlug = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPagesBySlugResponse = GetStatusPagesBySlugResponse>(options: Options<TComposable, GetStatusPagesBySlugData, GetStatusPagesBySlugResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPagesBySlugResponse | DefaultT, GetStatusPagesBySlugError, DefaultT>({
-    security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-pages/{slug}',
-    ...options
-});
-
-/**
- * Get root status page
- *
- * Retrieve the status page configured as the root page. Returns 404 if none is configured.
- */
-export const getPublicStatusPagesRoot = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPagesRootResponse = GetPublicStatusPagesRootResponse>(options: Options<TComposable, GetPublicStatusPagesRootData, GetPublicStatusPagesRootResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPagesRootResponse | DefaultT, GetPublicStatusPagesRootError, DefaultT>({ url: '/public/status-pages/root', ...options });
-
-/**
- * Get public incidents
- *
- * List public incidents for a status page.
- */
-export const getPublicStatusPagesBySlugIncidents = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPagesBySlugIncidentsResponse = GetPublicStatusPagesBySlugIncidentsResponse>(options: Options<TComposable, GetPublicStatusPagesBySlugIncidentsData, GetPublicStatusPagesBySlugIncidentsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPagesBySlugIncidentsResponse | DefaultT, GetPublicStatusPagesBySlugIncidentsError, DefaultT>({ url: '/public/status-pages/{slug}/incidents', ...options });
-
-/**
- * Get public maintenance
- *
- * List public scheduled maintenance entries for a status page.
- */
-export const getPublicStatusPagesBySlugMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPagesBySlugMaintenanceResponse = GetPublicStatusPagesBySlugMaintenanceResponse>(options: Options<TComposable, GetPublicStatusPagesBySlugMaintenanceData, GetPublicStatusPagesBySlugMaintenanceResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPagesBySlugMaintenanceResponse | DefaultT, GetPublicStatusPagesBySlugMaintenanceError, DefaultT>({ url: '/public/status-pages/{slug}/maintenance', ...options });
-
-/**
- * Get public updates
- *
- * List public updates for a status page.
- */
-export const getPublicStatusPagesBySlugUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPagesBySlugUpdatesResponse = GetPublicStatusPagesBySlugUpdatesResponse>(options: Options<TComposable, GetPublicStatusPagesBySlugUpdatesData, GetPublicStatusPagesBySlugUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPagesBySlugUpdatesResponse | DefaultT, GetPublicStatusPagesBySlugUpdatesError, DefaultT>({ url: '/public/status-pages/{slug}/updates', ...options });
 
 /**
  * Get public status page
  *
- * Public, unauthenticated access to a status page by slug.
+ * Public, unauthenticated access to the single status page.
  */
-export const getPublicStatusPagesBySlug = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPagesBySlugResponse = GetPublicStatusPagesBySlugResponse>(options: Options<TComposable, GetPublicStatusPagesBySlugData, GetPublicStatusPagesBySlugResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPagesBySlugResponse | DefaultT, GetPublicStatusPagesBySlugError, DefaultT>({ url: '/public/status-pages/{slug}', ...options });
+export const getPublicStatusPage = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageResponse = GetPublicStatusPageResponse>(options: Options<TComposable, GetPublicStatusPageData, GetPublicStatusPageResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageResponse | DefaultT, GetPublicStatusPageError, DefaultT>({ url: '/public/status-page', ...options });
+
+/**
+ * Get public incidents
+ *
+ * List public incidents for the status page.
+ */
+export const getPublicStatusPageIncidents = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageIncidentsResponse = GetPublicStatusPageIncidentsResponse>(options: Options<TComposable, GetPublicStatusPageIncidentsData, GetPublicStatusPageIncidentsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageIncidentsResponse | DefaultT, GetPublicStatusPageIncidentsError, DefaultT>({ url: '/public/status-page/incidents', ...options });
+
+/**
+ * Get public maintenance
+ *
+ * List public scheduled maintenance entries for the status page.
+ */
+export const getPublicStatusPageMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageMaintenanceResponse = GetPublicStatusPageMaintenanceResponse>(options: Options<TComposable, GetPublicStatusPageMaintenanceData, GetPublicStatusPageMaintenanceResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageMaintenanceResponse | DefaultT, GetPublicStatusPageMaintenanceError, DefaultT>({ url: '/public/status-page/maintenance', ...options });
+
+/**
+ * Get public updates
+ *
+ * List public updates for the status page.
+ */
+export const getPublicStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageUpdatesResponse = GetPublicStatusPageUpdatesResponse>(options: Options<TComposable, GetPublicStatusPageUpdatesData, GetPublicStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageUpdatesResponse | DefaultT, GetPublicStatusPageUpdatesError, DefaultT>({ url: '/public/status-page/updates', ...options });
 
 /**
  * Get public monitor
  *
- * Public view of a single monitor, only if it is linked to a public status page.
+ * Public view of a single monitor, only if it is linked to the status page.
  */
 export const getPublicMonitorsByMonitorId = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicMonitorsByMonitorIdResponse = GetPublicMonitorsByMonitorIdResponse>(options: Options<TComposable, GetPublicMonitorsByMonitorIdData, GetPublicMonitorsByMonitorIdResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicMonitorsByMonitorIdResponse | DefaultT, GetPublicMonitorsByMonitorIdError, DefaultT>({ url: '/public/monitors/{monitorId}', ...options });

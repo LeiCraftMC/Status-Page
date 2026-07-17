@@ -4,7 +4,7 @@ import z from "zod";
 
 export namespace StatusPagesReadModel {
 
-    export const BasePage = createSelectSchema(DB.Tables.statusPages);
+    export const BasePage = createSelectSchema(DB.Tables.statusPageConfig);
     export type BasePage = z.infer<typeof BasePage>;
 
     export const MonitorSummary = z.object({
@@ -30,32 +30,15 @@ export namespace StatusPagesReadModel {
     });
     export type GroupSummary = z.infer<typeof GroupSummary>;
 
-    export namespace GetAll {
-        export const Response = z.array(BasePage);
-        export type Response = z.infer<typeof Response>;
-    }
-
-    export namespace GetBySlug {
-        export const Params = z.object({
-            slug: z.string().min(1),
-        });
-        export type Params = z.infer<typeof Params>;
-
+    export namespace GetPage {
         export const Response = z.object({
             page: BasePage,
             groups: z.array(GroupSummary),
             ungrouped: z.array(MonitorSummary),
+            incidents: z.array(createSelectSchema(DB.Tables.incidents)),
+            maintenance: z.array(createSelectSchema(DB.Tables.maintenance)),
+            updates: z.array(createSelectSchema(DB.Tables.statusUpdates)),
         });
-        export type Response = z.infer<typeof Response>;
-    }
-
-    export namespace FullPage {
-        export const Response = GetBySlug.Response;
-        export type Response = z.infer<typeof Response>;
-    }
-
-    export namespace GetRoot {
-        export const Response = GetBySlug.Response;
         export type Response = z.infer<typeof Response>;
     }
 

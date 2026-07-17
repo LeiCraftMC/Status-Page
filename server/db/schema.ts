@@ -103,6 +103,34 @@ export const monitors = sqliteTable('monitors', {
 });
 
 /**
+ * Global monitor groups. There is only one status page, so groups are not
+ * scoped to a page.
+ * @deprecated Use DB.Tables.monitorGroups to access this table.
+ */
+export const monitorGroups = sqliteTable('monitor_groups', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    name: text().notNull(),
+    sort_order: integer().notNull().default(0),
+});
+
+/**
+ * Assignment of monitors to groups for display on the single status page.
+ * A monitor can appear at most once on the status page.
+ * @deprecated Use DB.Tables.monitorGroupAssignments to access this table.
+ */
+export const monitorGroupAssignments = sqliteTable('monitor_group_assignments', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    monitor_id: integer().notNull().references(() => monitors.id, { onDelete: 'cascade' }),
+    group_id: integer().references(() => monitorGroups.id, { onDelete: 'set null' }),
+
+    display_name: text(),
+    sort_order: integer().notNull().default(0),
+});
+
+
+/**
  * @deprecated Use DB.Tables.monitorStatusChecks to access this table.
  */
 export const monitorStatusChecks = sqliteTable('monitor_status_checks', {
@@ -115,12 +143,12 @@ export const monitorStatusChecks = sqliteTable('monitor_status_checks', {
 });
 
 /**
- * @deprecated Use DB.Tables.statusPages to access this table.
+ * Single status page configuration. There is exactly one row (id = 1).
+ * @deprecated Use DB.Tables.statusPageConfig to access this table.
  */
-export const statusPages = sqliteTable('status_pages', {
+export const statusPageConfig = sqliteTable('status_page_config', {
     id: integer().primaryKey({ autoIncrement: true }),
 
-    slug: text().notNull().unique(),
     title: text().notNull(),
     description: text(),
 
@@ -130,31 +158,7 @@ export const statusPages = sqliteTable('status_pages', {
     theme: text({ enum: ['light', 'dark', 'auto'] as const }).notNull().default('auto'),
 
     created_at: SQLUtils.getCreatedAtColumn(),
-});
-
-/**
- * @deprecated Use DB.Tables.statusPageGroups to access this table.
- */
-export const statusPageGroups = sqliteTable('status_page_groups', {
-    id: integer().primaryKey({ autoIncrement: true }),
-
-    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
-    name: text().notNull(),
-    sort_order: integer().notNull().default(0),
-});
-
-/**
- * @deprecated Use DB.Tables.statusPageMonitorLinks to access this table.
- */
-export const statusPageMonitorLinks = sqliteTable('status_page_monitor_links', {
-    id: integer().primaryKey({ autoIncrement: true }),
-
-    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
-    monitor_id: integer().notNull().references(() => monitors.id, { onDelete: 'cascade' }),
-    group_id: integer().references(() => statusPageGroups.id, { onDelete: 'set null' }),
-
-    display_name: text(),
-    sort_order: integer().notNull().default(0),
+    updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
 });
 
 /**
@@ -166,12 +170,10 @@ export const settings = sqliteTable('settings', {
 });
 
 /**
- * @deprecated Use DB.Tables.statusPageIncidents to access this table.
+ * @deprecated Use DB.Tables.incidents to access this table.
  */
-export const statusPageIncidents = sqliteTable('status_page_incidents', {
+export const incidents = sqliteTable('incidents', {
     id: integer().primaryKey({ autoIncrement: true }),
-
-    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
 
     title: text().notNull(),
     message: text().notNull(),
@@ -189,12 +191,10 @@ export const statusPageIncidents = sqliteTable('status_page_incidents', {
 });
 
 /**
- * @deprecated Use DB.Tables.statusPageMaintenance to access this table.
+ * @deprecated Use DB.Tables.maintenance to access this table.
  */
-export const statusPageMaintenance = sqliteTable('status_page_maintenance', {
+export const maintenance = sqliteTable('maintenance', {
     id: integer().primaryKey({ autoIncrement: true }),
-
-    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
 
     title: text().notNull(),
     message: text().notNull(),
@@ -209,12 +209,10 @@ export const statusPageMaintenance = sqliteTable('status_page_maintenance', {
 });
 
 /**
- * @deprecated Use DB.Tables.statusPageUpdates to access this table.
+ * @deprecated Use DB.Tables.statusUpdates to access this table.
  */
-export const statusPageUpdates = sqliteTable('status_page_updates', {
+export const statusUpdates = sqliteTable('status_updates', {
     id: integer().primaryKey({ autoIncrement: true }),
-
-    status_page_id: integer().notNull().references(() => statusPages.id, { onDelete: 'cascade' }),
 
     title: text().notNull(),
     message: text().notNull(),

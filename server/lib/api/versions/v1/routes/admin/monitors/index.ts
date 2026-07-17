@@ -207,8 +207,8 @@ router.delete('/:monitorId',
         // @ts-ignore
         const monitor = c.get(TARGET_MONITOR_KEY) as MonitorsModel.BaseMonitor;
 
-        await DB.instance().delete(DB.Tables.statusPageMonitorLinks).where(
-            eq(DB.Tables.statusPageMonitorLinks.monitor_id, monitor.id)
+        await DB.instance().delete(DB.Tables.monitorGroupAssignments).where(
+            eq(DB.Tables.monitorGroupAssignments.monitor_id, monitor.id)
         ).run();
 
         await DB.instance().delete(DB.Tables.monitorStatusChecks).where(

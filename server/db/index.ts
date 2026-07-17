@@ -124,12 +124,14 @@ export namespace DB.Tables {
     export const monitors = TableSchema.monitors;
     export const monitorStatusChecks = TableSchema.monitorStatusChecks;
 
-    export const statusPages = TableSchema.statusPages;
-    export const statusPageGroups = TableSchema.statusPageGroups;
-    export const statusPageMonitorLinks = TableSchema.statusPageMonitorLinks;
-    export const statusPageIncidents = TableSchema.statusPageIncidents;
-    export const statusPageMaintenance = TableSchema.statusPageMaintenance;
-    export const statusPageUpdates = TableSchema.statusPageUpdates;
+    export const monitorGroups = TableSchema.monitorGroups;
+    export const monitorGroupAssignments = TableSchema.monitorGroupAssignments;
+
+    export const statusPageConfig = TableSchema.statusPageConfig;
+
+    export const incidents = TableSchema.incidents;
+    export const maintenance = TableSchema.maintenance;
+    export const statusUpdates = TableSchema.statusUpdates;
 
 }
 
@@ -145,10 +147,12 @@ export namespace DB.Models {
     export type Monitor = typeof DB.Tables.monitors.$inferSelect;
     export type MonitorStatusCheck = typeof DB.Tables.monitorStatusChecks.$inferSelect;
 
-    export type StatusPage = typeof DB.Tables.statusPages.$inferSelect;
-    export type StatusPageGroup = typeof DB.Tables.statusPageGroups.$inferSelect;
-    export type StatusPageMonitorLink = typeof DB.Tables.statusPageMonitorLinks.$inferSelect;
-    export type StatusPageIncident = typeof DB.Tables.statusPageIncidents.$inferSelect;
-    export type StatusPageMaintenance = typeof DB.Tables.statusPageMaintenance.$inferSelect;
-    export type StatusPageUpdate = typeof DB.Tables.statusPageUpdates.$inferSelect;
+    export type MonitorGroup = typeof DB.Tables.monitorGroups.$inferSelect;
+    export type MonitorGroupAssignment = typeof DB.Tables.monitorGroupAssignments.$inferSelect;
+
+    export type StatusPageConfig = typeof DB.Tables.statusPageConfig.$inferSelect;
+
+    export type Incident = typeof DB.Tables.incidents.$inferSelect;
+    export type Maintenance = typeof DB.Tables.maintenance.$inferSelect;
+    export type StatusUpdate = typeof DB.Tables.statusUpdates.$inferSelect;
 }

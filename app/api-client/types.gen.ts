@@ -192,50 +192,6 @@ export type PostAuthResetPasswordResponses = {
 
 export type PostAuthResetPasswordResponse = PostAuthResetPasswordResponses[keyof PostAuthResetPasswordResponses];
 
-export type PostAuthResetPasswordRequestData = {
-    body: {
-        email: string;
-    };
-    path?: never;
-    query?: never;
-    url: '/auth/reset-password/request';
-};
-
-export type PostAuthResetPasswordRequestErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * You are already authenticated
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'You are already authenticated';
-    };
-};
-
-export type PostAuthResetPasswordRequestError = PostAuthResetPasswordRequestErrors[keyof PostAuthResetPasswordRequestErrors];
-
-export type PostAuthResetPasswordRequestResponses = {
-    /**
-     * If the username exists, a password reset has been requested
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'If the username exists, a password reset has been requested';
-        data: null;
-    };
-};
-
-export type PostAuthResetPasswordRequestResponse = PostAuthResetPasswordRequestResponses[keyof PostAuthResetPasswordRequestResponses];
-
 export type DeleteAccountData = {
     body?: never;
     path?: never;
@@ -343,6 +299,14 @@ export type PutAccountErrors = {
         success: false;
         code: 401;
         message: 'Your Auth Context is not a session';
+    };
+    /**
+     * Username or email already in use
+     */
+    409: {
+        success: false;
+        code: 409;
+        message: 'Username or email already in use';
     };
 };
 
@@ -1258,14 +1222,14 @@ export type PostAdminMonitorsByMonitorIdCheckResponses = {
 
 export type PostAdminMonitorsByMonitorIdCheckResponse = PostAdminMonitorsByMonitorIdCheckResponses[keyof PostAdminMonitorsByMonitorIdCheckResponses];
 
-export type GetAdminStatusPagesData = {
+export type GetAdminStatusPageData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/admin/status-pages';
+    url: '/admin/status-page';
 };
 
-export type GetAdminStatusPagesErrors = {
+export type GetAdminStatusPageErrors = {
     /**
      * Authentication required
      */
@@ -1284,196 +1248,9 @@ export type GetAdminStatusPagesErrors = {
     };
 };
 
-export type GetAdminStatusPagesError = GetAdminStatusPagesErrors[keyof GetAdminStatusPagesErrors];
+export type GetAdminStatusPageError = GetAdminStatusPageErrors[keyof GetAdminStatusPageErrors];
 
-export type GetAdminStatusPagesResponses = {
-    /**
-     * Status pages retrieved successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Status pages retrieved successfully';
-        data: Array<{
-            id: number;
-            slug: string;
-            title: string;
-            description: string | null;
-            is_public: boolean;
-            is_enabled: boolean;
-            theme: 'light' | 'dark' | 'auto';
-            created_at: number;
-        }>;
-    };
-};
-
-export type GetAdminStatusPagesResponse = GetAdminStatusPagesResponses[keyof GetAdminStatusPagesResponses];
-
-export type PostAdminStatusPagesData = {
-    body: {
-        slug: string;
-        title: string;
-        description?: string;
-        is_public?: boolean;
-        is_enabled?: boolean;
-        theme?: 'light' | 'dark' | 'auto';
-    };
-    path?: never;
-    query?: never;
-    url: '/admin/status-pages';
-};
-
-export type PostAdminStatusPagesErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Admin access required
-     */
-    403: {
-        success: false;
-        code: 403;
-        message: 'Admin access required';
-    };
-    /**
-     * A status page with this slug already exists
-     */
-    409: {
-        success: false;
-        code: 409;
-        message: 'A status page with this slug already exists';
-    };
-};
-
-export type PostAdminStatusPagesError = PostAdminStatusPagesErrors[keyof PostAdminStatusPagesErrors];
-
-export type PostAdminStatusPagesResponses = {
-    /**
-     * Status page created successfully
-     */
-    201: {
-        success: true;
-        code: 201;
-        message: 'Status page created successfully';
-        data: {
-            id: number;
-            slug: string;
-            title: string;
-            description: string | null;
-            is_public: boolean;
-            is_enabled: boolean;
-            theme: 'light' | 'dark' | 'auto';
-            created_at: number;
-        };
-    };
-};
-
-export type PostAdminStatusPagesResponse = PostAdminStatusPagesResponses[keyof PostAdminStatusPagesResponses];
-
-export type DeleteAdminStatusPagesByPageIdData = {
-    body?: never;
-    path: {
-        pageId: number;
-    };
-    query?: never;
-    url: '/admin/status-pages/{pageId}';
-};
-
-export type DeleteAdminStatusPagesByPageIdErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Admin access required
-     */
-    403: {
-        success: false;
-        code: 403;
-        message: 'Admin access required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type DeleteAdminStatusPagesByPageIdError = DeleteAdminStatusPagesByPageIdErrors[keyof DeleteAdminStatusPagesByPageIdErrors];
-
-export type DeleteAdminStatusPagesByPageIdResponses = {
-    /**
-     * Status page deleted successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Status page deleted successfully';
-        data: null;
-    };
-};
-
-export type DeleteAdminStatusPagesByPageIdResponse = DeleteAdminStatusPagesByPageIdResponses[keyof DeleteAdminStatusPagesByPageIdResponses];
-
-export type GetAdminStatusPagesByPageIdData = {
-    body?: never;
-    path: {
-        pageId: number;
-    };
-    query?: never;
-    url: '/admin/status-pages/{pageId}';
-};
-
-export type GetAdminStatusPagesByPageIdErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Admin access required
-     */
-    403: {
-        success: false;
-        code: 403;
-        message: 'Admin access required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type GetAdminStatusPagesByPageIdError = GetAdminStatusPagesByPageIdErrors[keyof GetAdminStatusPagesByPageIdErrors];
-
-export type GetAdminStatusPagesByPageIdResponses = {
+export type GetAdminStatusPageResponses = {
     /**
      * Status page retrieved successfully
      */
@@ -1482,25 +1259,23 @@ export type GetAdminStatusPagesByPageIdResponses = {
         code: 200;
         message: 'Status page retrieved successfully';
         data: {
-            page: {
+            config: {
                 id: number;
-                slug: string;
                 title: string;
                 description: string | null;
                 is_public: boolean;
                 is_enabled: boolean;
                 theme: 'light' | 'dark' | 'auto';
                 created_at: number;
+                updated_at: number;
             };
             groups: Array<{
                 id: number;
-                status_page_id: number;
                 name: string;
                 sort_order: number;
             }>;
             links: Array<{
                 id: number;
-                status_page_id: number;
                 monitor_id: number;
                 group_id: number | null;
                 display_name: string | null;
@@ -1511,25 +1286,22 @@ export type GetAdminStatusPagesByPageIdResponses = {
     };
 };
 
-export type GetAdminStatusPagesByPageIdResponse = GetAdminStatusPagesByPageIdResponses[keyof GetAdminStatusPagesByPageIdResponses];
+export type GetAdminStatusPageResponse = GetAdminStatusPageResponses[keyof GetAdminStatusPageResponses];
 
-export type PutAdminStatusPagesByPageIdData = {
+export type PutAdminStatusPageData = {
     body: {
-        slug?: string;
         title?: string;
         description?: string;
         is_public?: boolean;
         is_enabled?: boolean;
         theme?: 'light' | 'dark' | 'auto';
     };
-    path: {
-        pageId: number;
-    };
+    path?: never;
     query?: never;
-    url: '/admin/status-pages/{pageId}';
+    url: '/admin/status-page';
 };
 
-export type PutAdminStatusPagesByPageIdErrors = {
+export type PutAdminStatusPageErrors = {
     /**
      * Bad Request: Syntax or validation error in request
      */
@@ -1554,27 +1326,11 @@ export type PutAdminStatusPagesByPageIdErrors = {
         code: 403;
         message: 'Admin access required';
     };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-    /**
-     * A status page with this slug already exists
-     */
-    409: {
-        success: false;
-        code: 409;
-        message: 'A status page with this slug already exists';
-    };
 };
 
-export type PutAdminStatusPagesByPageIdError = PutAdminStatusPagesByPageIdErrors[keyof PutAdminStatusPagesByPageIdErrors];
+export type PutAdminStatusPageError = PutAdminStatusPageErrors[keyof PutAdminStatusPageErrors];
 
-export type PutAdminStatusPagesByPageIdResponses = {
+export type PutAdminStatusPageResponses = {
     /**
      * Status page updated successfully
      */
@@ -1584,32 +1340,76 @@ export type PutAdminStatusPagesByPageIdResponses = {
         message: 'Status page updated successfully';
         data: {
             id: number;
-            slug: string;
             title: string;
             description: string | null;
             is_public: boolean;
             is_enabled: boolean;
             theme: 'light' | 'dark' | 'auto';
             created_at: number;
+            updated_at: number;
         };
     };
 };
 
-export type PutAdminStatusPagesByPageIdResponse = PutAdminStatusPagesByPageIdResponses[keyof PutAdminStatusPagesByPageIdResponses];
+export type PutAdminStatusPageResponse = PutAdminStatusPageResponses[keyof PutAdminStatusPageResponses];
 
-export type PostAdminStatusPagesByPageIdGroupsData = {
+export type GetAdminStatusPageGroupsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/groups';
+};
+
+export type GetAdminStatusPageGroupsErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type GetAdminStatusPageGroupsError = GetAdminStatusPageGroupsErrors[keyof GetAdminStatusPageGroupsErrors];
+
+export type GetAdminStatusPageGroupsResponses = {
+    /**
+     * Groups retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Groups retrieved successfully';
+        data: Array<{
+            id: number;
+            name: string;
+            sort_order: number;
+        }>;
+    };
+};
+
+export type GetAdminStatusPageGroupsResponse = GetAdminStatusPageGroupsResponses[keyof GetAdminStatusPageGroupsResponses];
+
+export type PostAdminStatusPageGroupsData = {
     body: {
         name: string;
         sort_order?: number;
     };
-    path: {
-        pageId: number;
-    };
+    path?: never;
     query?: never;
-    url: '/admin/status-pages/{pageId}/groups';
+    url: '/admin/status-page/groups';
 };
 
-export type PostAdminStatusPagesByPageIdGroupsErrors = {
+export type PostAdminStatusPageGroupsErrors = {
     /**
      * Bad Request: Syntax or validation error in request
      */
@@ -1634,19 +1434,11 @@ export type PostAdminStatusPagesByPageIdGroupsErrors = {
         code: 403;
         message: 'Admin access required';
     };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
 };
 
-export type PostAdminStatusPagesByPageIdGroupsError = PostAdminStatusPagesByPageIdGroupsErrors[keyof PostAdminStatusPagesByPageIdGroupsErrors];
+export type PostAdminStatusPageGroupsError = PostAdminStatusPageGroupsErrors[keyof PostAdminStatusPageGroupsErrors];
 
-export type PostAdminStatusPagesByPageIdGroupsResponses = {
+export type PostAdminStatusPageGroupsResponses = {
     /**
      * Group created successfully
      */
@@ -1656,26 +1448,24 @@ export type PostAdminStatusPagesByPageIdGroupsResponses = {
         message: 'Group created successfully';
         data: {
             id: number;
-            status_page_id: number;
             name: string;
             sort_order: number;
         };
     };
 };
 
-export type PostAdminStatusPagesByPageIdGroupsResponse = PostAdminStatusPagesByPageIdGroupsResponses[keyof PostAdminStatusPagesByPageIdGroupsResponses];
+export type PostAdminStatusPageGroupsResponse = PostAdminStatusPageGroupsResponses[keyof PostAdminStatusPageGroupsResponses];
 
-export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdData = {
+export type DeleteAdminStatusPageGroupsByGroupIdData = {
     body?: never;
     path: {
-        pageId: number;
         groupId: number;
     };
     query?: never;
-    url: '/admin/status-pages/{pageId}/groups/{groupId}';
+    url: '/admin/status-page/groups/{groupId}';
 };
 
-export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdErrors = {
+export type DeleteAdminStatusPageGroupsByGroupIdErrors = {
     /**
      * Authentication required
      */
@@ -1702,9 +1492,9 @@ export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdErrors = {
     };
 };
 
-export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdError = DeleteAdminStatusPagesByPageIdGroupsByGroupIdErrors[keyof DeleteAdminStatusPagesByPageIdGroupsByGroupIdErrors];
+export type DeleteAdminStatusPageGroupsByGroupIdError = DeleteAdminStatusPageGroupsByGroupIdErrors[keyof DeleteAdminStatusPageGroupsByGroupIdErrors];
 
-export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponses = {
+export type DeleteAdminStatusPageGroupsByGroupIdResponses = {
     /**
      * Group deleted successfully
      */
@@ -1716,22 +1506,21 @@ export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponses = {
     };
 };
 
-export type DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponse = DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponses[keyof DeleteAdminStatusPagesByPageIdGroupsByGroupIdResponses];
+export type DeleteAdminStatusPageGroupsByGroupIdResponse = DeleteAdminStatusPageGroupsByGroupIdResponses[keyof DeleteAdminStatusPageGroupsByGroupIdResponses];
 
-export type PutAdminStatusPagesByPageIdGroupsByGroupIdData = {
+export type PutAdminStatusPageGroupsByGroupIdData = {
     body: {
         name?: string;
         sort_order?: number;
     };
     path: {
-        pageId: number;
         groupId: number;
     };
     query?: never;
-    url: '/admin/status-pages/{pageId}/groups/{groupId}';
+    url: '/admin/status-page/groups/{groupId}';
 };
 
-export type PutAdminStatusPagesByPageIdGroupsByGroupIdErrors = {
+export type PutAdminStatusPageGroupsByGroupIdErrors = {
     /**
      * Bad Request: Syntax or validation error in request
      */
@@ -1766,9 +1555,9 @@ export type PutAdminStatusPagesByPageIdGroupsByGroupIdErrors = {
     };
 };
 
-export type PutAdminStatusPagesByPageIdGroupsByGroupIdError = PutAdminStatusPagesByPageIdGroupsByGroupIdErrors[keyof PutAdminStatusPagesByPageIdGroupsByGroupIdErrors];
+export type PutAdminStatusPageGroupsByGroupIdError = PutAdminStatusPageGroupsByGroupIdErrors[keyof PutAdminStatusPageGroupsByGroupIdErrors];
 
-export type PutAdminStatusPagesByPageIdGroupsByGroupIdResponses = {
+export type PutAdminStatusPageGroupsByGroupIdResponses = {
     /**
      * Group updated successfully
      */
@@ -1778,30 +1567,76 @@ export type PutAdminStatusPagesByPageIdGroupsByGroupIdResponses = {
         message: 'Group updated successfully';
         data: {
             id: number;
-            status_page_id: number;
             name: string;
             sort_order: number;
         };
     };
 };
 
-export type PutAdminStatusPagesByPageIdGroupsByGroupIdResponse = PutAdminStatusPagesByPageIdGroupsByGroupIdResponses[keyof PutAdminStatusPagesByPageIdGroupsByGroupIdResponses];
+export type PutAdminStatusPageGroupsByGroupIdResponse = PutAdminStatusPageGroupsByGroupIdResponses[keyof PutAdminStatusPageGroupsByGroupIdResponses];
 
-export type PostAdminStatusPagesByPageIdMonitorsData = {
+export type GetAdminStatusPageMonitorsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/monitors';
+};
+
+export type GetAdminStatusPageMonitorsErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type GetAdminStatusPageMonitorsError = GetAdminStatusPageMonitorsErrors[keyof GetAdminStatusPageMonitorsErrors];
+
+export type GetAdminStatusPageMonitorsResponses = {
+    /**
+     * Links retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Links retrieved successfully';
+        data: Array<{
+            id: number;
+            monitor_id: number;
+            group_id: number | null;
+            display_name: string | null;
+            sort_order: number;
+            monitor_name: string;
+        }>;
+    };
+};
+
+export type GetAdminStatusPageMonitorsResponse = GetAdminStatusPageMonitorsResponses[keyof GetAdminStatusPageMonitorsResponses];
+
+export type PostAdminStatusPageMonitorsData = {
     body: {
         monitor_id: number;
         group_id?: number;
         display_name?: string;
         sort_order?: number;
     };
-    path: {
-        pageId: number;
-    };
+    path?: never;
     query?: never;
-    url: '/admin/status-pages/{pageId}/monitors';
+    url: '/admin/status-page/monitors';
 };
 
-export type PostAdminStatusPagesByPageIdMonitorsErrors = {
+export type PostAdminStatusPageMonitorsErrors = {
     /**
      * Bad Request: Syntax or validation error in request
      */
@@ -1835,18 +1670,18 @@ export type PostAdminStatusPagesByPageIdMonitorsErrors = {
         message: 'Status page or monitor not found';
     };
     /**
-     * Monitor is already linked to this page
+     * Monitor is already linked to the status page
      */
     409: {
         success: false;
         code: 409;
-        message: 'Monitor is already linked to this page';
+        message: 'Monitor is already linked to the status page';
     };
 };
 
-export type PostAdminStatusPagesByPageIdMonitorsError = PostAdminStatusPagesByPageIdMonitorsErrors[keyof PostAdminStatusPagesByPageIdMonitorsErrors];
+export type PostAdminStatusPageMonitorsError = PostAdminStatusPageMonitorsErrors[keyof PostAdminStatusPageMonitorsErrors];
 
-export type PostAdminStatusPagesByPageIdMonitorsResponses = {
+export type PostAdminStatusPageMonitorsResponses = {
     /**
      * Monitor linked successfully
      */
@@ -1857,7 +1692,6 @@ export type PostAdminStatusPagesByPageIdMonitorsResponses = {
         data: {
             link: {
                 id: number;
-                status_page_id: number;
                 monitor_id: number;
                 group_id: number | null;
                 display_name: string | null;
@@ -1867,19 +1701,18 @@ export type PostAdminStatusPagesByPageIdMonitorsResponses = {
     };
 };
 
-export type PostAdminStatusPagesByPageIdMonitorsResponse = PostAdminStatusPagesByPageIdMonitorsResponses[keyof PostAdminStatusPagesByPageIdMonitorsResponses];
+export type PostAdminStatusPageMonitorsResponse = PostAdminStatusPageMonitorsResponses[keyof PostAdminStatusPageMonitorsResponses];
 
-export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdData = {
+export type DeleteAdminStatusPageMonitorsByLinkIdData = {
     body?: never;
     path: {
-        pageId: number;
         linkId: number;
     };
     query?: never;
-    url: '/admin/status-pages/{pageId}/monitors/{linkId}';
+    url: '/admin/status-page/monitors/{linkId}';
 };
 
-export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdErrors = {
+export type DeleteAdminStatusPageMonitorsByLinkIdErrors = {
     /**
      * Authentication required
      */
@@ -1906,9 +1739,9 @@ export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdErrors = {
     };
 };
 
-export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdError = DeleteAdminStatusPagesByPageIdMonitorsByLinkIdErrors[keyof DeleteAdminStatusPagesByPageIdMonitorsByLinkIdErrors];
+export type DeleteAdminStatusPageMonitorsByLinkIdError = DeleteAdminStatusPageMonitorsByLinkIdErrors[keyof DeleteAdminStatusPageMonitorsByLinkIdErrors];
 
-export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponses = {
+export type DeleteAdminStatusPageMonitorsByLinkIdResponses = {
     /**
      * Monitor unlinked successfully
      */
@@ -1920,23 +1753,22 @@ export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponses = {
     };
 };
 
-export type DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponse = DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponses[keyof DeleteAdminStatusPagesByPageIdMonitorsByLinkIdResponses];
+export type DeleteAdminStatusPageMonitorsByLinkIdResponse = DeleteAdminStatusPageMonitorsByLinkIdResponses[keyof DeleteAdminStatusPageMonitorsByLinkIdResponses];
 
-export type PutAdminStatusPagesByPageIdMonitorsByLinkIdData = {
+export type PutAdminStatusPageMonitorsByLinkIdData = {
     body: {
         group_id?: number | null;
         display_name?: string | null;
         sort_order?: number;
     };
     path: {
-        pageId: number;
         linkId: number;
     };
     query?: never;
-    url: '/admin/status-pages/{pageId}/monitors/{linkId}';
+    url: '/admin/status-page/monitors/{linkId}';
 };
 
-export type PutAdminStatusPagesByPageIdMonitorsByLinkIdErrors = {
+export type PutAdminStatusPageMonitorsByLinkIdErrors = {
     /**
      * Bad Request: Syntax or validation error in request
      */
@@ -1971,9 +1803,9 @@ export type PutAdminStatusPagesByPageIdMonitorsByLinkIdErrors = {
     };
 };
 
-export type PutAdminStatusPagesByPageIdMonitorsByLinkIdError = PutAdminStatusPagesByPageIdMonitorsByLinkIdErrors[keyof PutAdminStatusPagesByPageIdMonitorsByLinkIdErrors];
+export type PutAdminStatusPageMonitorsByLinkIdError = PutAdminStatusPageMonitorsByLinkIdErrors[keyof PutAdminStatusPageMonitorsByLinkIdErrors];
 
-export type PutAdminStatusPagesByPageIdMonitorsByLinkIdResponses = {
+export type PutAdminStatusPageMonitorsByLinkIdResponses = {
     /**
      * Monitor link updated successfully
      */
@@ -1984,7 +1816,6 @@ export type PutAdminStatusPagesByPageIdMonitorsByLinkIdResponses = {
         data: {
             link: {
                 id: number;
-                status_page_id: number;
                 monitor_id: number;
                 group_id: number | null;
                 display_name: string | null;
@@ -1994,7 +1825,731 @@ export type PutAdminStatusPagesByPageIdMonitorsByLinkIdResponses = {
     };
 };
 
-export type PutAdminStatusPagesByPageIdMonitorsByLinkIdResponse = PutAdminStatusPagesByPageIdMonitorsByLinkIdResponses[keyof PutAdminStatusPagesByPageIdMonitorsByLinkIdResponses];
+export type PutAdminStatusPageMonitorsByLinkIdResponse = PutAdminStatusPageMonitorsByLinkIdResponses[keyof PutAdminStatusPageMonitorsByLinkIdResponses];
+
+export type GetAdminStatusPageIncidentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/incidents';
+};
+
+export type GetAdminStatusPageIncidentsErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type GetAdminStatusPageIncidentsError = GetAdminStatusPageIncidentsErrors[keyof GetAdminStatusPageIncidentsErrors];
+
+export type GetAdminStatusPageIncidentsResponses = {
+    /**
+     * Incidents retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Incidents retrieved successfully';
+        data: Array<{
+            id: number;
+            title: string;
+            message: string;
+            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+            severity: 'critical' | 'major' | 'minor' | 'maintenance';
+            is_resolved: boolean;
+            started_at: number;
+            resolved_at: number | null;
+            created_at: number;
+            updated_at: number;
+        }>;
+    };
+};
+
+export type GetAdminStatusPageIncidentsResponse = GetAdminStatusPageIncidentsResponses[keyof GetAdminStatusPageIncidentsResponses];
+
+export type PostAdminStatusPageIncidentsData = {
+    body: {
+        title: string;
+        message: string;
+        status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+        severity: 'critical' | 'major' | 'minor' | 'maintenance';
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/incidents';
+};
+
+export type PostAdminStatusPageIncidentsErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PostAdminStatusPageIncidentsError = PostAdminStatusPageIncidentsErrors[keyof PostAdminStatusPageIncidentsErrors];
+
+export type PostAdminStatusPageIncidentsResponses = {
+    /**
+     * Incident created successfully
+     */
+    201: {
+        success: true;
+        code: 201;
+        message: 'Incident created successfully';
+        data: {
+            id: number;
+            title: string;
+            message: string;
+            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+            severity: 'critical' | 'major' | 'minor' | 'maintenance';
+            is_resolved: boolean;
+            started_at: number;
+            resolved_at: number | null;
+            created_at: number;
+            updated_at: number;
+        };
+    };
+};
+
+export type PostAdminStatusPageIncidentsResponse = PostAdminStatusPageIncidentsResponses[keyof PostAdminStatusPageIncidentsResponses];
+
+export type DeleteAdminStatusPageIncidentsByIncidentIdData = {
+    body?: never;
+    path: {
+        incidentId: number;
+    };
+    query?: never;
+    url: '/admin/status-page/incidents/{incidentId}';
+};
+
+export type DeleteAdminStatusPageIncidentsByIncidentIdErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Incident not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Incident not found';
+    };
+};
+
+export type DeleteAdminStatusPageIncidentsByIncidentIdError = DeleteAdminStatusPageIncidentsByIncidentIdErrors[keyof DeleteAdminStatusPageIncidentsByIncidentIdErrors];
+
+export type DeleteAdminStatusPageIncidentsByIncidentIdResponses = {
+    /**
+     * Incident deleted successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Incident deleted successfully';
+        data: null;
+    };
+};
+
+export type DeleteAdminStatusPageIncidentsByIncidentIdResponse = DeleteAdminStatusPageIncidentsByIncidentIdResponses[keyof DeleteAdminStatusPageIncidentsByIncidentIdResponses];
+
+export type PutAdminStatusPageIncidentsByIncidentIdData = {
+    body: {
+        title?: string;
+        message?: string;
+        status?: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+        severity?: 'critical' | 'major' | 'minor' | 'maintenance';
+        is_resolved?: boolean;
+    };
+    path: {
+        incidentId: number;
+    };
+    query?: never;
+    url: '/admin/status-page/incidents/{incidentId}';
+};
+
+export type PutAdminStatusPageIncidentsByIncidentIdErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Incident not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Incident not found';
+    };
+};
+
+export type PutAdminStatusPageIncidentsByIncidentIdError = PutAdminStatusPageIncidentsByIncidentIdErrors[keyof PutAdminStatusPageIncidentsByIncidentIdErrors];
+
+export type PutAdminStatusPageIncidentsByIncidentIdResponses = {
+    /**
+     * Incident updated successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Incident updated successfully';
+        data: {
+            id: number;
+            title: string;
+            message: string;
+            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+            severity: 'critical' | 'major' | 'minor' | 'maintenance';
+            is_resolved: boolean;
+            started_at: number;
+            resolved_at: number | null;
+            created_at: number;
+            updated_at: number;
+        };
+    };
+};
+
+export type PutAdminStatusPageIncidentsByIncidentIdResponse = PutAdminStatusPageIncidentsByIncidentIdResponses[keyof PutAdminStatusPageIncidentsByIncidentIdResponses];
+
+export type GetAdminStatusPageMaintenanceData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/maintenance';
+};
+
+export type GetAdminStatusPageMaintenanceErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type GetAdminStatusPageMaintenanceError = GetAdminStatusPageMaintenanceErrors[keyof GetAdminStatusPageMaintenanceErrors];
+
+export type GetAdminStatusPageMaintenanceResponses = {
+    /**
+     * Maintenance retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Maintenance retrieved successfully';
+        data: Array<{
+            id: number;
+            title: string;
+            message: string;
+            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+            scheduled_start_at: number;
+            scheduled_end_at: number | null;
+            created_at: number;
+            updated_at: number;
+        }>;
+    };
+};
+
+export type GetAdminStatusPageMaintenanceResponse = GetAdminStatusPageMaintenanceResponses[keyof GetAdminStatusPageMaintenanceResponses];
+
+export type PostAdminStatusPageMaintenanceData = {
+    body: {
+        title: string;
+        message: string;
+        status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+        scheduled_start_at: number;
+        scheduled_end_at?: number;
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/maintenance';
+};
+
+export type PostAdminStatusPageMaintenanceErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PostAdminStatusPageMaintenanceError = PostAdminStatusPageMaintenanceErrors[keyof PostAdminStatusPageMaintenanceErrors];
+
+export type PostAdminStatusPageMaintenanceResponses = {
+    /**
+     * Maintenance created successfully
+     */
+    201: {
+        success: true;
+        code: 201;
+        message: 'Maintenance created successfully';
+        data: {
+            id: number;
+            title: string;
+            message: string;
+            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+            scheduled_start_at: number;
+            scheduled_end_at: number | null;
+            created_at: number;
+            updated_at: number;
+        };
+    };
+};
+
+export type PostAdminStatusPageMaintenanceResponse = PostAdminStatusPageMaintenanceResponses[keyof PostAdminStatusPageMaintenanceResponses];
+
+export type DeleteAdminStatusPageMaintenanceByMaintenanceIdData = {
+    body?: never;
+    path: {
+        maintenanceId: number;
+    };
+    query?: never;
+    url: '/admin/status-page/maintenance/{maintenanceId}';
+};
+
+export type DeleteAdminStatusPageMaintenanceByMaintenanceIdErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Maintenance not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Maintenance not found';
+    };
+};
+
+export type DeleteAdminStatusPageMaintenanceByMaintenanceIdError = DeleteAdminStatusPageMaintenanceByMaintenanceIdErrors[keyof DeleteAdminStatusPageMaintenanceByMaintenanceIdErrors];
+
+export type DeleteAdminStatusPageMaintenanceByMaintenanceIdResponses = {
+    /**
+     * Maintenance deleted successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Maintenance deleted successfully';
+        data: null;
+    };
+};
+
+export type DeleteAdminStatusPageMaintenanceByMaintenanceIdResponse = DeleteAdminStatusPageMaintenanceByMaintenanceIdResponses[keyof DeleteAdminStatusPageMaintenanceByMaintenanceIdResponses];
+
+export type PutAdminStatusPageMaintenanceByMaintenanceIdData = {
+    body: {
+        title?: string;
+        message?: string;
+        status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+        scheduled_start_at?: number;
+        scheduled_end_at?: number | null;
+    };
+    path: {
+        maintenanceId: number;
+    };
+    query?: never;
+    url: '/admin/status-page/maintenance/{maintenanceId}';
+};
+
+export type PutAdminStatusPageMaintenanceByMaintenanceIdErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Maintenance not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Maintenance not found';
+    };
+};
+
+export type PutAdminStatusPageMaintenanceByMaintenanceIdError = PutAdminStatusPageMaintenanceByMaintenanceIdErrors[keyof PutAdminStatusPageMaintenanceByMaintenanceIdErrors];
+
+export type PutAdminStatusPageMaintenanceByMaintenanceIdResponses = {
+    /**
+     * Maintenance updated successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Maintenance updated successfully';
+        data: {
+            id: number;
+            title: string;
+            message: string;
+            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+            scheduled_start_at: number;
+            scheduled_end_at: number | null;
+            created_at: number;
+            updated_at: number;
+        };
+    };
+};
+
+export type PutAdminStatusPageMaintenanceByMaintenanceIdResponse = PutAdminStatusPageMaintenanceByMaintenanceIdResponses[keyof PutAdminStatusPageMaintenanceByMaintenanceIdResponses];
+
+export type GetAdminStatusPageUpdatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/updates';
+};
+
+export type GetAdminStatusPageUpdatesErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type GetAdminStatusPageUpdatesError = GetAdminStatusPageUpdatesErrors[keyof GetAdminStatusPageUpdatesErrors];
+
+export type GetAdminStatusPageUpdatesResponses = {
+    /**
+     * Updates retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Updates retrieved successfully';
+        data: Array<{
+            id: number;
+            title: string;
+            message: string;
+            type: 'general' | 'incident' | 'maintenance';
+            created_at: number;
+            updated_at: number;
+        }>;
+    };
+};
+
+export type GetAdminStatusPageUpdatesResponse = GetAdminStatusPageUpdatesResponses[keyof GetAdminStatusPageUpdatesResponses];
+
+export type PostAdminStatusPageUpdatesData = {
+    body: {
+        title: string;
+        message: string;
+        type: 'general' | 'incident' | 'maintenance';
+    };
+    path?: never;
+    query?: never;
+    url: '/admin/status-page/updates';
+};
+
+export type PostAdminStatusPageUpdatesErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PostAdminStatusPageUpdatesError = PostAdminStatusPageUpdatesErrors[keyof PostAdminStatusPageUpdatesErrors];
+
+export type PostAdminStatusPageUpdatesResponses = {
+    /**
+     * Update created successfully
+     */
+    201: {
+        success: true;
+        code: 201;
+        message: 'Update created successfully';
+        data: {
+            id: number;
+            title: string;
+            message: string;
+            type: 'general' | 'incident' | 'maintenance';
+            created_at: number;
+            updated_at: number;
+        };
+    };
+};
+
+export type PostAdminStatusPageUpdatesResponse = PostAdminStatusPageUpdatesResponses[keyof PostAdminStatusPageUpdatesResponses];
+
+export type DeleteAdminStatusPageUpdatesByUpdateIdData = {
+    body?: never;
+    path: {
+        updateId: number;
+    };
+    query?: never;
+    url: '/admin/status-page/updates/{updateId}';
+};
+
+export type DeleteAdminStatusPageUpdatesByUpdateIdErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Update not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Update not found';
+    };
+};
+
+export type DeleteAdminStatusPageUpdatesByUpdateIdError = DeleteAdminStatusPageUpdatesByUpdateIdErrors[keyof DeleteAdminStatusPageUpdatesByUpdateIdErrors];
+
+export type DeleteAdminStatusPageUpdatesByUpdateIdResponses = {
+    /**
+     * Update deleted successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Update deleted successfully';
+        data: null;
+    };
+};
+
+export type DeleteAdminStatusPageUpdatesByUpdateIdResponse = DeleteAdminStatusPageUpdatesByUpdateIdResponses[keyof DeleteAdminStatusPageUpdatesByUpdateIdResponses];
+
+export type PutAdminStatusPageUpdatesByUpdateIdData = {
+    body: {
+        title?: string;
+        message?: string;
+        type?: 'general' | 'incident' | 'maintenance';
+    };
+    path: {
+        updateId: number;
+    };
+    query?: never;
+    url: '/admin/status-page/updates/{updateId}';
+};
+
+export type PutAdminStatusPageUpdatesByUpdateIdErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Update not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Update not found';
+    };
+};
+
+export type PutAdminStatusPageUpdatesByUpdateIdError = PutAdminStatusPageUpdatesByUpdateIdErrors[keyof PutAdminStatusPageUpdatesByUpdateIdErrors];
+
+export type PutAdminStatusPageUpdatesByUpdateIdResponses = {
+    /**
+     * Update updated successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Update updated successfully';
+        data: {
+            id: number;
+            title: string;
+            message: string;
+            type: 'general' | 'incident' | 'maintenance';
+            created_at: number;
+            updated_at: number;
+        };
+    };
+};
+
+export type PutAdminStatusPageUpdatesByUpdateIdResponse = PutAdminStatusPageUpdatesByUpdateIdResponses[keyof PutAdminStatusPageUpdatesByUpdateIdResponses];
 
 export type GetAdminSettingsData = {
     body?: never;
@@ -2033,7 +2588,6 @@ export type GetAdminSettingsResponses = {
         code: 200;
         message: 'Settings retrieved successfully';
         data: {
-            root_status_page_id: number | null;
             default_theme: 'light' | 'dark' | 'auto';
         };
     };
@@ -2043,7 +2597,6 @@ export type GetAdminSettingsResponse = GetAdminSettingsResponses[keyof GetAdminS
 
 export type PutAdminSettingsData = {
     body: {
-        root_status_page_id?: number | null;
         default_theme?: 'light' | 'dark' | 'auto';
     };
     path?: never;
@@ -2076,14 +2629,6 @@ export type PutAdminSettingsErrors = {
         code: 403;
         message: 'Admin access required';
     };
-    /**
-     * Referenced status page does not exist
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Referenced status page does not exist';
-    };
 };
 
 export type PutAdminSettingsError = PutAdminSettingsErrors[keyof PutAdminSettingsErrors];
@@ -2097,7 +2642,6 @@ export type PutAdminSettingsResponses = {
         code: 200;
         message: 'Settings updated successfully';
         data: {
-            root_status_page_id: number | null;
             default_theme: 'light' | 'dark' | 'auto';
         };
     };
@@ -2277,59 +2821,14 @@ export type GetMonitorsByMonitorIdResponses = {
 
 export type GetMonitorsByMonitorIdResponse = GetMonitorsByMonitorIdResponses[keyof GetMonitorsByMonitorIdResponses];
 
-export type GetStatusPagesData = {
+export type GetStatusPageData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/status-pages';
+    url: '/status-page';
 };
 
-export type GetStatusPagesErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-};
-
-export type GetStatusPagesError = GetStatusPagesErrors[keyof GetStatusPagesErrors];
-
-export type GetStatusPagesResponses = {
-    /**
-     * Status pages retrieved successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Status pages retrieved successfully';
-        data: Array<{
-            id: number;
-            slug: string;
-            title: string;
-            description: string | null;
-            is_public: boolean;
-            is_enabled: boolean;
-            theme: 'light' | 'dark' | 'auto';
-            created_at: number;
-        }>;
-    };
-};
-
-export type GetStatusPagesResponse = GetStatusPagesResponses[keyof GetStatusPagesResponses];
-
-export type GetStatusPagesBySlugIncidentsData = {
-    body?: never;
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/incidents';
-};
-
-export type GetStatusPagesBySlugIncidentsErrors = {
+export type GetStatusPageErrors = {
     /**
      * Authentication required
      */
@@ -2348,712 +2847,9 @@ export type GetStatusPagesBySlugIncidentsErrors = {
     };
 };
 
-export type GetStatusPagesBySlugIncidentsError = GetStatusPagesBySlugIncidentsErrors[keyof GetStatusPagesBySlugIncidentsErrors];
+export type GetStatusPageError = GetStatusPageErrors[keyof GetStatusPageErrors];
 
-export type GetStatusPagesBySlugIncidentsResponses = {
-    /**
-     * Incidents retrieved successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Incidents retrieved successfully';
-        data: Array<{
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-            severity: 'critical' | 'major' | 'minor' | 'maintenance';
-            is_resolved: boolean;
-            started_at: number;
-            resolved_at: number | null;
-            created_at: number;
-            updated_at: number;
-        }>;
-    };
-};
-
-export type GetStatusPagesBySlugIncidentsResponse = GetStatusPagesBySlugIncidentsResponses[keyof GetStatusPagesBySlugIncidentsResponses];
-
-export type PostStatusPagesBySlugIncidentsData = {
-    body: {
-        title: string;
-        message: string;
-        status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-        severity: 'critical' | 'major' | 'minor' | 'maintenance';
-    };
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/incidents';
-};
-
-export type PostStatusPagesBySlugIncidentsErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type PostStatusPagesBySlugIncidentsError = PostStatusPagesBySlugIncidentsErrors[keyof PostStatusPagesBySlugIncidentsErrors];
-
-export type PostStatusPagesBySlugIncidentsResponses = {
-    /**
-     * Incident created successfully
-     */
-    201: {
-        success: true;
-        code: 201;
-        message: 'Incident created successfully';
-        data: {
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-            severity: 'critical' | 'major' | 'minor' | 'maintenance';
-            is_resolved: boolean;
-            started_at: number;
-            resolved_at: number | null;
-            created_at: number;
-            updated_at: number;
-        };
-    };
-};
-
-export type PostStatusPagesBySlugIncidentsResponse = PostStatusPagesBySlugIncidentsResponses[keyof PostStatusPagesBySlugIncidentsResponses];
-
-export type DeleteStatusPagesBySlugIncidentsByIncidentIdData = {
-    body?: never;
-    path: {
-        slug: string;
-        incidentId: number;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/incidents/{incidentId}';
-};
-
-export type DeleteStatusPagesBySlugIncidentsByIncidentIdErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Incident not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Incident not found';
-    };
-};
-
-export type DeleteStatusPagesBySlugIncidentsByIncidentIdError = DeleteStatusPagesBySlugIncidentsByIncidentIdErrors[keyof DeleteStatusPagesBySlugIncidentsByIncidentIdErrors];
-
-export type DeleteStatusPagesBySlugIncidentsByIncidentIdResponses = {
-    /**
-     * Incident deleted successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Incident deleted successfully';
-        data: null;
-    };
-};
-
-export type DeleteStatusPagesBySlugIncidentsByIncidentIdResponse = DeleteStatusPagesBySlugIncidentsByIncidentIdResponses[keyof DeleteStatusPagesBySlugIncidentsByIncidentIdResponses];
-
-export type PutStatusPagesBySlugIncidentsByIncidentIdData = {
-    body: {
-        title?: string;
-        message?: string;
-        status?: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-        severity?: 'critical' | 'major' | 'minor' | 'maintenance';
-        is_resolved?: boolean;
-    };
-    path: {
-        slug: string;
-        incidentId: number;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/incidents/{incidentId}';
-};
-
-export type PutStatusPagesBySlugIncidentsByIncidentIdErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Incident not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Incident not found';
-    };
-};
-
-export type PutStatusPagesBySlugIncidentsByIncidentIdError = PutStatusPagesBySlugIncidentsByIncidentIdErrors[keyof PutStatusPagesBySlugIncidentsByIncidentIdErrors];
-
-export type PutStatusPagesBySlugIncidentsByIncidentIdResponses = {
-    /**
-     * Incident updated successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Incident updated successfully';
-        data: {
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
-            severity: 'critical' | 'major' | 'minor' | 'maintenance';
-            is_resolved: boolean;
-            started_at: number;
-            resolved_at: number | null;
-            created_at: number;
-            updated_at: number;
-        };
-    };
-};
-
-export type PutStatusPagesBySlugIncidentsByIncidentIdResponse = PutStatusPagesBySlugIncidentsByIncidentIdResponses[keyof PutStatusPagesBySlugIncidentsByIncidentIdResponses];
-
-export type GetStatusPagesBySlugMaintenanceData = {
-    body?: never;
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/maintenance';
-};
-
-export type GetStatusPagesBySlugMaintenanceErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type GetStatusPagesBySlugMaintenanceError = GetStatusPagesBySlugMaintenanceErrors[keyof GetStatusPagesBySlugMaintenanceErrors];
-
-export type GetStatusPagesBySlugMaintenanceResponses = {
-    /**
-     * Maintenance retrieved successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Maintenance retrieved successfully';
-        data: Array<{
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-            scheduled_start_at: number;
-            scheduled_end_at: number | null;
-            created_at: number;
-            updated_at: number;
-        }>;
-    };
-};
-
-export type GetStatusPagesBySlugMaintenanceResponse = GetStatusPagesBySlugMaintenanceResponses[keyof GetStatusPagesBySlugMaintenanceResponses];
-
-export type PostStatusPagesBySlugMaintenanceData = {
-    body: {
-        title: string;
-        message: string;
-        status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-        scheduled_start_at: number;
-        scheduled_end_at?: number;
-    };
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/maintenance';
-};
-
-export type PostStatusPagesBySlugMaintenanceErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type PostStatusPagesBySlugMaintenanceError = PostStatusPagesBySlugMaintenanceErrors[keyof PostStatusPagesBySlugMaintenanceErrors];
-
-export type PostStatusPagesBySlugMaintenanceResponses = {
-    /**
-     * Maintenance created successfully
-     */
-    201: {
-        success: true;
-        code: 201;
-        message: 'Maintenance created successfully';
-        data: {
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-            scheduled_start_at: number;
-            scheduled_end_at: number | null;
-            created_at: number;
-            updated_at: number;
-        };
-    };
-};
-
-export type PostStatusPagesBySlugMaintenanceResponse = PostStatusPagesBySlugMaintenanceResponses[keyof PostStatusPagesBySlugMaintenanceResponses];
-
-export type DeleteStatusPagesBySlugMaintenanceByMaintenanceIdData = {
-    body?: never;
-    path: {
-        slug: string;
-        maintenanceId: number;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/maintenance/{maintenanceId}';
-};
-
-export type DeleteStatusPagesBySlugMaintenanceByMaintenanceIdErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Maintenance not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Maintenance not found';
-    };
-};
-
-export type DeleteStatusPagesBySlugMaintenanceByMaintenanceIdError = DeleteStatusPagesBySlugMaintenanceByMaintenanceIdErrors[keyof DeleteStatusPagesBySlugMaintenanceByMaintenanceIdErrors];
-
-export type DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponses = {
-    /**
-     * Maintenance deleted successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Maintenance deleted successfully';
-        data: null;
-    };
-};
-
-export type DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponse = DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponses[keyof DeleteStatusPagesBySlugMaintenanceByMaintenanceIdResponses];
-
-export type PutStatusPagesBySlugMaintenanceByMaintenanceIdData = {
-    body: {
-        title?: string;
-        message?: string;
-        status?: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-        scheduled_start_at?: number;
-        scheduled_end_at?: number | null;
-    };
-    path: {
-        slug: string;
-        maintenanceId: number;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/maintenance/{maintenanceId}';
-};
-
-export type PutStatusPagesBySlugMaintenanceByMaintenanceIdErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Maintenance not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Maintenance not found';
-    };
-};
-
-export type PutStatusPagesBySlugMaintenanceByMaintenanceIdError = PutStatusPagesBySlugMaintenanceByMaintenanceIdErrors[keyof PutStatusPagesBySlugMaintenanceByMaintenanceIdErrors];
-
-export type PutStatusPagesBySlugMaintenanceByMaintenanceIdResponses = {
-    /**
-     * Maintenance updated successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Maintenance updated successfully';
-        data: {
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
-            scheduled_start_at: number;
-            scheduled_end_at: number | null;
-            created_at: number;
-            updated_at: number;
-        };
-    };
-};
-
-export type PutStatusPagesBySlugMaintenanceByMaintenanceIdResponse = PutStatusPagesBySlugMaintenanceByMaintenanceIdResponses[keyof PutStatusPagesBySlugMaintenanceByMaintenanceIdResponses];
-
-export type GetStatusPagesBySlugUpdatesData = {
-    body?: never;
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/updates';
-};
-
-export type GetStatusPagesBySlugUpdatesErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type GetStatusPagesBySlugUpdatesError = GetStatusPagesBySlugUpdatesErrors[keyof GetStatusPagesBySlugUpdatesErrors];
-
-export type GetStatusPagesBySlugUpdatesResponses = {
-    /**
-     * Updates retrieved successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Updates retrieved successfully';
-        data: Array<{
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            type: 'general' | 'incident' | 'maintenance';
-            created_at: number;
-            updated_at: number;
-        }>;
-    };
-};
-
-export type GetStatusPagesBySlugUpdatesResponse = GetStatusPagesBySlugUpdatesResponses[keyof GetStatusPagesBySlugUpdatesResponses];
-
-export type PostStatusPagesBySlugUpdatesData = {
-    body: {
-        title: string;
-        message: string;
-        type: 'general' | 'incident' | 'maintenance';
-    };
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/updates';
-};
-
-export type PostStatusPagesBySlugUpdatesErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type PostStatusPagesBySlugUpdatesError = PostStatusPagesBySlugUpdatesErrors[keyof PostStatusPagesBySlugUpdatesErrors];
-
-export type PostStatusPagesBySlugUpdatesResponses = {
-    /**
-     * Update created successfully
-     */
-    201: {
-        success: true;
-        code: 201;
-        message: 'Update created successfully';
-        data: {
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            type: 'general' | 'incident' | 'maintenance';
-            created_at: number;
-            updated_at: number;
-        };
-    };
-};
-
-export type PostStatusPagesBySlugUpdatesResponse = PostStatusPagesBySlugUpdatesResponses[keyof PostStatusPagesBySlugUpdatesResponses];
-
-export type DeleteStatusPagesBySlugUpdatesByUpdateIdData = {
-    body?: never;
-    path: {
-        slug: string;
-        updateId: number;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/updates/{updateId}';
-};
-
-export type DeleteStatusPagesBySlugUpdatesByUpdateIdErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Update not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Update not found';
-    };
-};
-
-export type DeleteStatusPagesBySlugUpdatesByUpdateIdError = DeleteStatusPagesBySlugUpdatesByUpdateIdErrors[keyof DeleteStatusPagesBySlugUpdatesByUpdateIdErrors];
-
-export type DeleteStatusPagesBySlugUpdatesByUpdateIdResponses = {
-    /**
-     * Update deleted successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Update deleted successfully';
-        data: null;
-    };
-};
-
-export type DeleteStatusPagesBySlugUpdatesByUpdateIdResponse = DeleteStatusPagesBySlugUpdatesByUpdateIdResponses[keyof DeleteStatusPagesBySlugUpdatesByUpdateIdResponses];
-
-export type PutStatusPagesBySlugUpdatesByUpdateIdData = {
-    body: {
-        title?: string;
-        message?: string;
-        type?: 'general' | 'incident' | 'maintenance';
-    };
-    path: {
-        slug: string;
-        updateId: number;
-    };
-    query?: never;
-    url: '/status-pages/{slug}/updates/{updateId}';
-};
-
-export type PutStatusPagesBySlugUpdatesByUpdateIdErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Update not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Update not found';
-    };
-};
-
-export type PutStatusPagesBySlugUpdatesByUpdateIdError = PutStatusPagesBySlugUpdatesByUpdateIdErrors[keyof PutStatusPagesBySlugUpdatesByUpdateIdErrors];
-
-export type PutStatusPagesBySlugUpdatesByUpdateIdResponses = {
-    /**
-     * Update updated successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Update updated successfully';
-        data: {
-            id: number;
-            status_page_id: number;
-            title: string;
-            message: string;
-            type: 'general' | 'incident' | 'maintenance';
-            created_at: number;
-            updated_at: number;
-        };
-    };
-};
-
-export type PutStatusPagesBySlugUpdatesByUpdateIdResponse = PutStatusPagesBySlugUpdatesByUpdateIdResponses[keyof PutStatusPagesBySlugUpdatesByUpdateIdResponses];
-
-export type GetStatusPagesBySlugData = {
-    body?: never;
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/status-pages/{slug}';
-};
-
-export type GetStatusPagesBySlugErrors = {
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type GetStatusPagesBySlugError = GetStatusPagesBySlugErrors[keyof GetStatusPagesBySlugErrors];
-
-export type GetStatusPagesBySlugResponses = {
+export type GetStatusPageResponses = {
     /**
      * Status page retrieved successfully
      */
@@ -3064,13 +2860,13 @@ export type GetStatusPagesBySlugResponses = {
         data: {
             page: {
                 id: number;
-                slug: string;
                 title: string;
                 description: string | null;
                 is_public: boolean;
                 is_enabled: boolean;
                 theme: 'light' | 'dark' | 'auto';
                 created_at: number;
+                updated_at: number;
             };
             groups: Array<{
                 id: number;
@@ -3103,111 +2899,63 @@ export type GetStatusPagesBySlugResponses = {
                     checked_at: number | null;
                 } | null;
             }>;
+            incidents: Array<{
+                id: number;
+                title: string;
+                message: string;
+                status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+                severity: 'critical' | 'major' | 'minor' | 'maintenance';
+                is_resolved: boolean;
+                started_at: number;
+                resolved_at: number | null;
+                created_at: number;
+                updated_at: number;
+            }>;
+            maintenance: Array<{
+                id: number;
+                title: string;
+                message: string;
+                status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+                scheduled_start_at: number;
+                scheduled_end_at: number | null;
+                created_at: number;
+                updated_at: number;
+            }>;
+            updates: Array<{
+                id: number;
+                title: string;
+                message: string;
+                type: 'general' | 'incident' | 'maintenance';
+                created_at: number;
+                updated_at: number;
+            }>;
         };
     };
 };
 
-export type GetStatusPagesBySlugResponse = GetStatusPagesBySlugResponses[keyof GetStatusPagesBySlugResponses];
+export type GetStatusPageResponse = GetStatusPageResponses[keyof GetStatusPageResponses];
 
-export type GetPublicStatusPagesRootData = {
+export type GetStatusPageIncidentsData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/public/status-pages/root';
+    url: '/status-page/incidents';
 };
 
-export type GetPublicStatusPagesRootErrors = {
+export type GetStatusPageIncidentsErrors = {
     /**
-     * No root status page configured
+     * Authentication required
      */
-    404: {
+    401: {
         success: false;
-        code: 404;
-        message: 'No root status page configured';
+        code: 401;
+        message: 'Authentication required';
     };
 };
 
-export type GetPublicStatusPagesRootError = GetPublicStatusPagesRootErrors[keyof GetPublicStatusPagesRootErrors];
+export type GetStatusPageIncidentsError = GetStatusPageIncidentsErrors[keyof GetStatusPageIncidentsErrors];
 
-export type GetPublicStatusPagesRootResponses = {
-    /**
-     * Root status page retrieved successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Root status page retrieved successfully';
-        data: {
-            page: {
-                id: number;
-                slug: string;
-                title: string;
-                description: string | null;
-                is_public: boolean;
-                is_enabled: boolean;
-                theme: 'light' | 'dark' | 'auto';
-                created_at: number;
-            };
-            groups: Array<{
-                id: number;
-                name: string;
-                sort_order: number;
-                monitors: Array<{
-                    id: number;
-                    name: string;
-                    type: 'http' | 'tcp';
-                    target: string;
-                    display_name: string | null;
-                    sort_order: number;
-                    latest_check: {
-                        status: 'up' | 'down' | 'degraded' | 'unknown';
-                        response_time_ms: number | null;
-                        checked_at: number | null;
-                    } | null;
-                }>;
-            }>;
-            ungrouped: Array<{
-                id: number;
-                name: string;
-                type: 'http' | 'tcp';
-                target: string;
-                display_name: string | null;
-                sort_order: number;
-                latest_check: {
-                    status: 'up' | 'down' | 'degraded' | 'unknown';
-                    response_time_ms: number | null;
-                    checked_at: number | null;
-                } | null;
-            }>;
-        };
-    };
-};
-
-export type GetPublicStatusPagesRootResponse = GetPublicStatusPagesRootResponses[keyof GetPublicStatusPagesRootResponses];
-
-export type GetPublicStatusPagesBySlugIncidentsData = {
-    body?: never;
-    path: {
-        slug: string;
-    };
-    query?: never;
-    url: '/public/status-pages/{slug}/incidents';
-};
-
-export type GetPublicStatusPagesBySlugIncidentsErrors = {
-    /**
-     * Status page not found
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found';
-    };
-};
-
-export type GetPublicStatusPagesBySlugIncidentsError = GetPublicStatusPagesBySlugIncidentsErrors[keyof GetPublicStatusPagesBySlugIncidentsErrors];
-
-export type GetPublicStatusPagesBySlugIncidentsResponses = {
+export type GetStatusPageIncidentsResponses = {
     /**
      * Incidents retrieved successfully
      */
@@ -3217,7 +2965,6 @@ export type GetPublicStatusPagesBySlugIncidentsResponses = {
         message: 'Incidents retrieved successfully';
         data: Array<{
             id: number;
-            status_page_id: number;
             title: string;
             message: string;
             status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
@@ -3231,31 +2978,29 @@ export type GetPublicStatusPagesBySlugIncidentsResponses = {
     };
 };
 
-export type GetPublicStatusPagesBySlugIncidentsResponse = GetPublicStatusPagesBySlugIncidentsResponses[keyof GetPublicStatusPagesBySlugIncidentsResponses];
+export type GetStatusPageIncidentsResponse = GetStatusPageIncidentsResponses[keyof GetStatusPageIncidentsResponses];
 
-export type GetPublicStatusPagesBySlugMaintenanceData = {
+export type GetStatusPageMaintenanceData = {
     body?: never;
-    path: {
-        slug: string;
-    };
+    path?: never;
     query?: never;
-    url: '/public/status-pages/{slug}/maintenance';
+    url: '/status-page/maintenance';
 };
 
-export type GetPublicStatusPagesBySlugMaintenanceErrors = {
+export type GetStatusPageMaintenanceErrors = {
     /**
-     * Status page not found
+     * Authentication required
      */
-    404: {
+    401: {
         success: false;
-        code: 404;
-        message: 'Status page not found';
+        code: 401;
+        message: 'Authentication required';
     };
 };
 
-export type GetPublicStatusPagesBySlugMaintenanceError = GetPublicStatusPagesBySlugMaintenanceErrors[keyof GetPublicStatusPagesBySlugMaintenanceErrors];
+export type GetStatusPageMaintenanceError = GetStatusPageMaintenanceErrors[keyof GetStatusPageMaintenanceErrors];
 
-export type GetPublicStatusPagesBySlugMaintenanceResponses = {
+export type GetStatusPageMaintenanceResponses = {
     /**
      * Maintenance retrieved successfully
      */
@@ -3265,7 +3010,6 @@ export type GetPublicStatusPagesBySlugMaintenanceResponses = {
         message: 'Maintenance retrieved successfully';
         data: Array<{
             id: number;
-            status_page_id: number;
             title: string;
             message: string;
             status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
@@ -3277,31 +3021,29 @@ export type GetPublicStatusPagesBySlugMaintenanceResponses = {
     };
 };
 
-export type GetPublicStatusPagesBySlugMaintenanceResponse = GetPublicStatusPagesBySlugMaintenanceResponses[keyof GetPublicStatusPagesBySlugMaintenanceResponses];
+export type GetStatusPageMaintenanceResponse = GetStatusPageMaintenanceResponses[keyof GetStatusPageMaintenanceResponses];
 
-export type GetPublicStatusPagesBySlugUpdatesData = {
+export type GetStatusPageUpdatesData = {
     body?: never;
-    path: {
-        slug: string;
-    };
+    path?: never;
     query?: never;
-    url: '/public/status-pages/{slug}/updates';
+    url: '/status-page/updates';
 };
 
-export type GetPublicStatusPagesBySlugUpdatesErrors = {
+export type GetStatusPageUpdatesErrors = {
     /**
-     * Status page not found
+     * Authentication required
      */
-    404: {
+    401: {
         success: false;
-        code: 404;
-        message: 'Status page not found';
+        code: 401;
+        message: 'Authentication required';
     };
 };
 
-export type GetPublicStatusPagesBySlugUpdatesError = GetPublicStatusPagesBySlugUpdatesErrors[keyof GetPublicStatusPagesBySlugUpdatesErrors];
+export type GetStatusPageUpdatesError = GetStatusPageUpdatesErrors[keyof GetStatusPageUpdatesErrors];
 
-export type GetPublicStatusPagesBySlugUpdatesResponses = {
+export type GetStatusPageUpdatesResponses = {
     /**
      * Updates retrieved successfully
      */
@@ -3311,7 +3053,6 @@ export type GetPublicStatusPagesBySlugUpdatesResponses = {
         message: 'Updates retrieved successfully';
         data: Array<{
             id: number;
-            status_page_id: number;
             title: string;
             message: string;
             type: 'general' | 'incident' | 'maintenance';
@@ -3321,31 +3062,29 @@ export type GetPublicStatusPagesBySlugUpdatesResponses = {
     };
 };
 
-export type GetPublicStatusPagesBySlugUpdatesResponse = GetPublicStatusPagesBySlugUpdatesResponses[keyof GetPublicStatusPagesBySlugUpdatesResponses];
+export type GetStatusPageUpdatesResponse = GetStatusPageUpdatesResponses[keyof GetStatusPageUpdatesResponses];
 
-export type GetPublicStatusPagesBySlugData = {
+export type GetPublicStatusPageData = {
     body?: never;
-    path: {
-        slug: string;
-    };
+    path?: never;
     query?: never;
-    url: '/public/status-pages/{slug}';
+    url: '/public/status-page';
 };
 
-export type GetPublicStatusPagesBySlugErrors = {
+export type GetPublicStatusPageErrors = {
     /**
-     * Status page not found
+     * Status page not found or not public
      */
     404: {
         success: false;
         code: 404;
-        message: 'Status page not found';
+        message: 'Status page not found or not public';
     };
 };
 
-export type GetPublicStatusPagesBySlugError = GetPublicStatusPagesBySlugErrors[keyof GetPublicStatusPagesBySlugErrors];
+export type GetPublicStatusPageError = GetPublicStatusPageErrors[keyof GetPublicStatusPageErrors];
 
-export type GetPublicStatusPagesBySlugResponses = {
+export type GetPublicStatusPageResponses = {
     /**
      * Status page retrieved successfully
      */
@@ -3356,13 +3095,13 @@ export type GetPublicStatusPagesBySlugResponses = {
         data: {
             page: {
                 id: number;
-                slug: string;
                 title: string;
                 description: string | null;
                 is_public: boolean;
                 is_enabled: boolean;
                 theme: 'light' | 'dark' | 'auto';
                 created_at: number;
+                updated_at: number;
             };
             groups: Array<{
                 id: number;
@@ -3395,11 +3134,170 @@ export type GetPublicStatusPagesBySlugResponses = {
                     checked_at: number | null;
                 } | null;
             }>;
+            incidents: Array<{
+                id: number;
+                title: string;
+                message: string;
+                status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+                severity: 'critical' | 'major' | 'minor' | 'maintenance';
+                is_resolved: boolean;
+                started_at: number;
+                resolved_at: number | null;
+                created_at: number;
+                updated_at: number;
+            }>;
+            maintenance: Array<{
+                id: number;
+                title: string;
+                message: string;
+                status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+                scheduled_start_at: number;
+                scheduled_end_at: number | null;
+                created_at: number;
+                updated_at: number;
+            }>;
+            updates: Array<{
+                id: number;
+                title: string;
+                message: string;
+                type: 'general' | 'incident' | 'maintenance';
+                created_at: number;
+                updated_at: number;
+            }>;
         };
     };
 };
 
-export type GetPublicStatusPagesBySlugResponse = GetPublicStatusPagesBySlugResponses[keyof GetPublicStatusPagesBySlugResponses];
+export type GetPublicStatusPageResponse = GetPublicStatusPageResponses[keyof GetPublicStatusPageResponses];
+
+export type GetPublicStatusPageIncidentsData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/public/status-page/incidents';
+};
+
+export type GetPublicStatusPageIncidentsErrors = {
+    /**
+     * Status page not found or not public
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Status page not found or not public';
+    };
+};
+
+export type GetPublicStatusPageIncidentsError = GetPublicStatusPageIncidentsErrors[keyof GetPublicStatusPageIncidentsErrors];
+
+export type GetPublicStatusPageIncidentsResponses = {
+    /**
+     * Incidents retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Incidents retrieved successfully';
+        data: Array<{
+            id: number;
+            title: string;
+            message: string;
+            status: 'investigating' | 'identified' | 'monitoring' | 'resolved';
+            severity: 'critical' | 'major' | 'minor' | 'maintenance';
+            is_resolved: boolean;
+            started_at: number;
+            resolved_at: number | null;
+            created_at: number;
+            updated_at: number;
+        }>;
+    };
+};
+
+export type GetPublicStatusPageIncidentsResponse = GetPublicStatusPageIncidentsResponses[keyof GetPublicStatusPageIncidentsResponses];
+
+export type GetPublicStatusPageMaintenanceData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/public/status-page/maintenance';
+};
+
+export type GetPublicStatusPageMaintenanceErrors = {
+    /**
+     * Status page not found or not public
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Status page not found or not public';
+    };
+};
+
+export type GetPublicStatusPageMaintenanceError = GetPublicStatusPageMaintenanceErrors[keyof GetPublicStatusPageMaintenanceErrors];
+
+export type GetPublicStatusPageMaintenanceResponses = {
+    /**
+     * Maintenance retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Maintenance retrieved successfully';
+        data: Array<{
+            id: number;
+            title: string;
+            message: string;
+            status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+            scheduled_start_at: number;
+            scheduled_end_at: number | null;
+            created_at: number;
+            updated_at: number;
+        }>;
+    };
+};
+
+export type GetPublicStatusPageMaintenanceResponse = GetPublicStatusPageMaintenanceResponses[keyof GetPublicStatusPageMaintenanceResponses];
+
+export type GetPublicStatusPageUpdatesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/public/status-page/updates';
+};
+
+export type GetPublicStatusPageUpdatesErrors = {
+    /**
+     * Status page not found or not public
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Status page not found or not public';
+    };
+};
+
+export type GetPublicStatusPageUpdatesError = GetPublicStatusPageUpdatesErrors[keyof GetPublicStatusPageUpdatesErrors];
+
+export type GetPublicStatusPageUpdatesResponses = {
+    /**
+     * Updates retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Updates retrieved successfully';
+        data: Array<{
+            id: number;
+            title: string;
+            message: string;
+            type: 'general' | 'incident' | 'maintenance';
+            created_at: number;
+            updated_at: number;
+        }>;
+    };
+};
+
+export type GetPublicStatusPageUpdatesResponse = GetPublicStatusPageUpdatesResponses[keyof GetPublicStatusPageUpdatesResponses];
 
 export type GetPublicMonitorsByMonitorIdData = {
     body?: never;

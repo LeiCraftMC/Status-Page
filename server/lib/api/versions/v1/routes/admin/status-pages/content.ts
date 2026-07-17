@@ -5,107 +5,77 @@ import { DB } from "../../../../../../../db";
 import { APIResponse } from "../../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../../utils/specHelpers";
 import { AuthHandler } from "../../../../../utils/authHandler";
-import { StatusPageContentModel } from "./model";
+import { StatusPageContentModel } from "../../../models/statusPageContent";
 import { DOCS_TAGS } from "../../../docs";
 
 const TARGET_INCIDENT_KEY = "targetIncident";
 const TARGET_MAINTENANCE_KEY = "targetMaintenance";
 const TARGET_UPDATE_KEY = "targetUpdate";
 
-function requireSession(c: any): AuthHandler.SessionAuthContext | null {
+function requireAdmin(c: any): AuthHandler.SessionAuthContext | null {
     const authContext = c.get("authContext") as AuthHandler.AuthContext;
-    if (authContext.type !== 'session') {
+    if (authContext.type !== 'session' || authContext.user_role !== 'admin') {
         return null;
     }
     return authContext;
 }
 
-export const router = new Hono();
+export const router = new Hono().basePath('/');
 
 router.use("*", async (c, next) => {
-    const authContext = requireSession(c);
-    if (!authContext) {
-        return APIResponse.unauthorized(c, "Authentication required");
+    if (!requireAdmin(c)) {
+        return APIResponse.forbidden(c, "Admin access required");
     }
     await next();
 });
 
-// @ts-ignore
-router.use('/:slug/*',
-    zValidator("param", StatusPageContentModel.SlugParams.Params),
-
-    async (c, next) => {
-        // @ts-ignore
-        const { slug } = c.req.valid("param") as StatusPageContentModel.SlugParams.Params;
-
-        const page = await DB.instance().select().from(DB.Tables.statusPages).where(
-            eq(DB.Tables.statusPages.slug, slug)
-        ).get();
-
-        if (!page) {
-            return APIResponse.notFound(c, "Status page not found");
-        }
-
-        // @ts-ignore
-        c.set("targetStatusPage", page);
-        await next();
-    }
-);
-
 // Incidents
 
-router.get('/:slug/incidents',
+router.get('/incidents',
 
     APIRouteSpec.authenticated({
         summary: "List incidents",
-        description: "Retrieve all incidents for a status page.",
+        description: "Retrieve all incidents for the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.success("Incidents retrieved successfully", StatusPageContentModel.Lists.Incidents),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get("targetStatusPage") as DB.Models.StatusPage;
-
         const incidents = await DB.instance()
             .select()
-            .from(DB.Tables.statusPageIncidents)
-            .where(eq(DB.Tables.statusPageIncidents.status_page_id, page.id))
-            .orderBy(desc(DB.Tables.statusPageIncidents.started_at));
+            .from(DB.Tables.incidents)
+            .orderBy(desc(DB.Tables.incidents.started_at));
 
         return APIResponse.success(c, "Incidents retrieved successfully", incidents);
     }
 );
 
-router.post('/:slug/incidents',
+router.post('/incidents',
 
     APIRouteSpec.authenticated({
         summary: "Create incident",
-        description: "Post a new incident to a status page.",
+        description: "Publish a new incident on the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.created("Incident created successfully", StatusPageContentModel.BaseIncident),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     zValidator("json", StatusPageContentModel.IncidentId.Body),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get("targetStatusPage") as DB.Models.StatusPage;
         const body = c.req.valid("json") as StatusPageContentModel.IncidentId.Body;
 
         const now = Date.now();
-        const created = await DB.instance().insert(DB.Tables.statusPageIncidents).values({
-            status_page_id: page.id,
+        const created = await DB.instance().insert(DB.Tables.incidents).values({
             ...body,
             started_at: now,
             updated_at: now,
@@ -116,18 +86,18 @@ router.post('/:slug/incidents',
 );
 
 // @ts-ignore
-router.use('/:slug/incidents/:incidentId/*',
+router.use('/incidents/:incidentId/*',
     zValidator("param", StatusPageContentModel.IncidentId.Params),
 
     async (c, next) => {
         // @ts-ignore
-        const { slug, incidentId } = c.req.valid("param") as StatusPageContentModel.IncidentId.Params;
+        const { incidentId } = c.req.valid("param") as StatusPageContentModel.IncidentId.Params;
 
-        const incident = await DB.instance().select().from(DB.Tables.statusPageIncidents).where(
-            eq(DB.Tables.statusPageIncidents.id, incidentId)
+        const incident = await DB.instance().select().from(DB.Tables.incidents).where(
+            eq(DB.Tables.incidents.id, incidentId)
         ).get();
 
-        if (!incident || incident.status_page_id !== pageIdForSlug(c, slug)) {
+        if (!incident) {
             return APIResponse.notFound(c, "Incident not found");
         }
 
@@ -137,7 +107,7 @@ router.use('/:slug/incidents/:incidentId/*',
     }
 );
 
-router.put('/:slug/incidents/:incidentId',
+router.put('/incidents/:incidentId',
 
     APIRouteSpec.authenticated({
         summary: "Update incident",
@@ -147,6 +117,7 @@ router.put('/:slug/incidents/:incidentId',
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.success("Incident updated successfully", StatusPageContentModel.BaseIncident),
             APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Incident not found")
         )
     }),
@@ -167,12 +138,12 @@ router.put('/:slug/incidents/:incidentId',
             updates.resolved_at = null;
         }
 
-        await DB.instance().update(DB.Tables.statusPageIncidents).set(updates).where(
-            eq(DB.Tables.statusPageIncidents.id, incident.id)
+        await DB.instance().update(DB.Tables.incidents).set(updates).where(
+            eq(DB.Tables.incidents.id, incident.id)
         ).run();
 
-        const refreshed = await DB.instance().select().from(DB.Tables.statusPageIncidents).where(
-            eq(DB.Tables.statusPageIncidents.id, incident.id)
+        const refreshed = await DB.instance().select().from(DB.Tables.incidents).where(
+            eq(DB.Tables.incidents.id, incident.id)
         ).get();
 
         if (!refreshed) {
@@ -183,16 +154,17 @@ router.put('/:slug/incidents/:incidentId',
     }
 );
 
-router.delete('/:slug/incidents/:incidentId',
+router.delete('/incidents/:incidentId',
 
     APIRouteSpec.authenticated({
         summary: "Delete incident",
-        description: "Remove an incident from a status page.",
+        description: "Remove an incident from the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.successNoData("Incident deleted successfully"),
             APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Incident not found")
         )
     }),
@@ -201,8 +173,8 @@ router.delete('/:slug/incidents/:incidentId',
         // @ts-ignore
         const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
 
-        await DB.instance().delete(DB.Tables.statusPageIncidents).where(
-            eq(DB.Tables.statusPageIncidents.id, incident.id)
+        await DB.instance().delete(DB.Tables.incidents).where(
+            eq(DB.Tables.incidents.id, incident.id)
         ).run();
 
         return APIResponse.successNoData(c, "Incident deleted successfully");
@@ -211,58 +183,51 @@ router.delete('/:slug/incidents/:incidentId',
 
 // Maintenance
 
-router.get('/:slug/maintenance',
+router.get('/maintenance',
 
     APIRouteSpec.authenticated({
         summary: "List maintenance",
-        description: "Retrieve all scheduled maintenance entries for a status page.",
+        description: "Retrieve all scheduled maintenance entries for the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.success("Maintenance retrieved successfully", StatusPageContentModel.Lists.Maintenance),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get("targetStatusPage") as DB.Models.StatusPage;
-
         const maintenance = await DB.instance()
             .select()
-            .from(DB.Tables.statusPageMaintenance)
-            .where(eq(DB.Tables.statusPageMaintenance.status_page_id, page.id))
-            .orderBy(desc(DB.Tables.statusPageMaintenance.scheduled_start_at));
+            .from(DB.Tables.maintenance)
+            .orderBy(desc(DB.Tables.maintenance.scheduled_start_at));
 
         return APIResponse.success(c, "Maintenance retrieved successfully", maintenance);
     }
 );
 
-router.post('/:slug/maintenance',
+router.post('/maintenance',
 
     APIRouteSpec.authenticated({
         summary: "Create maintenance",
-        description: "Post a new scheduled maintenance entry to a status page.",
+        description: "Publish a new scheduled maintenance entry on the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.created("Maintenance created successfully", StatusPageContentModel.BaseMaintenance),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     zValidator("json", StatusPageContentModel.MaintenanceId.Body),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get("targetStatusPage") as DB.Models.StatusPage;
         const body = c.req.valid("json") as StatusPageContentModel.MaintenanceId.Body;
 
         const now = Date.now();
-        const created = await DB.instance().insert(DB.Tables.statusPageMaintenance).values({
-            status_page_id: page.id,
+        const created = await DB.instance().insert(DB.Tables.maintenance).values({
             ...body,
             created_at: now,
             updated_at: now,
@@ -273,18 +238,18 @@ router.post('/:slug/maintenance',
 );
 
 // @ts-ignore
-router.use('/:slug/maintenance/:maintenanceId/*',
+router.use('/maintenance/:maintenanceId/*',
     zValidator("param", StatusPageContentModel.MaintenanceId.Params),
 
     async (c, next) => {
         // @ts-ignore
-        const { slug, maintenanceId } = c.req.valid("param") as StatusPageContentModel.MaintenanceId.Params;
+        const { maintenanceId } = c.req.valid("param") as StatusPageContentModel.MaintenanceId.Params;
 
-        const maintenance = await DB.instance().select().from(DB.Tables.statusPageMaintenance).where(
-            eq(DB.Tables.statusPageMaintenance.id, maintenanceId)
+        const maintenance = await DB.instance().select().from(DB.Tables.maintenance).where(
+            eq(DB.Tables.maintenance.id, maintenanceId)
         ).get();
 
-        if (!maintenance || maintenance.status_page_id !== pageIdForSlug(c, slug)) {
+        if (!maintenance) {
             return APIResponse.notFound(c, "Maintenance not found");
         }
 
@@ -294,7 +259,7 @@ router.use('/:slug/maintenance/:maintenanceId/*',
     }
 );
 
-router.put('/:slug/maintenance/:maintenanceId',
+router.put('/maintenance/:maintenanceId',
 
     APIRouteSpec.authenticated({
         summary: "Update maintenance",
@@ -304,6 +269,7 @@ router.put('/:slug/maintenance/:maintenanceId',
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.success("Maintenance updated successfully", StatusPageContentModel.BaseMaintenance),
             APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Maintenance not found")
         )
     }),
@@ -315,15 +281,15 @@ router.put('/:slug/maintenance/:maintenanceId',
         const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
         const body = c.req.valid("json") as StatusPageContentModel.MaintenanceId.UpdateBody;
 
-        await DB.instance().update(DB.Tables.statusPageMaintenance).set({
+        await DB.instance().update(DB.Tables.maintenance).set({
             ...body,
             updated_at: Date.now(),
         }).where(
-            eq(DB.Tables.statusPageMaintenance.id, maintenance.id)
+            eq(DB.Tables.maintenance.id, maintenance.id)
         ).run();
 
-        const refreshed = await DB.instance().select().from(DB.Tables.statusPageMaintenance).where(
-            eq(DB.Tables.statusPageMaintenance.id, maintenance.id)
+        const refreshed = await DB.instance().select().from(DB.Tables.maintenance).where(
+            eq(DB.Tables.maintenance.id, maintenance.id)
         ).get();
 
         if (!refreshed) {
@@ -334,7 +300,7 @@ router.put('/:slug/maintenance/:maintenanceId',
     }
 );
 
-router.delete('/:slug/maintenance/:maintenanceId',
+router.delete('/maintenance/:maintenanceId',
 
     APIRouteSpec.authenticated({
         summary: "Delete maintenance",
@@ -344,6 +310,7 @@ router.delete('/:slug/maintenance/:maintenanceId',
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.successNoData("Maintenance deleted successfully"),
             APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Maintenance not found")
         )
     }),
@@ -352,8 +319,8 @@ router.delete('/:slug/maintenance/:maintenanceId',
         // @ts-ignore
         const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
 
-        await DB.instance().delete(DB.Tables.statusPageMaintenance).where(
-            eq(DB.Tables.statusPageMaintenance.id, maintenance.id)
+        await DB.instance().delete(DB.Tables.maintenance).where(
+            eq(DB.Tables.maintenance.id, maintenance.id)
         ).run();
 
         return APIResponse.successNoData(c, "Maintenance deleted successfully");
@@ -362,58 +329,51 @@ router.delete('/:slug/maintenance/:maintenanceId',
 
 // Updates
 
-router.get('/:slug/updates',
+router.get('/updates',
 
     APIRouteSpec.authenticated({
         summary: "List updates",
-        description: "Retrieve all general updates for a status page.",
+        description: "Retrieve all general updates for the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.success("Updates retrieved successfully", StatusPageContentModel.Lists.Updates),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get("targetStatusPage") as DB.Models.StatusPage;
-
         const updates = await DB.instance()
             .select()
-            .from(DB.Tables.statusPageUpdates)
-            .where(eq(DB.Tables.statusPageUpdates.status_page_id, page.id))
-            .orderBy(desc(DB.Tables.statusPageUpdates.created_at));
+            .from(DB.Tables.statusUpdates)
+            .orderBy(desc(DB.Tables.statusUpdates.created_at));
 
         return APIResponse.success(c, "Updates retrieved successfully", updates);
     }
 );
 
-router.post('/:slug/updates',
+router.post('/updates',
 
     APIRouteSpec.authenticated({
         summary: "Create update",
-        description: "Post a new update to a status page.",
+        description: "Publish a new update on the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
 
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.created("Update created successfully", StatusPageContentModel.BaseUpdate),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.notFound("Status page not found")
+            APIResponseSpec.forbidden("Admin access required")
         )
     }),
 
     zValidator("json", StatusPageContentModel.UpdateId.Body),
 
     async (c) => {
-        // @ts-ignore
-        const page = c.get("targetStatusPage") as DB.Models.StatusPage;
         const body = c.req.valid("json") as StatusPageContentModel.UpdateId.Body;
 
         const now = Date.now();
-        const created = await DB.instance().insert(DB.Tables.statusPageUpdates).values({
-            status_page_id: page.id,
+        const created = await DB.instance().insert(DB.Tables.statusUpdates).values({
             ...body,
             created_at: now,
             updated_at: now,
@@ -424,18 +384,18 @@ router.post('/:slug/updates',
 );
 
 // @ts-ignore
-router.use('/:slug/updates/:updateId/*',
+router.use('/updates/:updateId/*',
     zValidator("param", StatusPageContentModel.UpdateId.Params),
 
     async (c, next) => {
         // @ts-ignore
-        const { slug, updateId } = c.req.valid("param") as StatusPageContentModel.UpdateId.Params;
+        const { updateId } = c.req.valid("param") as StatusPageContentModel.UpdateId.Params;
 
-        const update = await DB.instance().select().from(DB.Tables.statusPageUpdates).where(
-            eq(DB.Tables.statusPageUpdates.id, updateId)
+        const update = await DB.instance().select().from(DB.Tables.statusUpdates).where(
+            eq(DB.Tables.statusUpdates.id, updateId)
         ).get();
 
-        if (!update || update.status_page_id !== pageIdForSlug(c, slug)) {
+        if (!update) {
             return APIResponse.notFound(c, "Update not found");
         }
 
@@ -445,7 +405,7 @@ router.use('/:slug/updates/:updateId/*',
     }
 );
 
-router.put('/:slug/updates/:updateId',
+router.put('/updates/:updateId',
 
     APIRouteSpec.authenticated({
         summary: "Update update",
@@ -455,6 +415,7 @@ router.put('/:slug/updates/:updateId',
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.success("Update updated successfully", StatusPageContentModel.BaseUpdate),
             APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Update not found")
         )
     }),
@@ -466,15 +427,15 @@ router.put('/:slug/updates/:updateId',
         const update = c.get(TARGET_UPDATE_KEY) as StatusPageContentModel.BaseUpdate;
         const body = c.req.valid("json") as StatusPageContentModel.UpdateId.UpdateBody;
 
-        await DB.instance().update(DB.Tables.statusPageUpdates).set({
+        await DB.instance().update(DB.Tables.statusUpdates).set({
             ...body,
             updated_at: Date.now(),
         }).where(
-            eq(DB.Tables.statusPageUpdates.id, update.id)
+            eq(DB.Tables.statusUpdates.id, update.id)
         ).run();
 
-        const refreshed = await DB.instance().select().from(DB.Tables.statusPageUpdates).where(
-            eq(DB.Tables.statusPageUpdates.id, update.id)
+        const refreshed = await DB.instance().select().from(DB.Tables.statusUpdates).where(
+            eq(DB.Tables.statusUpdates.id, update.id)
         ).get();
 
         if (!refreshed) {
@@ -485,7 +446,7 @@ router.put('/:slug/updates/:updateId',
     }
 );
 
-router.delete('/:slug/updates/:updateId',
+router.delete('/updates/:updateId',
 
     APIRouteSpec.authenticated({
         summary: "Delete update",
@@ -495,6 +456,7 @@ router.delete('/:slug/updates/:updateId',
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.successNoData("Update deleted successfully"),
             APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
             APIResponseSpec.notFound("Update not found")
         )
     }),
@@ -503,15 +465,10 @@ router.delete('/:slug/updates/:updateId',
         // @ts-ignore
         const update = c.get(TARGET_UPDATE_KEY) as StatusPageContentModel.BaseUpdate;
 
-        await DB.instance().delete(DB.Tables.statusPageUpdates).where(
-            eq(DB.Tables.statusPageUpdates.id, update.id)
+        await DB.instance().delete(DB.Tables.statusUpdates).where(
+            eq(DB.Tables.statusUpdates.id, update.id)
         ).run();
 
         return APIResponse.successNoData(c, "Update deleted successfully");
     }
 );
-
-function pageIdForSlug(c: any, slug: string): number {
-    const page = c.get("targetStatusPage") as DB.Models.StatusPage | undefined;
-    return page?.id ?? -1;
-}

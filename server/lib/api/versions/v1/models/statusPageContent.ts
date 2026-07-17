@@ -1,40 +1,31 @@
 import { createSelectSchema, createInsertSchema, createUpdateSchema } from "drizzle-zod";
-import { DB } from "../../../../../../../db";
+import { DB } from "../../../../../db";
 import z from "zod";
 
 export namespace StatusPageContentModel {
 
-    export const BaseIncident = createSelectSchema(DB.Tables.statusPageIncidents);
+    export const BaseIncident = createSelectSchema(DB.Tables.incidents);
     export type BaseIncident = z.infer<typeof BaseIncident>;
 
-    export const BaseMaintenance = createSelectSchema(DB.Tables.statusPageMaintenance);
+    export const BaseMaintenance = createSelectSchema(DB.Tables.maintenance);
     export type BaseMaintenance = z.infer<typeof BaseMaintenance>;
 
-    export const BaseUpdate = createSelectSchema(DB.Tables.statusPageUpdates);
+    export const BaseUpdate = createSelectSchema(DB.Tables.statusUpdates);
     export type BaseUpdate = z.infer<typeof BaseUpdate>;
-
-    export namespace SlugParams {
-        export const Params = z.object({
-            slug: z.string().min(1),
-        });
-        export type Params = z.infer<typeof Params>;
-    }
 
     export namespace IncidentId {
         export const Params = z.object({
-            slug: z.string().min(1),
             incidentId: z.coerce.number().int().positive(),
         });
         export type Params = z.infer<typeof Params>;
 
-        export const Body = createInsertSchema(DB.Tables.statusPageIncidents, {
+        export const Body = createInsertSchema(DB.Tables.incidents, {
             title: z.string().min(1).max(128),
             message: z.string().min(1).max(4096),
             status: z.enum(['investigating', 'identified', 'monitoring', 'resolved']),
             severity: z.enum(['critical', 'major', 'minor', 'maintenance']),
         }).omit({
             id: true,
-            status_page_id: true,
             is_resolved: true,
             started_at: true,
             resolved_at: true,
@@ -43,14 +34,13 @@ export namespace StatusPageContentModel {
         });
         export type Body = z.infer<typeof Body>;
 
-        export const UpdateBody = createUpdateSchema(DB.Tables.statusPageIncidents, {
+        export const UpdateBody = createUpdateSchema(DB.Tables.incidents, {
             title: z.string().min(1).max(128),
             message: z.string().min(1).max(4096),
             status: z.enum(['investigating', 'identified', 'monitoring', 'resolved']),
             severity: z.enum(['critical', 'major', 'minor', 'maintenance']),
         }).omit({
             id: true,
-            status_page_id: true,
             started_at: true,
             resolved_at: true,
             created_at: true,
@@ -64,18 +54,16 @@ export namespace StatusPageContentModel {
 
     export namespace MaintenanceId {
         export const Params = z.object({
-            slug: z.string().min(1),
             maintenanceId: z.coerce.number().int().positive(),
         });
         export type Params = z.infer<typeof Params>;
 
-        export const Body = createInsertSchema(DB.Tables.statusPageMaintenance, {
+        export const Body = createInsertSchema(DB.Tables.maintenance, {
             title: z.string().min(1).max(128),
             message: z.string().min(1).max(4096),
             status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']),
         }).omit({
             id: true,
-            status_page_id: true,
             created_at: true,
             updated_at: true,
         }).extend({
@@ -84,13 +72,12 @@ export namespace StatusPageContentModel {
         });
         export type Body = z.infer<typeof Body>;
 
-        export const UpdateBody = createUpdateSchema(DB.Tables.statusPageMaintenance, {
+        export const UpdateBody = createUpdateSchema(DB.Tables.maintenance, {
             title: z.string().min(1).max(128),
             message: z.string().min(1).max(4096),
             status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']),
         }).omit({
             id: true,
-            status_page_id: true,
             created_at: true,
             updated_at: true,
         }).partial().extend({
@@ -105,30 +92,27 @@ export namespace StatusPageContentModel {
 
     export namespace UpdateId {
         export const Params = z.object({
-            slug: z.string().min(1),
             updateId: z.coerce.number().int().positive(),
         });
         export type Params = z.infer<typeof Params>;
 
-        export const Body = createInsertSchema(DB.Tables.statusPageUpdates, {
+        export const Body = createInsertSchema(DB.Tables.statusUpdates, {
             title: z.string().min(1).max(128),
             message: z.string().min(1).max(4096),
             type: z.enum(['general', 'incident', 'maintenance']),
         }).omit({
             id: true,
-            status_page_id: true,
             created_at: true,
             updated_at: true,
         });
         export type Body = z.infer<typeof Body>;
 
-        export const UpdateBody = createUpdateSchema(DB.Tables.statusPageUpdates, {
+        export const UpdateBody = createUpdateSchema(DB.Tables.statusUpdates, {
             title: z.string().min(1).max(128),
             message: z.string().min(1).max(4096),
             type: z.enum(['general', 'incident', 'maintenance']),
         }).omit({
             id: true,
-            status_page_id: true,
             created_at: true,
             updated_at: true,
         }).partial().refine(

@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import type { GetMonitorsResponses, GetStatusPageResponses, GetAdminSettingsResponses } from '@/api-client/types.gen'
 import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
 type Monitor = GetMonitorsResponses[200]['data'][number]
-type StatusPage = GetStatusPagesResponses[200]['data'][number]
+type StatusPage = GetStatusPageResponses[200]['data']
 type AdminSettings = GetAdminSettingsResponses[200]['data']
 
 definePageMeta({
@@ -12,7 +13,7 @@ definePageMeta({
 
 useSeoMeta({
     title: 'Dashboard | LeiCraft_MC Status Page',
-    description: 'Overview of monitors and status pages'
+    description: 'Overview of monitors and status page'
 })
 
 const toast = useToast()
@@ -34,14 +35,14 @@ const {
 })
 
 const {
-    data: statusPages,
+    data: statusPage,
     loading: pagesLoading,
-    refresh: refreshPages
-} = await useAPILazyAsyncData<StatusPage[]>('dashboard-status-pages', async () => {
-    const res = await useAPI((api) => api.getStatusPages({}))
+    refresh: refreshStatusPage
+} = await useAPILazyAsyncData<StatusPage | null>('dashboard-status-page-overview', async () => {
+    const res = await useAPI((api) => api.getStatusPage({}))
     if (!res.success) {
-        toast.add({ title: 'Failed to load status pages', description: res.message, color: 'error' })
-        return []
+        toast.add({ title: 'Failed to load status page', description: res.message, color: 'error' })
+        return null
     }
     return res.data
 })
@@ -72,14 +73,19 @@ const monitorCounts = computed(() => {
     }
 })
 
-const pageCounts = computed(() => {
-    const list = statusPages.value || []
-    return {
-        total: list.length,
-        enabled: list.filter(p => p.is_enabled).length,
-        public: list.filter(p => p.is_public).length
-    }
+const pageOverallStatus = computed(() => {
+    if (!statusPage.value) return 'unknown'
+    const all = [
+        ...statusPage.value.groups.flatMap((g: any) => g.monitors),
+        ...statusPage.value.ungrouped
+    ]
+    if (all.some((m: any) => m.latest_check?.status === 'down')) return 'down'
+    if (all.some((m: any) => m.latest_check?.status === 'degraded')) return 'degraded'
+    if (all.every((m: any) => m.latest_check?.status === 'up')) return 'up'
+    return 'unknown'
 })
+
+const activeIncidents = computed(() => (statusPage.value?.incidents || []).filter((i: any) => !i.is_resolved).length)
 
 const adminLinks: NavigationMenuItem[] = [
     {
@@ -88,9 +94,9 @@ const adminLinks: NavigationMenuItem[] = [
         to: '/dashboard/admin/monitors'
     },
     {
-        label: 'Status Pages',
+        label: 'Status Page',
         icon: 'i-lucide-layout-grid',
-        to: '/dashboard/admin/status-pages'
+        to: '/dashboard/admin/status-page'
     },
     {
         label: 'Settings',
@@ -101,7 +107,7 @@ const adminLinks: NavigationMenuItem[] = [
 
 function refreshAll() {
     refreshMonitors()
-    refreshPages()
+    refreshStatusPage()
 }
 </script>
 
@@ -173,7 +179,7 @@ function refreshAll() {
                         </UCard>
                     </div>
 
-                    <!-- Status Pages Summary -->
+                    <!-- Status Page Summary -->
                     <UCard class="border-slate-800 bg-slate-900/60">
                         <template #header>
                             <div class="flex items-center justify-between">
@@ -182,9 +188,9 @@ function refreshAll() {
                                         <UIcon name="i-lucide-layout-grid" class="size-5 text-primary-400" />
                                     </div>
                                     <div>
-                                        <h3 class="font-semibold text-white">Status Pages</h3>
+                                        <h3 class="font-semibold text-white">Status Page</h3>
                                         <p class="text-sm text-slate-400">
-                                            {{ pageCounts.total }} total · {{ pageCounts.enabled }} enabled · {{ pageCounts.public }} public
+                                            {{ statusPage?.page.title || 'Not configured' }} · {{ statusPage?.groups.length || 0 }} groups · {{ statusPage?.ungrouped.length }} monitors
                                         </p>
                                     </div>
                                 </div>
@@ -197,35 +203,45 @@ function refreshAll() {
                             </div>
                         </template>
 
-                        <div v-if="(statusPages || []).length" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <NuxtLink
-                                v-for="page in statusPages"
-                                :key="page.id"
-                                :to="`/dashboard/status-pages/${page.slug}`"
-                                class="group block p-4 rounded-lg border border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 transition-colors"
-                            >
-                                <div class="flex items-start justify-between gap-3">
-                                    <div>
-                                        <p class="font-medium text-white group-hover:text-primary-400 transition-colors">{{ page.title }}</p>
-                                        <p class="text-sm text-slate-400">/{{ page.slug }}</p>
-                                    </div>
-                                    <div class="flex gap-1.5 shrink-0">
-                                        <UBadge :color="page.is_public ? 'success' : 'warning'" variant="soft" class="text-xs">
-                                            {{ page.is_public ? 'Public' : 'Private' }}
-                                        </UBadge>
-                                        <UBadge :color="page.is_enabled ? 'success' : 'neutral'" variant="soft" class="text-xs">
-                                            {{ page.is_enabled ? 'On' : 'Off' }}
-                                        </UBadge>
-                                    </div>
-                                </div>
-                            </NuxtLink>
+                        <div v-if="statusPage" class="space-y-4">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <UBadge :color="pageOverallStatus === 'up' ? 'success' : pageOverallStatus === 'down' ? 'error' : pageOverallStatus === 'degraded' ? 'warning' : 'neutral'" variant="soft" class="capitalize">
+                                    {{ pageOverallStatus }}
+                                </UBadge>
+                                <UBadge :color="statusPage.page.is_public ? 'success' : 'warning'" variant="soft" class="text-xs">
+                                    {{ statusPage.page.is_public ? 'Public' : 'Private' }}
+                                </UBadge>
+                                <UBadge :color="statusPage.page.is_enabled ? 'success' : 'neutral'" variant="soft" class="text-xs">
+                                    {{ statusPage.page.is_enabled ? 'On' : 'Off' }}
+                                </UBadge>
+                                <span v-if="activeIncidents > 0" class="text-sm text-red-400">{{ activeIncidents }} active incident{{ activeIncidents === 1 ? '' : 's' }}</span>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <NuxtLink
+                                    to="/dashboard/status-page"
+                                    class="group block p-4 rounded-lg border border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 transition-colors"
+                                >
+                                    <p class="font-medium text-white group-hover:text-primary-400 transition-colors">View Status Page</p>
+                                    <p class="text-sm text-slate-400">See how members and the public see it.</p>
+                                </NuxtLink>
+
+                                <NuxtLink
+                                    v-if="isAdmin"
+                                    to="/dashboard/admin/status-page"
+                                    class="group block p-4 rounded-lg border border-slate-800 bg-slate-900/40 hover:bg-slate-800/60 transition-colors"
+                                >
+                                    <p class="font-medium text-white group-hover:text-primary-400 transition-colors">Edit Status Page</p>
+                                    <p class="text-sm text-slate-400">Configure groups, linked monitors, and content.</p>
+                                </NuxtLink>
+                            </div>
                         </div>
 
                         <UEmpty
                             v-else
                             icon="i-lucide-layout-grid"
-                            title="No status pages"
-                            description="Create a status page to get started."
+                            title="No status page configured"
+                            description="An administrator can set up the status page in the admin settings."
                             variant="naked"
                         />
                     </UCard>
@@ -239,9 +255,7 @@ function refreshAll() {
                                 </div>
                                 <div>
                                     <h3 class="font-semibold text-white">Administration</h3>
-                                    <p class="text-sm text-slate-400">
-                                        Root page: {{ settings?.root_status_page_id ? `#${settings.root_status_page_id}` : 'None' }} · Default theme: {{ settings?.default_theme || 'auto' }}
-                                    </p>
+                                    <p class="text-sm text-slate-400">Default theme: {{ settings?.default_theme || 'auto' }}</p>
                                 </div>
                             </div>
                         </template>
