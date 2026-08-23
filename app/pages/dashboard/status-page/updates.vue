@@ -3,6 +3,7 @@ import type { DropdownMenuItem, TableColumn } from '#ui/types'
 import type { GetStatusPageUpdatesResponses } from '@/api-client/types.gen'
 import * as z from 'zod'
 import { zPostStatusPageUpdatesBody, zPutStatusPageUpdatesByUpdateIdBody } from '~/api-client/zod.gen'
+import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
 type Update = GetStatusPageUpdatesResponses[200]['data'][number]
 
@@ -12,21 +13,19 @@ definePageMeta({
 
 useSeoMeta({
     title: 'Updates | LeiCraft_MC Status Page',
-    description: 'Manage status page updates'
+    description: 'Status page updates'
 })
 
 const toast = useToast()
 const userInfoStore = useUserInfoStore()
 const currentUser = await userInfoStore.use()
-if (!userInfoStore.isValid(currentUser) || currentUser.value.role !== 'admin') {
-    await navigateTo('/dashboard')
-}
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
 const {
     data: updates,
     loading,
     refresh
-} = await useAPILazyAsyncData<Update[]>('admin-status-page-updates', async () => {
+} = await useAPILazyAsyncData<Update[]>('dashboard-status-page-updates', async () => {
     const res = await useAPI((api) => api.getStatusPageUpdates({}))
     if (!res.success) {
         toast.add({ title: 'Failed to load updates', description: res.message, color: 'error' })
@@ -35,13 +34,18 @@ const {
     return res.data
 })
 
-const updateColumns: TableColumn<Update>[] = [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'title', header: 'Title' },
-    { id: 'type', header: 'Type' },
-    { id: 'created', header: 'Created' },
-    { id: 'actions', header: '', enableSorting: false, enableHiding: false }
-]
+const updateColumns = computed<TableColumn<Update>[]>(() => {
+    const cols: TableColumn<Update>[] = [
+        { accessorKey: 'id', header: 'ID' },
+        { accessorKey: 'title', header: 'Title' },
+        { id: 'type', header: 'Type' },
+        { id: 'created', header: 'Created' }
+    ]
+    if (isAdmin.value) {
+        cols.push({ id: 'actions', header: '', enableSorting: false, enableHiding: false })
+    }
+    return cols
+})
 
 const typeOptions = [
     { label: 'General', value: 'general' },
@@ -133,6 +137,7 @@ async function onDelete() {
 }
 
 function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
+    if (!isAdmin.value) return []
     return [
         [
             { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(row.original) },
@@ -148,7 +153,7 @@ function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
             <DashboardPageHeader
                 title="Updates"
                 icon="i-lucide-megaphone"
-                description="Manage status page updates"
+                description="Status page updates"
             />
         </template>
 
@@ -163,12 +168,12 @@ function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
                         { column: 'type', type: 'select', placeholder: 'All types', icon: 'i-lucide-filter', options: typeOptions }
                     ]"
                     empty-title="No updates"
-                    empty-description="Publish updates to share news with users."
+                    empty-description="Admins can publish updates to share news with users."
                     empty-icon="i-lucide-megaphone"
                     @refresh="refresh"
                 >
                     <template #header-right>
-                        <UButton label="New Update" icon="i-lucide-plus" color="primary" @click="showCreateModal = true" />
+                        <UButton v-if="isAdmin" label="New Update" icon="i-lucide-plus" color="primary" @click="showCreateModal = true" />
                     </template>
 
                     <template #id-cell="{ row }">
@@ -192,7 +197,7 @@ function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
                     </template>
 
                     <template #empty-actions>
-                        <UButton label="Create Update" color="primary" @click="showCreateModal = true" />
+                        <UButton v-if="isAdmin" label="Create Update" color="primary" @click="showCreateModal = true" />
                     </template>
                 </DashboardDataTable>
             </DashboardPageBody>
@@ -201,6 +206,7 @@ function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
 
     <!-- Create Update Modal -->
     <DashboardModal
+        v-if="isAdmin"
         v-model:open="showCreateModal"
         title="Create Update"
         icon="i-lucide-megaphone"
@@ -227,6 +233,7 @@ function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
 
     <!-- Edit Update Modal -->
     <DashboardModal
+        v-if="isAdmin"
         v-model:open="showEditModal"
         :title="`Edit Update: ${selectedUpdate?.title}`"
         icon="i-lucide-pencil"
@@ -253,6 +260,7 @@ function getDropdownItems(row: { original: Update }): DropdownMenuItem[][] {
 
     <!-- Delete Update Modal -->
     <DashboardDeleteModal
+        v-if="isAdmin"
         v-model:open="showDeleteModal"
         title="Delete Update"
         :warning-text="`Are you sure you want to delete update &quot;${deleteTarget?.title || ''}&quot;? This action cannot be undone.`"

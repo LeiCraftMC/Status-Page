@@ -3,6 +3,7 @@ import type { DropdownMenuItem, TableColumn, FormSubmitEvent } from '#ui/types'
 import type { GetStatusPageMaintenanceResponses } from '@/api-client/types.gen'
 import * as z from 'zod'
 import { zPostStatusPageMaintenanceBody, zPutStatusPageMaintenanceByMaintenanceIdBody } from '~/api-client/zod.gen'
+import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
 type Maintenance = GetStatusPageMaintenanceResponses[200]['data'][number]
 
@@ -12,21 +13,19 @@ definePageMeta({
 
 useSeoMeta({
     title: 'Maintenance | LeiCraft_MC Status Page',
-    description: 'Manage scheduled maintenance'
+    description: 'Scheduled maintenance'
 })
 
 const toast = useToast()
 const userInfoStore = useUserInfoStore()
 const currentUser = await userInfoStore.use()
-if (!userInfoStore.isValid(currentUser) || currentUser.value.role !== 'admin') {
-    await navigateTo('/dashboard')
-}
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
 const {
     data: maintenance,
     loading,
     refresh
-} = await useAPILazyAsyncData<Maintenance[]>('admin-status-page-maintenance', async () => {
+} = await useAPILazyAsyncData<Maintenance[]>('dashboard-status-page-maintenance', async () => {
     const res = await useAPI((api) => api.getStatusPageMaintenance({}))
     if (!res.success) {
         toast.add({ title: 'Failed to load maintenance', description: res.message, color: 'error' })
@@ -35,14 +34,19 @@ const {
     return res.data
 })
 
-const maintenanceColumns: TableColumn<Maintenance>[] = [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'title', header: 'Title' },
-    { id: 'status', header: 'Status' },
-    { id: 'start', header: 'Start' },
-    { id: 'end', header: 'End' },
-    { id: 'actions', header: '', enableSorting: false, enableHiding: false }
-]
+const maintenanceColumns = computed<TableColumn<Maintenance>[]>(() => {
+    const cols: TableColumn<Maintenance>[] = [
+        { accessorKey: 'id', header: 'ID' },
+        { accessorKey: 'title', header: 'Title' },
+        { id: 'status', header: 'Status' },
+        { id: 'start', header: 'Start' },
+        { id: 'end', header: 'End' }
+    ]
+    if (isAdmin.value) {
+        cols.push({ id: 'actions', header: '', enableSorting: false, enableHiding: false })
+    }
+    return cols
+})
 
 const statusOptions = [
     { label: 'Scheduled', value: 'scheduled' },
@@ -165,6 +169,7 @@ async function onDelete() {
 }
 
 function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] {
+    if (!isAdmin.value) return []
     return [
         [
             { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(row.original) },
@@ -180,7 +185,7 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
             <DashboardPageHeader
                 title="Maintenance"
                 icon="i-lucide-calendar-clock"
-                description="Manage scheduled maintenance"
+                description="Scheduled maintenance"
             />
         </template>
 
@@ -195,12 +200,12 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
                         { column: 'status', type: 'select', placeholder: 'All statuses', icon: 'i-lucide-filter', options: statusOptions }
                     ]"
                     empty-title="No maintenance"
-                    empty-description="Schedule maintenance windows to inform users about planned downtime."
+                    empty-description="Admins can schedule maintenance windows to inform users about planned downtime."
                     empty-icon="i-lucide-calendar-clock"
                     @refresh="refresh"
                 >
                     <template #header-right>
-                        <UButton label="Schedule Maintenance" icon="i-lucide-plus" color="primary" @click="showCreateModal = true" />
+                        <UButton v-if="isAdmin" label="Schedule Maintenance" icon="i-lucide-plus" color="primary" @click="showCreateModal = true" />
                     </template>
 
                     <template #id-cell="{ row }">
@@ -228,7 +233,7 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
                     </template>
 
                     <template #empty-actions>
-                        <UButton label="Schedule Maintenance" color="primary" @click="showCreateModal = true" />
+                        <UButton v-if="isAdmin" label="Schedule Maintenance" color="primary" @click="showCreateModal = true" />
                     </template>
                 </DashboardDataTable>
             </DashboardPageBody>
@@ -237,6 +242,7 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
 
     <!-- Create Maintenance Modal -->
     <DashboardModal
+        v-if="isAdmin"
         v-model:open="showCreateModal"
         title="Schedule Maintenance"
         icon="i-lucide-calendar-clock"
@@ -273,6 +279,7 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
 
     <!-- Edit Maintenance Modal -->
     <DashboardModal
+        v-if="isAdmin"
         v-model:open="showEditModal"
         :title="`Edit Maintenance: ${selectedMaintenance?.title}`"
         icon="i-lucide-pencil"
@@ -309,6 +316,7 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
 
     <!-- Delete Maintenance Modal -->
     <DashboardDeleteModal
+        v-if="isAdmin"
         v-model:open="showDeleteModal"
         title="Delete Maintenance"
         :warning-text="`Are you sure you want to delete maintenance &quot;${deleteTarget?.title || ''}&quot;? This action cannot be undone.`"

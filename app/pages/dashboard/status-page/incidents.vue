@@ -6,6 +6,7 @@ import {
     zPostStatusPageIncidentsBody,
     zPutStatusPageIncidentsByIncidentIdBody
 } from '~/api-client/zod.gen'
+import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
 type Incident = GetStatusPageIncidentsResponses[200]['data'][number]
 
@@ -15,21 +16,19 @@ definePageMeta({
 
 useSeoMeta({
     title: 'Incidents | LeiCraft_MC Status Page',
-    description: 'Manage status page incidents'
+    description: 'Status page incidents'
 })
 
 const toast = useToast()
 const userInfoStore = useUserInfoStore()
 const currentUser = await userInfoStore.use()
-if (!userInfoStore.isValid(currentUser) || currentUser.value.role !== 'admin') {
-    await navigateTo('/dashboard')
-}
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
 const {
     data: incidents,
     loading,
     refresh
-} = await useAPILazyAsyncData<Incident[]>('admin-status-page-incidents', async () => {
+} = await useAPILazyAsyncData<Incident[]>('dashboard-status-page-incidents', async () => {
     const res = await useAPI((api) => api.getStatusPageIncidents({}))
     if (!res.success) {
         toast.add({ title: 'Failed to load incidents', description: res.message, color: 'error' })
@@ -38,14 +37,19 @@ const {
     return res.data
 })
 
-const incidentColumns: TableColumn<Incident>[] = [
-    { accessorKey: 'id', header: 'ID' },
-    { accessorKey: 'title', header: 'Title' },
-    { id: 'status', header: 'Status' },
-    { id: 'severity', header: 'Severity' },
-    { id: 'started', header: 'Started' },
-    { id: 'actions', header: '', enableSorting: false, enableHiding: false }
-]
+const incidentColumns = computed<TableColumn<Incident>[]>(() => {
+    const cols: TableColumn<Incident>[] = [
+        { accessorKey: 'id', header: 'ID' },
+        { accessorKey: 'title', header: 'Title' },
+        { id: 'status', header: 'Status' },
+        { id: 'severity', header: 'Severity' },
+        { id: 'started', header: 'Started' }
+    ]
+    if (isAdmin.value) {
+        cols.push({ id: 'actions', header: '', enableSorting: false, enableHiding: false })
+    }
+    return cols
+})
 
 const statusOptions = [
     { label: 'Investigating', value: 'investigating' },
@@ -151,6 +155,7 @@ async function onDelete() {
 }
 
 function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
+    if (!isAdmin.value) return []
     return [
         [
             { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(row.original) },
@@ -166,7 +171,7 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
             <DashboardPageHeader
                 title="Incidents"
                 icon="i-lucide-alert-triangle"
-                description="Manage status page incidents"
+                description="Status page incidents"
             />
         </template>
 
@@ -182,12 +187,12 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
                         { column: 'severity', type: 'select', placeholder: 'All severities', icon: 'i-lucide-filter', options: severityOptions }
                     ]"
                     empty-title="No incidents"
-                    empty-description="Create an incident to communicate service disruptions."
+                    empty-description="Admins can create incidents to communicate service disruptions."
                     empty-icon="i-lucide-alert-triangle"
                     @refresh="refresh"
                 >
                     <template #header-right>
-                        <UButton label="New Incident" icon="i-lucide-plus" color="primary" @click="showCreateModal = true" />
+                        <UButton v-if="isAdmin" label="New Incident" icon="i-lucide-plus" color="primary" @click="showCreateModal = true" />
                     </template>
 
                     <template #id-cell="{ row }">
@@ -217,7 +222,7 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
                     </template>
 
                     <template #empty-actions>
-                        <UButton label="Create Incident" color="primary" @click="showCreateModal = true" />
+                        <UButton v-if="isAdmin" label="Create Incident" color="primary" @click="showCreateModal = true" />
                     </template>
                 </DashboardDataTable>
             </DashboardPageBody>
@@ -226,6 +231,7 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
 
     <!-- Create Incident Modal -->
     <DashboardModal
+        v-if="isAdmin"
         v-model:open="showCreateModal"
         title="Create Incident"
         icon="i-lucide-alert-triangle"
@@ -258,6 +264,7 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
 
     <!-- Edit Incident Modal -->
     <DashboardModal
+        v-if="isAdmin"
         v-model:open="showEditModal"
         :title="`Edit Incident: ${selectedIncident?.title}`"
         icon="i-lucide-pencil"
@@ -294,6 +301,7 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
 
     <!-- Delete Incident Modal -->
     <DashboardDeleteModal
+        v-if="isAdmin"
         v-model:open="showDeleteModal"
         title="Delete Incident"
         :warning-text="`Are you sure you want to delete incident &quot;${deleteTarget?.title || ''}&quot;? This action cannot be undone.`"

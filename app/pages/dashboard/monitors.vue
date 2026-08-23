@@ -3,6 +3,7 @@ import type { DropdownMenuItem, TableColumn } from '#ui/types'
 import type { GetMonitorsResponses, PostMonitorsByMonitorIdCheckResponses } from '@/api-client/types.gen'
 import * as z from 'zod'
 import { zPostMonitorsBody, zPutMonitorsByMonitorIdBody } from '~/api-client/zod.gen'
+import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
 type Monitor = GetMonitorsResponses[200]['data'][number]
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '#ui/types'
 import type { GetMonitorsByMonitorIdResponses, PostMonitorsByMonitorIdCheckResponses } from '@/api-client/types.gen'
+import { useUserInfoStore } from '~/composables/stores/useUserStore'
 
 type MonitorDetail = GetMonitorsByMonitorIdResponses[200]['data']
 type Check = MonitorDetail['recent_checks'][number]
