@@ -40,17 +40,17 @@ const sidebarItems = computed(() => {
         {
             label: 'Incidents',
             icon: 'i-lucide-alert-triangle',
-            to: '/dashboard/status-page/incidents',
+            to: '/dashboard/incidents',
         },
         {
             label: 'Maintenance',
             icon: 'i-lucide-calendar-clock',
-            to: '/dashboard/status-page/maintenance',
+            to: '/dashboard/maintenance',
         },
         {
             label: 'Updates',
             icon: 'i-lucide-megaphone',
-            to: '/dashboard/status-page/updates',
+            to: '/dashboard/updates',
         }
     ];
 
