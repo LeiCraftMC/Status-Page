@@ -70,7 +70,7 @@ export const apiKeys = sqliteTable('api_keys', {
 
 
 /**
- * @deprecated Use DB.Tables.settings to access this table.
+ * @deprecated Use DB.Tables.metadata to access this table.
  */
 export const metadata = sqliteTable('metadata', {
     key: text().primaryKey(),
@@ -152,19 +152,14 @@ export const statusPageConfig = sqliteTable('status_page_config', {
     title: text().notNull(),
     description: text(),
 
-    is_public: integer({ mode: 'boolean' }).notNull().default(true),
-    is_enabled: integer({ mode: 'boolean' }).notNull().default(true),
-
-    theme: text({ enum: ['light', 'dark', 'auto'] as const }).notNull().default('auto'),
-
     created_at: SQLUtils.getCreatedAtColumn(),
     updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
 });
 
 /**
- * @deprecated Use DB.Tables.settings to access this table.
+ * @deprecated Use DB.Tables.instanceSettings to access this table.
  */
-export const settings = sqliteTable('settings', {
+export const instanceSettings = sqliteTable('instance_settings', {
     key: text().primaryKey(),
     value: text({ mode: 'json' }).$type<any>().notNull(),
 });

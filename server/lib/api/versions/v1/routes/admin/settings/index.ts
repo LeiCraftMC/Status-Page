@@ -51,10 +51,10 @@ router.put('/',
             if (value === undefined) continue;
 
             await DB.instance()
-                .insert(DB.Tables.settings)
+                .insert(DB.Tables.instanceSettings)
                 .values({ key, value })
                 .onConflictDoUpdate({
-                    target: DB.Tables.settings.key,
+                    target: DB.Tables.instanceSettings.key,
                     set: { value },
                 })
                 .run();

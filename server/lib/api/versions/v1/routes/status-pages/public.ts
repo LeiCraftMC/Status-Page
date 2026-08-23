@@ -7,15 +7,12 @@ import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { StatusPagesReadModel } from "./model";
 import { StatusPageContentModel } from "../../models/statusPageContent";
 import { DOCS_TAGS } from "../../docs";
+import { getOrCreateConfig } from "./helpers";
 
 export const router = new Hono().basePath('/public');
 
-export async function getStatusPageConfig(): Promise<DB.Models.StatusPageConfig | undefined> {
-    return DB.instance()
-        .select()
-        .from(DB.Tables.statusPageConfig)
-        .where(eq(DB.Tables.statusPageConfig.id, 1))
-        .get();
+export async function getStatusPageConfig(): Promise<DB.Models.StatusPageConfig> {
+    return getOrCreateConfig();
 }
 
 export async function buildPublicPageResponse(
@@ -143,8 +140,8 @@ router.get('/status-page',
     async (c) => {
         const page = await getStatusPageConfig();
 
-        if (!page || !page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page not found or not public");
+        if (!page.is_public || !page.is_enabled) {
+            return APIResponse.notFound(c, "Status page is not publicly accessible");
         }
 
         const response = await buildPublicPageResponse(page);
@@ -173,8 +170,8 @@ router.get('/status-page/incidents',
     async (c) => {
         const page = await getStatusPageConfig();
 
-        if (!page || !page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page not found or not public");
+        if (!page.is_public || !page.is_enabled) {
+            return APIResponse.notFound(c, "Status page is not publicly accessible");
         }
 
         const incidents = await DB.instance()

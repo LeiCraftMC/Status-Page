@@ -118,7 +118,7 @@ export namespace DB.Tables {
     export const passwordResets = TableSchema.passwordResets;
     export const apiKeys = TableSchema.apiKeys;
 
-    export const settings = TableSchema.settings;
+    export const instanceSettings = TableSchema.instanceSettings;
     export const metadata = TableSchema.metadata;
 
     export const monitors = TableSchema.monitors;
@@ -141,7 +141,7 @@ export namespace DB.Models {
     export type PasswordReset = typeof DB.Tables.passwordResets.$inferSelect;
     export type ApiKey = typeof DB.Tables.apiKeys.$inferSelect;
 
-    export type Setting = typeof DB.Tables.settings.$inferSelect;
+    export type InstanceSetting = typeof DB.Tables.instanceSettings.$inferSelect;
     export type Metadata = typeof DB.Tables.metadata.$inferSelect;
 
     export type Monitor = typeof DB.Tables.monitors.$inferSelect;

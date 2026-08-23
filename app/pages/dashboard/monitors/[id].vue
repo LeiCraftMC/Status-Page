@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumn } from '#ui/types'
-import type { GetMonitorsByMonitorIdResponses } from '@/api-client/types.gen'
+import type { GetMonitorsByMonitorIdResponses, PostMonitorsByMonitorIdCheckResponses } from '@/api-client/types.gen'
 
 type MonitorDetail = GetMonitorsByMonitorIdResponses[200]['data']
 type Check = MonitorDetail['recent_checks'][number]
@@ -18,6 +18,9 @@ useSeoMeta({
 })
 
 const toast = useToast()
+const userInfoStore = useUserInfoStore()
+const currentUser = await userInfoStore.use()
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
 const checkColumns: TableColumn<Check>[] = [
     { accessorKey: 'status', header: 'Status' },
@@ -38,7 +41,28 @@ const {
     return res.data
 })
 
+const checkResult = ref<PostMonitorsByMonitorIdCheckResponses[200]['data']['check'] | null>(null)
+const showCheckModal = ref(false)
+const checking = ref(false)
+
 const overallStatus = computed(() => monitor.value?.latest_check?.status ?? 'unknown')
+
+async function runCheck() {
+    if (!monitor.value) return
+    checking.value = true
+    showCheckModal.value = true
+    checkResult.value = null
+    const res = await useAPI((api) => api.postMonitorsByMonitorIdCheck({
+        path: { monitorId: monitor.value!.id }
+    }))
+    if (res.success) {
+        checkResult.value = (res.data as PostMonitorsByMonitorIdCheckResponses[200]['data']).check
+        await refresh()
+    } else {
+        toast.add({ title: 'Check failed', description: res.message, color: 'error' })
+    }
+    checking.value = false
+}
 </script>
 
 <template>
@@ -62,6 +86,16 @@ const overallStatus = computed(() => monitor.value?.latest_check?.status ?? 'unk
                 </div>
 
                 <div v-else class="space-y-6">
+                    <div class="flex justify-end">
+                        <UButton
+                            v-if="isAdmin"
+                            icon="i-lucide-activity"
+                            label="Check now"
+                            color="primary"
+                            @click="runCheck"
+                        />
+                    </div>
+
                     <UCard class="border-slate-800 bg-slate-900/60">
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
@@ -113,4 +147,28 @@ const overallStatus = computed(() => monitor.value?.latest_check?.status ?? 'unk
             </DashboardPageBody>
         </template>
     </UDashboardPanel>
+
+    <DashboardModal
+        v-if="isAdmin"
+        v-model:open="showCheckModal"
+        title="Monitor Check"
+        icon="i-lucide-activity"
+        :loading="checking"
+    >
+        <div v-if="checkResult" class="space-y-4">
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Status:</span>
+                <StatusBadge :status="checkResult.status" />
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Response time:</span>
+                <span class="text-white">{{ checkResult.response_time_ms ?? '-' }} ms</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Checked at:</span>
+                <span class="text-white">{{ formatDate(checkResult.checked_at) }}</span>
+            </div>
+        </div>
+        <p v-else class="text-slate-400">Running check...</p>
+    </DashboardModal>
 </template>

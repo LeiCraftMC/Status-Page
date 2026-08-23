@@ -325,7 +325,8 @@ export namespace AuthHandler {
 
     export type TOKEN_PREFIX = typeof SessionHandler.SESSION_TOKEN_PREFIX | typeof APIKeyHandler.API_KEY_PREFIX;
 
-    export type AuthContext = SessionAuthContext | ApiKeyAuthContext;
+    export type AuthenticatedAuthContext = SessionAuthContext | ApiKeyAuthContext;
+    export type AuthContext = AuthenticatedAuthContext | UnauthenticatedAuthContext;
 
     export interface UnauthenticatedAuthContext {
         readonly type: 'unauthenticated';

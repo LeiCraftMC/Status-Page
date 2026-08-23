@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { TableColumn } from '#ui/types'
-import type { GetMonitorsResponses } from '@/api-client/types.gen'
+import type { DropdownMenuItem, TableColumn } from '#ui/types'
+import type { GetMonitorsResponses, PostMonitorsByMonitorIdCheckResponses } from '@/api-client/types.gen'
+import * as z from 'zod'
+import { zPostMonitorsBody, zPutMonitorsByMonitorIdBody } from '~/api-client/zod.gen'
 
 type Monitor = GetMonitorsResponses[200]['data'][number]
 
@@ -10,10 +12,13 @@ definePageMeta({
 
 useSeoMeta({
     title: 'Monitors | LeiCraft_MC Status Page',
-    description: 'View monitors'
+    description: 'View and manage monitors'
 })
 
 const toast = useToast()
+const userInfoStore = useUserInfoStore()
+const currentUser = await userInfoStore.use()
+const isAdmin = computed(() => currentUser.value?.role === 'admin')
 
 const monitorColumns: TableColumn<Monitor>[] = [
     { accessorKey: 'id', header: 'ID' },
@@ -21,7 +26,7 @@ const monitorColumns: TableColumn<Monitor>[] = [
     { accessorKey: 'type', header: 'Type' },
     { accessorKey: 'target', header: 'Target' },
     { id: 'interval', header: 'Interval' },
-    { id: 'status', header: 'Status' },
+    { id: 'enabled', header: 'Enabled' },
     { id: 'actions', header: '', enableSorting: false, enableHiding: false }
 ]
 
@@ -37,6 +42,162 @@ const {
     }
     return res.data
 })
+
+const createSchema = zPostMonitorsBody
+type CreateSchema = z.output<typeof createSchema>
+
+const editSchema = zPutMonitorsByMonitorIdBody
+type EditSchema = z.output<typeof editSchema>
+
+const defaultCreateForm: CreateSchema = {
+    name: '',
+    type: 'http',
+    target: '',
+    interval_seconds: 300,
+    timeout_seconds: 30,
+    http_method: 'GET',
+    expected_http_status: 200,
+    follow_redirects: true,
+    verify_tls: true,
+    is_enabled: true
+}
+
+const createForm = reactive<CreateSchema>({ ...defaultCreateForm })
+const showCreateModal = ref(false)
+
+const showEditModal = ref(false)
+const selectedMonitor = ref<Monitor | null>(null)
+const editForm = reactive<EditSchema>({})
+
+const checkResult = ref<PostMonitorsByMonitorIdCheckResponses[200]['data']['check'] | null>(null)
+const showCheckModal = ref(false)
+const checking = ref(false)
+
+const deleteConfirmOpen = ref(false)
+const deleteTarget = ref<Monitor | null>(null)
+
+function getMonitorOptionsDropdownItems(row: { original: Monitor }): DropdownMenuItem[][] {
+    const items: DropdownMenuItem[][] = [
+        [
+            {
+                label: 'View',
+                icon: 'i-lucide-eye',
+                onSelect: () => navigateTo(`/dashboard/monitors/${row.original.id}`)
+            }
+        ]
+    ]
+
+    if (isAdmin.value) {
+        items.push([
+            {
+                label: 'Edit',
+                icon: 'i-lucide-pencil',
+                onSelect: () => openEdit(row.original)
+            },
+            {
+                label: 'Check now',
+                icon: 'i-lucide-activity',
+                onSelect: () => runCheck(row.original)
+            }
+        ])
+        items.push([
+            {
+                label: 'Delete',
+                icon: 'i-lucide-trash-2',
+                color: 'error',
+                onSelect: () => openDelete(row.original)
+            }
+        ])
+    }
+
+    return items
+}
+
+function openEdit(monitor: Monitor) {
+    selectedMonitor.value = monitor
+    editForm.name = monitor.name
+    editForm.type = monitor.type
+    editForm.target = monitor.target
+    editForm.interval_seconds = monitor.interval_seconds
+    editForm.timeout_seconds = monitor.timeout_seconds
+    editForm.http_method = monitor.http_method || undefined
+    editForm.expected_http_status = monitor.expected_http_status || undefined
+    editForm.follow_redirects = monitor.follow_redirects
+    editForm.verify_tls = monitor.verify_tls
+    editForm.is_enabled = monitor.is_enabled
+    showEditModal.value = true
+}
+
+async function handleCreate(event: any) {
+    const res = await useAPI((api) => api.postMonitors({ body: event.data }))
+    if (res.success) {
+        toast.add({ title: 'Monitor created', color: 'success' })
+        showCreateModal.value = false
+        Object.assign(createForm, defaultCreateForm)
+        await refresh()
+    } else {
+        toast.add({ title: 'Create failed', description: res.message, color: 'error' })
+    }
+}
+
+async function submitEdit() {
+    if (!selectedMonitor.value) return
+    const body: EditSchema = { ...editForm }
+    if (body.type === 'tcp') {
+        body.http_method = undefined
+        body.expected_http_status = undefined
+        body.follow_redirects = undefined
+        body.verify_tls = undefined
+    }
+    const res = await useAPI((api) => api.putMonitorsByMonitorId({
+        path: { monitorId: selectedMonitor.value!.id },
+        body
+    }))
+    if (res.success) {
+        toast.add({ title: 'Monitor updated', color: 'success' })
+        showEditModal.value = false
+        await refresh()
+    } else {
+        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
+    }
+}
+
+async function runCheck(monitor: Monitor) {
+    selectedMonitor.value = monitor
+    checking.value = true
+    showCheckModal.value = true
+    checkResult.value = null
+    const res = await useAPI((api) => api.postMonitorsByMonitorIdCheck({
+        path: { monitorId: monitor.id }
+    }))
+    if (res.success) {
+        checkResult.value = (res.data as PostMonitorsByMonitorIdCheckResponses[200]['data']).check
+        await refresh()
+    } else {
+        toast.add({ title: 'Check failed', description: res.message, color: 'error' })
+    }
+    checking.value = false
+}
+
+function openDelete(monitor: Monitor) {
+    deleteTarget.value = monitor
+    deleteConfirmOpen.value = true
+}
+
+async function onDeleteMonitor() {
+    if (!deleteTarget.value) return
+    const res = await useAPI((api) => api.deleteMonitorsByMonitorId({
+        path: { monitorId: deleteTarget.value!.id }
+    }))
+    if (res.success) {
+        toast.add({ title: 'Monitor deleted', color: 'success' })
+        deleteConfirmOpen.value = false
+        deleteTarget.value = null
+        await refresh()
+    } else {
+        toast.add({ title: 'Delete failed', description: res.message, color: 'error' })
+    }
+}
 </script>
 
 <template>
@@ -57,13 +218,24 @@ const {
                     :loading="loading"
                     :filters="[
                         { column: 'name', type: 'text', placeholder: 'Search monitors...', icon: 'i-lucide-search' },
-                        { column: 'type', type: 'select', placeholder: 'All types', icon: 'i-lucide-filter', options: [{ label: 'HTTP', value: 'http' }, { label: 'TCP', value: 'tcp' }] }
+                        { column: 'type', type: 'select', placeholder: 'All types', icon: 'i-lucide-filter', options: [{ label: 'HTTP', value: 'http' }, { label: 'TCP', value: 'tcp' }] },
+                        { column: 'is_enabled', type: 'select', placeholder: 'All states', icon: 'i-lucide-filter', options: [{ label: 'Enabled', value: true }, { label: 'Disabled', value: false }] }
                     ]"
                     empty-title="No monitors"
-                    empty-description="There are no monitors configured yet."
+                    empty-description="Create your first monitor to start checking services."
                     empty-icon="i-lucide-heart-pulse"
                     @refresh="refresh"
                 >
+                    <template #header-right>
+                        <UButton
+                            v-if="isAdmin"
+                            label="New Monitor"
+                            icon="i-lucide-plus"
+                            color="primary"
+                            @click="showCreateModal = true"
+                        />
+                    </template>
+
                     <template #id-cell="{ row }">
                         <span class="font-mono text-sm">#{{ row.original.id }}</span>
                     </template>
@@ -78,22 +250,186 @@ const {
                         <span class="text-slate-400">{{ formatDuration(row.original.interval_seconds) }}</span>
                     </template>
 
-                    <template #status-cell="{ row }">
-                        <StatusBadge v-if="row.original.latest_check" :status="row.original.latest_check.status" />
-                        <span v-else class="text-slate-500">No data</span>
+                    <template #enabled-cell="{ row }">
+                        <UBadge :color="row.original.is_enabled ? 'success' : 'neutral'" variant="soft">
+                            {{ row.original.is_enabled ? 'Enabled' : 'Disabled' }}
+                        </UBadge>
                     </template>
 
                     <template #actions-cell="{ row }">
-                        <UButton
-                            icon="i-lucide-eye"
-                            variant="ghost"
-                            color="neutral"
-                            size="xs"
-                            :to="`/dashboard/monitors/${row.original.id}`"
-                        />
+                        <UDropdownMenu
+                            :ui="{ viewport: 'main-bg-color' }"
+                            :items="getMonitorOptionsDropdownItems(row)"
+                        >
+                            <UButton
+                                icon="i-lucide-more-horizontal"
+                                variant="ghost"
+                                color="neutral"
+                                size="xs"
+                            />
+                        </UDropdownMenu>
+                    </template>
+
+                    <template #empty-actions>
+                        <UButton v-if="isAdmin" label="Create Monitor" color="primary" @click="showCreateModal = true" />
                     </template>
                 </DashboardDataTable>
             </DashboardPageBody>
         </template>
     </UDashboardPanel>
+
+    <!-- Create Monitor Modal -->
+    <DashboardModal
+        v-if="isAdmin"
+        v-model:open="showCreateModal"
+        title="Create Monitor"
+        icon="i-lucide-heart-pulse"
+    >
+        <UForm :schema="createSchema" :state="createForm" class="space-y-4" @submit="handleCreate">
+            <UFormField label="Name" name="name" required>
+                <UInput v-model="createForm.name" placeholder="Website API" class="w-full" />
+            </UFormField>
+
+            <div class="grid grid-cols-2 gap-4">
+                <UFormField label="Type" name="type" required>
+                    <USelect v-model="createForm.type" :items="[{ label: 'HTTP', value: 'http' }, { label: 'TCP', value: 'tcp' }]" class="w-full" />
+                </UFormField>
+                <UFormField label="Enabled" name="is_enabled">
+                    <USwitch v-model="createForm.is_enabled" label="Enabled" />
+                </UFormField>
+            </div>
+
+            <UFormField label="Target" name="target" required>
+                <UInput v-model="createForm.target" placeholder="https://api.example.com/health" class="w-full" />
+            </UFormField>
+
+            <div class="grid grid-cols-2 gap-4">
+                <UFormField label="Interval (seconds)" name="interval_seconds" required>
+                    <UInput v-model="createForm.interval_seconds" type="number" class="w-full" />
+                </UFormField>
+                <UFormField label="Timeout (seconds)" name="timeout_seconds" required>
+                    <UInput v-model="createForm.timeout_seconds" type="number" class="w-full" />
+                </UFormField>
+            </div>
+
+            <template v-if="createForm.type === 'http'">
+                <div class="grid grid-cols-2 gap-4">
+                    <UFormField label="HTTP Method" name="http_method">
+                        <USelect v-model="createForm.http_method" :items="['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'].map(m => ({ label: m, value: m }))" class="w-full" />
+                    </UFormField>
+                    <UFormField label="Expected Status" name="expected_http_status">
+                        <UInput v-model="createForm.expected_http_status" type="number" class="w-full" />
+                    </UFormField>
+                </div>
+                <div class="flex gap-4">
+                    <UFormField name="follow_redirects">
+                        <UCheckbox v-model="createForm.follow_redirects" label="Follow redirects" />
+                    </UFormField>
+                    <UFormField name="verify_tls">
+                        <UCheckbox v-model="createForm.verify_tls" label="Verify TLS" />
+                    </UFormField>
+                </div>
+            </template>
+
+            <div class="flex justify-end gap-2 pt-4">
+                <UButton label="Cancel" color="neutral" variant="ghost" @click="showCreateModal = false" />
+                <UButton type="submit" label="Create" color="primary" />
+            </div>
+        </UForm>
+    </DashboardModal>
+
+    <!-- Edit Monitor Modal -->
+    <DashboardModal
+        v-if="isAdmin"
+        v-model:open="showEditModal"
+        :title="`Edit Monitor: ${selectedMonitor?.name}`"
+        icon="i-lucide-pencil"
+    >
+        <div class="space-y-4">
+            <UFormField label="Name">
+                <UInput v-model="editForm.name" class="w-full" />
+            </UFormField>
+
+            <div class="grid grid-cols-2 gap-4">
+                <UFormField label="Type">
+                    <USelect v-model="editForm.type" :items="[{ label: 'HTTP', value: 'http' }, { label: 'TCP', value: 'tcp' }]" class="w-full" />
+                </UFormField>
+                <UFormField label="Enabled">
+                    <USwitch v-model="editForm.is_enabled" label="Enabled" />
+                </UFormField>
+            </div>
+
+            <UFormField label="Target">
+                <UInput v-model="editForm.target" class="w-full" />
+            </UFormField>
+
+            <div class="grid grid-cols-2 gap-4">
+                <UFormField label="Interval (seconds)">
+                    <UInput v-model="editForm.interval_seconds" type="number" class="w-full" />
+                </UFormField>
+                <UFormField label="Timeout (seconds)">
+                    <UInput v-model="editForm.timeout_seconds" type="number" class="w-full" />
+                </UFormField>
+            </div>
+
+            <template v-if="editForm.type === 'http'">
+                <div class="grid grid-cols-2 gap-4">
+                    <UFormField label="HTTP Method">
+                        <USelect v-model="editForm.http_method" :items="['GET','HEAD','POST','PUT','PATCH','DELETE','OPTIONS'].map(m => ({ label: m, value: m }))" class="w-full" />
+                    </UFormField>
+                    <UFormField label="Expected Status">
+                        <UInput v-model="editForm.expected_http_status" type="number" class="w-full" />
+                    </UFormField>
+                </div>
+                <div class="flex gap-4">
+                    <UFormField>
+                        <UCheckbox v-model="editForm.follow_redirects" label="Follow redirects" />
+                    </UFormField>
+                    <UFormField>
+                        <UCheckbox v-model="editForm.verify_tls" label="Verify TLS" />
+                    </UFormField>
+                </div>
+            </template>
+
+            <div class="flex justify-end gap-2 pt-4">
+                <UButton label="Cancel" color="neutral" variant="ghost" @click="showEditModal = false" />
+                <UButton label="Save" color="primary" @click="submitEdit" />
+            </div>
+        </div>
+    </DashboardModal>
+
+    <!-- Check Result Modal -->
+    <DashboardModal
+        v-if="isAdmin"
+        v-model:open="showCheckModal"
+        title="Monitor Check"
+        icon="i-lucide-activity"
+        :loading="checking"
+    >
+        <div v-if="checkResult" class="space-y-4">
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Status:</span>
+                <StatusBadge :status="checkResult.status" />
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Response time:</span>
+                <span class="text-white">{{ checkResult.response_time_ms ?? '-' }} ms</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-slate-400">Checked at:</span>
+                <span class="text-white">{{ formatDate(checkResult.checked_at) }}</span>
+            </div>
+        </div>
+        <p v-else class="text-slate-400">Running check...</p>
+    </DashboardModal>
+
+    <!-- Delete Monitor Modal -->
+    <DashboardDeleteModal
+        v-if="isAdmin"
+        v-model:open="deleteConfirmOpen"
+        title="Delete Monitor"
+        :warning-text="`Are you sure you want to delete monitor &quot;${deleteTarget?.name || ''}&quot;? This action cannot be undone.`"
+        :on-delete="onDeleteMonitor"
+        :prevent-auto-close="true"
+    />
 </template>
