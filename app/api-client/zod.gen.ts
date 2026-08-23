@@ -1355,6 +1355,56 @@ export const zPutStatusPageMonitorsByLinkIdResponse = z.object({
     })
 });
 
+export const zPutStatusPageGroupsReorderBody = z.object({
+    groups: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+/**
+ * Groups reordered successfully
+ */
+export const zPutStatusPageGroupsReorderResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Groups reordered successfully'),
+    data: z.object({
+        groups: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            name: z.string(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }))
+    })
+});
+
+export const zPutStatusPageMonitorsReorderBody = z.object({
+    links: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+/**
+ * Monitors reordered successfully
+ */
+export const zPutStatusPageMonitorsReorderResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitors reordered successfully'),
+    data: z.object({
+        links: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            display_name: z.string().nullable(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_name: z.string()
+        }))
+    })
+});
+
 /**
  * Status page retrieved successfully
  */

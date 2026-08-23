@@ -201,4 +201,37 @@ export namespace StatusPageAdminModel {
         });
         export type Response = z.infer<typeof Response>;
     }
+
+    export namespace ReorderGroups {
+        export const Body = z.object({
+            groups: z.array(z.object({
+                id: z.number().int(),
+                sort_order: z.number().int(),
+            })),
+        });
+        export type Body = z.infer<typeof Body>;
+
+        export const Response = z.object({
+            groups: z.array(BaseGroup),
+        });
+        export type Response = z.infer<typeof Response>;
+    }
+
+    export namespace ReorderLinks {
+        export const Body = z.object({
+            links: z.array(z.object({
+                id: z.number().int(),
+                group_id: z.number().int().nullable(),
+                sort_order: z.number().int(),
+            })),
+        });
+        export type Body = z.infer<typeof Body>;
+
+        export const Response = z.object({
+            links: z.array(BaseLink.extend({
+                monitor_name: z.string(),
+            })),
+        });
+        export type Response = z.infer<typeof Response>;
+    }
 }

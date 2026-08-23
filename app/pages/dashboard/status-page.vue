@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { DropdownMenuItem, TableColumn } from '#ui/types'
 import type {
     GetStatusPageResponses,
     GetStatusPageConfigResponses,
@@ -7,14 +6,9 @@ import type {
     GetMonitorsResponses
 } from '@/api-client/types.gen'
 import * as z from 'zod'
-import {
-    zPutStatusPageBody,
-    zPostStatusPageGroupsBody,
-    zPutStatusPageGroupsByGroupIdBody,
-    zPostStatusPageMonitorsBody,
-    zPutStatusPageMonitorsByLinkIdBody
-} from '~/api-client/zod.gen'
+import { zPutStatusPageBody } from '~/api-client/zod.gen'
 import { useUserInfoStore } from '~/composables/stores/useUserStore'
+import StatusPageEditor from '~/components/status-page/StatusPageEditor.vue'
 
 type StatusPage = GetStatusPageResponses[200]['data']
 type Config = GetStatusPageConfigResponses[200]['data']['config']
@@ -103,32 +97,105 @@ const activeIncidents = computed(() => page.value?.incidents ?? [])
 const scheduledMaintenance = computed(() => page.value?.maintenance ?? [])
 const recentUpdates = computed(() => page.value?.updates.slice(0, 5) ?? [])
 
-const groupById = computed(() => {
-    const map = new Map<number | null, string>()
-    map.set(null, 'Ungrouped')
-    for (const group of groups.value) {
-        map.set(group.id, group.name)
-    }
-    return map
-})
-
-const groupOptions = computed(() => [
-    { label: 'Ungrouped', value: null },
-    ...groups.value.map(g => ({ label: g.name, value: g.id }))
-])
-
-const monitorOptions = computed(() => {
-    const linkedIds = new Set(links.value.map(l => l.monitor_id))
-    return (monitors.value ?? [])
-        .filter(m => !linkedIds.has(m.id))
-        .map(m => ({ label: m.name, value: m.id }))
-})
-
 async function refreshAll() {
     await refreshPage()
     await refreshConfig()
     await refreshMonitors()
     await refreshHistory()
+}
+
+// Admin: visual editor handlers
+
+async function onReorderGroups(groups: { id: number; sort_order: number }[]) {
+    const res = await useAPI((api) => api.putStatusPageGroupsReorder({ body: { groups } }))
+    if (res.success) {
+        toast.add({ title: 'Groups reordered', color: 'success' })
+        await refreshConfig()
+    } else {
+        toast.add({ title: 'Reorder failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onReorderLinks(links: { id: number; group_id: number | null; sort_order: number }[]) {
+    const res = await useAPI((api) => api.putStatusPageMonitorsReorder({ body: { links } }))
+    if (res.success) {
+        toast.add({ title: 'Monitors reordered', color: 'success' })
+        await refreshAll()
+    } else {
+        toast.add({ title: 'Reorder failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onCreateLink(link: { monitor_id: number; group_id: number | null; display_name?: string | null; sort_order: number }) {
+    const body = {
+        monitor_id: link.monitor_id,
+        group_id: link.group_id,
+        display_name: link.display_name ?? null,
+        sort_order: link.sort_order
+    }
+    const res = await useAPI((api) => api.postStatusPageMonitors({ body }))
+    if (res.success) {
+        toast.add({ title: 'Monitor added', color: 'success' })
+        await refreshAll()
+    } else {
+        toast.add({ title: 'Add failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onUpdateLink(link: { id: number; display_name?: string | null; group_id?: number | null; sort_order?: number }) {
+    const res = await useAPI((api) => api.putStatusPageMonitorsByLinkId({
+        path: { linkId: link.id },
+        body: link
+    }))
+    if (res.success) {
+        toast.add({ title: 'Monitor updated', color: 'success' })
+        await refreshAll()
+    } else {
+        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onDeleteLink(id: number) {
+    const res = await useAPI((api) => api.deleteStatusPageMonitorsByLinkId({ path: { linkId: id } }))
+    if (res.success) {
+        toast.add({ title: 'Monitor unlinked', color: 'success' })
+        await refreshAll()
+    } else {
+        toast.add({ title: 'Unlink failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onCreateGroup(group: { name: string; sort_order: number }) {
+    const res = await useAPI((api) => api.postStatusPageGroups({ body: group }))
+    if (res.success) {
+        toast.add({ title: 'Group created', color: 'success' })
+        await refreshConfig()
+    } else {
+        toast.add({ title: 'Create failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onUpdateGroup(group: { id: number; name: string; sort_order?: number }) {
+    const res = await useAPI((api) => api.putStatusPageGroupsByGroupId({
+        path: { groupId: group.id },
+        body: { name: group.name, sort_order: group.sort_order }
+    }))
+    if (res.success) {
+        toast.add({ title: 'Group updated', color: 'success' })
+        await refreshConfig()
+    } else {
+        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
+    }
+}
+
+async function onDeleteGroup(id: number) {
+    const res = await useAPI((api) => api.deleteStatusPageGroupsByGroupId({ path: { groupId: id } }))
+    if (res.success) {
+        toast.add({ title: 'Group deleted', color: 'success' })
+        await refreshAll()
+    } else {
+        toast.add({ title: 'Delete failed', description: res.message, color: 'error' })
+    }
 }
 
 // Admin: config form
@@ -169,212 +236,6 @@ async function saveConfig() {
     } else {
         toast.add({ title: 'Save failed', description: res.message, color: 'error' })
     }
-}
-
-// Admin: groups
-const groupColumns = computed<TableColumn<Group>[]>(() => {
-    const cols: TableColumn<Group>[] = [
-        { accessorKey: 'id', header: 'ID' },
-        { accessorKey: 'name', header: 'Name' },
-        { accessorKey: 'sort_order', header: 'Sort Order' }
-    ]
-    if (isAdmin.value) {
-        cols.push({ id: 'actions', header: '', enableSorting: false, enableHiding: false })
-    }
-    return cols
-})
-
-const createGroupSchema = zPostStatusPageGroupsBody
-type CreateGroupSchema = z.output<typeof createGroupSchema>
-const groupCreateForm = reactive<CreateGroupSchema>({ name: '', sort_order: 0 })
-const showCreateGroupModal = ref(false)
-
-async function handleCreateGroup() {
-    const res = await useAPI((api) => api.postStatusPageGroups({ body: groupCreateForm }))
-    if (res.success) {
-        toast.add({ title: 'Group created', color: 'success' })
-        showCreateGroupModal.value = false
-        groupCreateForm.name = ''
-        groupCreateForm.sort_order = 0
-        await refreshConfig()
-    } else {
-        toast.add({ title: 'Create failed', description: res.message, color: 'error' })
-    }
-}
-
-const editGroupSchema = zPutStatusPageGroupsByGroupIdBody
-type EditGroupSchema = z.output<typeof editGroupSchema>
-const selectedGroup = ref<Group | null>(null)
-const groupEditForm = reactive<EditGroupSchema>({})
-const showEditGroupModal = ref(false)
-
-function openEditGroup(group: Group) {
-    selectedGroup.value = group
-    groupEditForm.name = group.name
-    groupEditForm.sort_order = group.sort_order
-    showEditGroupModal.value = true
-}
-
-async function submitEditGroup() {
-    if (!selectedGroup.value) return
-    const body: EditGroupSchema = {}
-    if (groupEditForm.name !== selectedGroup.value.name) body.name = groupEditForm.name
-    if (groupEditForm.sort_order !== selectedGroup.value.sort_order) body.sort_order = groupEditForm.sort_order
-
-    const res = await useAPI((api) => api.putStatusPageGroupsByGroupId({
-        path: { groupId: selectedGroup.value!.id },
-        body
-    }))
-    if (res.success) {
-        toast.add({ title: 'Group updated', color: 'success' })
-        showEditGroupModal.value = false
-        await refreshConfig()
-    } else {
-        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
-    }
-}
-
-const groupDeleteTarget = ref<Group | null>(null)
-const showDeleteGroupModal = ref(false)
-
-function openDeleteGroup(group: Group) {
-    groupDeleteTarget.value = group
-    showDeleteGroupModal.value = true
-}
-
-async function onDeleteGroup() {
-    if (!groupDeleteTarget.value) return
-    const res = await useAPI((api) => api.deleteStatusPageGroupsByGroupId({
-        path: { groupId: groupDeleteTarget.value.id }
-    }))
-    if (res.success) {
-        toast.add({ title: 'Group deleted', color: 'success' })
-        showDeleteGroupModal.value = false
-        groupDeleteTarget.value = null
-        await refreshAll()
-    } else {
-        toast.add({ title: 'Delete failed', description: res.message, color: 'error' })
-    }
-}
-
-function getGroupDropdownItems(row: { original: Group }): DropdownMenuItem[][] {
-    if (!isAdmin.value) return []
-    return [[
-        { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEditGroup(row.original) },
-        { label: 'Delete', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => openDeleteGroup(row.original) }
-    ]]
-}
-
-// Admin: links
-const linkColumns = computed<TableColumn<Link>[]>(() => {
-    const cols: TableColumn<Link>[] = [
-        { accessorKey: 'monitor_name', header: 'Monitor' },
-        { accessorKey: 'display_name', header: 'Display Name' },
-        { id: 'group', header: 'Group' },
-        { accessorKey: 'sort_order', header: 'Sort Order' }
-    ]
-    if (isAdmin.value) {
-        cols.push({ id: 'actions', header: '', enableSorting: false, enableHiding: false })
-    }
-    return cols
-})
-
-const createLinkSchema = zPostStatusPageMonitorsBody
-type CreateLinkSchema = z.output<typeof createLinkSchema>
-const linkCreateForm = reactive<CreateLinkSchema>({
-    monitor_id: 0,
-    group_id: null,
-    display_name: null,
-    sort_order: 0
-})
-const showCreateLinkModal = ref(false)
-
-async function handleCreateLink() {
-    const body: CreateLinkSchema = {
-        monitor_id: linkCreateForm.monitor_id,
-        group_id: linkCreateForm.group_id,
-        display_name: linkCreateForm.display_name === '' ? null : linkCreateForm.display_name,
-        sort_order: linkCreateForm.sort_order
-    }
-
-    const res = await useAPI((api) => api.postStatusPageMonitors({ body }))
-    if (res.success) {
-        toast.add({ title: 'Monitor linked', color: 'success' })
-        showCreateLinkModal.value = false
-        linkCreateForm.monitor_id = 0
-        linkCreateForm.group_id = null
-        linkCreateForm.display_name = null
-        linkCreateForm.sort_order = 0
-        await refreshAll()
-    } else {
-        toast.add({ title: 'Link failed', description: res.message, color: 'error' })
-    }
-}
-
-const editLinkSchema = zPutStatusPageMonitorsByLinkIdBody
-type EditLinkSchema = z.output<typeof editLinkSchema>
-const selectedLink = ref<Link | null>(null)
-const linkEditForm = reactive<EditLinkSchema>({})
-const showEditLinkModal = ref(false)
-
-function openEditLink(link: Link) {
-    selectedLink.value = link
-    linkEditForm.group_id = link.group_id
-    linkEditForm.display_name = link.display_name ?? ''
-    linkEditForm.sort_order = link.sort_order
-    showEditLinkModal.value = true
-}
-
-async function submitEditLink() {
-    if (!selectedLink.value) return
-    const body: EditLinkSchema = {}
-    if (linkEditForm.group_id !== selectedLink.value.group_id) body.group_id = linkEditForm.group_id
-    const displayName = linkEditForm.display_name === '' ? null : linkEditForm.display_name
-    if (displayName !== selectedLink.value.display_name) body.display_name = displayName
-    if (linkEditForm.sort_order !== selectedLink.value.sort_order) body.sort_order = linkEditForm.sort_order
-
-    const res = await useAPI((api) => api.putStatusPageMonitorsByLinkId({
-        path: { linkId: selectedLink.value!.id },
-        body
-    }))
-    if (res.success) {
-        toast.add({ title: 'Link updated', color: 'success' })
-        showEditLinkModal.value = false
-        await refreshAll()
-    } else {
-        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
-    }
-}
-
-const linkDeleteTarget = ref<Link | null>(null)
-const showDeleteLinkModal = ref(false)
-
-function openDeleteLink(link: Link) {
-    linkDeleteTarget.value = link
-    showDeleteLinkModal.value = true
-}
-
-async function onDeleteLink() {
-    if (!linkDeleteTarget.value) return
-    const res = await useAPI((api) => api.deleteStatusPageMonitorsByLinkId({
-        path: { linkId: linkDeleteTarget.value.id }
-    }))
-    if (res.success) {
-        toast.add({ title: 'Monitor unlinked', color: 'success' })
-        showDeleteLinkModal.value = false
-        linkDeleteTarget.value = null
-        await refreshAll()
-    } else {
-        toast.add({ title: 'Unlink failed', description: res.message, color: 'error' })
-    }
-}
-
-function getLinkDropdownItems(row: { original: Link }): DropdownMenuItem[][] {
-    if (!isAdmin.value) return []
-    return [[
-        { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEditLink(row.original) },
-        { label: 'Unlink', icon: 'i-lucide-unlink', color: 'error', onSelect: () => openDeleteLink(row.original) }
-    ]]
 }
 
 function incidentSeverityColor(severity: Incident['severity']) {
@@ -565,154 +426,34 @@ function maintenanceStatusColor(status: Maintenance['status']) {
                             </UForm>
                         </UCard>
 
-                        <DashboardDataTable
-                            :data="groups"
-                            :columns="groupColumns"
-                            :loading="configLoading"
-                            empty-title="No groups"
-                            empty-description="Create groups to organize linked monitors."
-                            empty-icon="i-lucide-folder"
-                            @refresh="refreshConfig"
-                        >
-                            <template #header-right>
-                                <UButton label="New Group" icon="i-lucide-plus" color="primary" @click="showCreateGroupModal = true" />
+                        <UCard class="border-slate-800 bg-slate-900/60">
+                            <template #header>
+                                <div class="flex items-center justify-between">
+                                    <h3 class="font-semibold text-white">Layout Editor</h3>
+                                    <span class="text-xs text-slate-400">Drag monitors and groups to arrange the status page</span>
+                                </div>
                             </template>
 
-                            <template #id-cell="{ row }">
-                                <span class="font-mono text-sm">#{{ row.original.id }}</span>
-                            </template>
-
-                            <template #actions-cell="{ row }">
-                                <UDropdownMenu :items="getGroupDropdownItems(row)">
-                                    <UButton icon="i-lucide-more-horizontal" variant="ghost" color="neutral" size="xs" />
-                                </UDropdownMenu>
-                            </template>
-
-                            <template #empty-actions>
-                                <UButton label="Create Group" color="primary" @click="showCreateGroupModal = true" />
-                            </template>
-                        </DashboardDataTable>
-
-                        <DashboardDataTable
-                            :data="links"
-                            :columns="linkColumns"
-                            :loading="configLoading"
-                            empty-title="No linked monitors"
-                            empty-description="Link monitors to display them on the status page."
-                            empty-icon="i-lucide-heart-pulse"
-                            @refresh="refreshConfig"
-                        >
-                            <template #header-right>
-                                <UButton label="Link Monitor" icon="i-lucide-plus" color="primary" @click="showCreateLinkModal = true" />
-                            </template>
-
-                            <template #group-cell="{ row }">
-                                <span class="text-slate-300">{{ groupById.get(row.original.group_id) ?? 'Ungrouped' }}</span>
-                            </template>
-
-                            <template #display_name-cell="{ row }">
-                                <span class="text-slate-300">{{ row.original.display_name ?? row.original.monitor_name }}</span>
-                            </template>
-
-                            <template #actions-cell="{ row }">
-                                <UDropdownMenu :items="getLinkDropdownItems(row)">
-                                    <UButton icon="i-lucide-more-horizontal" variant="ghost" color="neutral" size="xs" />
-                                </UDropdownMenu>
-                            </template>
-
-                            <template #empty-actions>
-                                <UButton label="Link Monitor" color="primary" @click="showCreateLinkModal = true;" />
-                            </template>
-                        </DashboardDataTable>
+                            <StatusPageEditor
+                                :groups="groups"
+                                :links="links"
+                                :monitors="monitors"
+                                :loading="configLoading"
+                                @refresh="refreshAll"
+                                @reorder-groups="onReorderGroups"
+                                @reorder-links="onReorderLinks"
+                                @create-link="onCreateLink"
+                                @update-link="onUpdateLink"
+                                @delete-link="onDeleteLink"
+                                @create-group="onCreateGroup"
+                                @update-group="onUpdateGroup"
+                                @delete-group="onDeleteGroup"
+                            />
+                        </UCard>
                     </template>
                 </div>
             </DashboardPageBody>
         </template>
     </UDashboardPanel>
 
-    <!-- Admin modals -->
-    <template v-if="isAdmin">
-        <DashboardModal v-model:open="showCreateGroupModal" title="Create Group" icon="i-lucide-folder-plus">
-            <UForm :schema="createGroupSchema" :state="groupCreateForm" class="space-y-4" @submit="handleCreateGroup">
-                <UFormField label="Name" name="name" required>
-                    <UInput v-model="groupCreateForm.name" class="w-full" />
-                </UFormField>
-                <UFormField label="Sort Order" name="sort_order">
-                    <UInput v-model="groupCreateForm.sort_order" type="number" class="w-full" />
-                </UFormField>
-                <div class="flex justify-end gap-2 pt-4">
-                    <UButton label="Cancel" color="neutral" variant="ghost" @click="showCreateGroupModal = false" />
-                    <UButton type="submit" label="Create" color="primary" />
-                </div>
-            </UForm>
-        </DashboardModal>
-
-        <DashboardModal v-model:open="showEditGroupModal" :title="`Edit Group: ${selectedGroup?.name}`" icon="i-lucide-pencil">
-            <div class="space-y-4">
-                <UFormField label="Name">
-                    <UInput v-model="groupEditForm.name" class="w-full" />
-                </UFormField>
-                <UFormField label="Sort Order">
-                    <UInput v-model="groupEditForm.sort_order" type="number" class="w-full" />
-                </UFormField>
-                <div class="flex justify-end gap-2 pt-4">
-                    <UButton label="Cancel" color="neutral" variant="ghost" @click="showEditGroupModal = false" />
-                    <UButton label="Save" color="primary" @click="submitEditGroup" />
-                </div>
-            </div>
-        </DashboardModal>
-
-        <DashboardDeleteModal
-            v-model:open="showDeleteGroupModal"
-            title="Delete Group"
-            :warning-text="`Are you sure you want to delete group &quot;${groupDeleteTarget?.name || ''}&quot;? Linked monitors will become ungrouped.`"
-            :on-delete="onDeleteGroup"
-        />
-
-        <DashboardModal v-model:open="showCreateLinkModal" title="Link Monitor" icon="i-lucide-link">
-            <UForm :schema="createLinkSchema" :state="linkCreateForm" class="space-y-4" @submit="handleCreateLink">
-                <UFormField label="Monitor" name="monitor_id" required>
-                    <USelect v-model="linkCreateForm.monitor_id" :items="monitorOptions" placeholder="Select a monitor" class="w-full" />
-                </UFormField>
-                <UFormField label="Group" name="group_id">
-                    <USelect v-model="linkCreateForm.group_id" :items="groupOptions" placeholder="Ungrouped" class="w-full" />
-                </UFormField>
-                <UFormField label="Display Name" name="display_name">
-                    <UInput v-model="linkCreateForm.display_name" placeholder="Optional display name" class="w-full" />
-                </UFormField>
-                <UFormField label="Sort Order" name="sort_order">
-                    <UInput v-model="linkCreateForm.sort_order" type="number" class="w-full" />
-                </UFormField>
-                <div class="flex justify-end gap-2 pt-4">
-                    <UButton label="Cancel" color="neutral" variant="ghost" @click="showCreateLinkModal = false" />
-                    <UButton type="submit" label="Link" color="primary" />
-                </div>
-            </UForm>
-        </DashboardModal>
-
-        <DashboardModal v-model:open="showEditLinkModal" :title="`Edit Link: ${selectedLink?.monitor_name}`" icon="i-lucide-pencil">
-            <div class="space-y-4">
-                <UFormField label="Group">
-                    <USelect v-model="linkEditForm.group_id" :items="groupOptions" placeholder="Ungrouped" class="w-full" />
-                </UFormField>
-                <UFormField label="Display Name">
-                    <UInput v-model="linkEditForm.display_name" placeholder="Optional display name" class="w-full" />
-                </UFormField>
-                <UFormField label="Sort Order">
-                    <UInput v-model="linkEditForm.sort_order" type="number" class="w-full" />
-                </UFormField>
-                <div class="flex justify-end gap-2 pt-4">
-                    <UButton label="Cancel" color="neutral" variant="ghost" @click="showEditLinkModal = false" />
-                    <UButton label="Save" color="primary" @click="submitEditLink" />
-                </div>
-            </div>
-        </DashboardModal>
-
-        <DashboardDeleteModal
-            v-model:open="showDeleteLinkModal"
-            title="Unlink Monitor"
-            :warning-text="`Are you sure you want to unlink monitor &quot;${linkDeleteTarget?.monitor_name || ''}&quot; from the status page?`"
-            :on-delete="onDeleteLink"
-        />
-    </template>
 </template>

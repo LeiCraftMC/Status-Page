@@ -2808,6 +2808,132 @@ export type PutStatusPageMonitorsByLinkIdResponses = {
 
 export type PutStatusPageMonitorsByLinkIdResponse = PutStatusPageMonitorsByLinkIdResponses[keyof PutStatusPageMonitorsByLinkIdResponses];
 
+export type PutStatusPageGroupsReorderData = {
+    body: {
+        groups: Array<{
+            id: number;
+            sort_order: number;
+        }>;
+    };
+    path?: never;
+    query?: never;
+    url: '/status-page/groups/reorder';
+};
+
+export type PutStatusPageGroupsReorderErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PutStatusPageGroupsReorderError = PutStatusPageGroupsReorderErrors[keyof PutStatusPageGroupsReorderErrors];
+
+export type PutStatusPageGroupsReorderResponses = {
+    /**
+     * Groups reordered successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Groups reordered successfully';
+        data: {
+            groups: Array<{
+                id: number;
+                name: string;
+                sort_order: number;
+            }>;
+        };
+    };
+};
+
+export type PutStatusPageGroupsReorderResponse = PutStatusPageGroupsReorderResponses[keyof PutStatusPageGroupsReorderResponses];
+
+export type PutStatusPageMonitorsReorderData = {
+    body: {
+        links: Array<{
+            id: number;
+            group_id: number | null;
+            sort_order: number;
+        }>;
+    };
+    path?: never;
+    query?: never;
+    url: '/status-page/monitors/reorder';
+};
+
+export type PutStatusPageMonitorsReorderErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PutStatusPageMonitorsReorderError = PutStatusPageMonitorsReorderErrors[keyof PutStatusPageMonitorsReorderErrors];
+
+export type PutStatusPageMonitorsReorderResponses = {
+    /**
+     * Monitors reordered successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Monitors reordered successfully';
+        data: {
+            links: Array<{
+                id: number;
+                monitor_id: number;
+                group_id: number | null;
+                display_name: string | null;
+                sort_order: number;
+                monitor_name: string;
+            }>;
+        };
+    };
+};
+
+export type PutStatusPageMonitorsReorderResponse = PutStatusPageMonitorsReorderResponses[keyof PutStatusPageMonitorsReorderResponses];
+
 export type GetPublicStatusPageData = {
     body?: never;
     path?: never;

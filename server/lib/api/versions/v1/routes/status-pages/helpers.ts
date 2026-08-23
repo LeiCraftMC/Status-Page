@@ -135,6 +135,46 @@ export async function deleteLink(linkId: number): Promise<void> {
     ).run();
 }
 
+export async function reorderGroups(body: StatusPageAdminModel.ReorderGroups.Body): Promise<DB.Models.MonitorGroup[]> {
+    for (const group of body.groups) {
+        await DB.instance().update(DB.Tables.monitorGroups).set({
+            sort_order: group.sort_order,
+        }).where(
+            eq(DB.Tables.monitorGroups.id, group.id)
+        ).run();
+    }
+
+    return DB.instance()
+        .select()
+        .from(DB.Tables.monitorGroups)
+        .orderBy(DB.Tables.monitorGroups.sort_order);
+}
+
+export async function reorderLinks(body: StatusPageAdminModel.ReorderLinks.Body): Promise<StatusPageAdminModel.FullPage.Response['links']> {
+    for (const link of body.links) {
+        await DB.instance().update(DB.Tables.monitorGroupAssignments).set({
+            group_id: link.group_id,
+            sort_order: link.sort_order,
+        }).where(
+            eq(DB.Tables.monitorGroupAssignments.id, link.id)
+        ).run();
+    }
+
+    const rawLinks = await DB.instance()
+        .select({
+            link: DB.Tables.monitorGroupAssignments,
+            monitor_name: DB.Tables.monitors.name,
+        })
+        .from(DB.Tables.monitorGroupAssignments)
+        .innerJoin(DB.Tables.monitors, eq(DB.Tables.monitorGroupAssignments.monitor_id, DB.Tables.monitors.id))
+        .orderBy(DB.Tables.monitorGroupAssignments.sort_order);
+
+    return rawLinks.map(({ link, monitor_name }) => ({
+        ...link,
+        monitor_name,
+    }));
+}
+
 type LinkedMonitor = {
     id: number;
     name: string;
