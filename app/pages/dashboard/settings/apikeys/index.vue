@@ -6,6 +6,10 @@ useSeoMeta({
     description: 'Manage your API keys'
 });
 
+definePageMeta({
+	layout: 'dashboard',
+});
+
 const toast = useToast();
 
 const apikeysTableColumns: TableColumn<APIKey>[] = [

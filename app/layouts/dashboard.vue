@@ -30,11 +30,33 @@ const sidebarItems = computed(() => {
             label: 'Status Page',
             icon: 'i-lucide-layout-grid',
             to: '/dashboard/status-page',
+            active: route.path.startsWith('/dashboard/status-page'),
         },
         {
             label: 'Monitors',
             icon: 'i-lucide-heart-pulse',
             to: '/dashboard/monitors',
+        },
+        {
+            label: 'Content',
+            icon: 'i-lucide-pen-line',
+            children: [
+                {
+                    label: 'Incidents',
+                    icon: 'i-lucide-alert-triangle',
+                    to: '/dashboard/status-page/incidents',
+                },
+                {
+                    label: 'Maintenance',
+                    icon: 'i-lucide-calendar-clock',
+                    to: '/dashboard/status-page/maintenance',
+                },
+                {
+                    label: 'Updates',
+                    icon: 'i-lucide-megaphone',
+                    to: '/dashboard/status-page/updates',
+                }
+            ]
         }
     ];
 
@@ -48,33 +70,6 @@ const sidebarItems = computed(() => {
             label: "Users",
             icon: "i-lucide-users",
             to: "/dashboard/admin/users",
-        },
-        {
-            label: "Status Page",
-            icon: "i-lucide-layout-grid",
-            to: "/dashboard/admin/status-page",
-            active: route.path.startsWith('/dashboard/admin/status-page')
-        },
-        {
-            label: "Content",
-            icon: "i-lucide-pen-line",
-            children: [
-                {
-                    label: "Incidents",
-                    icon: "i-lucide-alert-triangle",
-                    to: "/dashboard/admin/status-page/incidents",
-                },
-                {
-                    label: "Maintenance",
-                    icon: "i-lucide-calendar-clock",
-                    to: "/dashboard/admin/status-page/maintenance",
-                },
-                {
-                    label: "Updates",
-                    icon: "i-lucide-megaphone",
-                    to: "/dashboard/admin/status-page/updates",
-                }
-            ]
         },
         {
             label: "Settings",
