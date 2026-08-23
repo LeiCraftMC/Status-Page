@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { eq, and, gte, lte, inArray } from "drizzle-orm";
 import { DB } from "../../../../../../db";
-import { StatusPageAdminModel } from "./model";
+import { StatusPageAdminModel, StatusPagesReadModel } from "./model";
 
 const CONFIG_ID = 1;
 
@@ -133,4 +133,154 @@ export async function deleteLink(linkId: number): Promise<void> {
     await DB.instance().delete(DB.Tables.monitorGroupAssignments).where(
         eq(DB.Tables.monitorGroupAssignments.id, linkId)
     ).run();
+}
+
+type LinkedMonitor = {
+    id: number;
+    name: string;
+    display_name: string | null;
+    group_id: number | null;
+};
+
+function formatISODate(timestamp: number): string {
+    return new Date(timestamp).toISOString().slice(0, 10);
+}
+
+function startOfDayUTC(timestamp: number): number {
+    const d = new Date(timestamp);
+    d.setUTCHours(0, 0, 0, 0);
+    return d.getTime();
+}
+
+function endOfDayUTC(timestamp: number): number {
+    const d = new Date(timestamp);
+    d.setUTCHours(23, 59, 59, 999);
+    return d.getTime();
+}
+
+export async function buildMonitorHistory(
+    days: number,
+    linkedMonitors: LinkedMonitor[]
+): Promise<StatusPagesReadModel.GetHistory.Response> {
+    const now = Date.now();
+    const endDate = endOfDayUTC(now);
+    const startDate = startOfDayUTC(now - (days - 1) * 24 * 60 * 60 * 1000);
+
+    // Precompute empty buckets for every day in the range
+    const bucketsByDate = new Map<string, { start: number; end: number }>();
+    for (let d = 0; d < days; d++) {
+        const dayStart = startDate + d * 24 * 60 * 60 * 1000;
+        const dateKey = formatISODate(dayStart);
+        bucketsByDate.set(dateKey, { start: dayStart, end: endOfDayUTC(dayStart) });
+    }
+
+    const monitorIds = linkedMonitors.map((m) => m.id);
+
+    // Fetch all relevant checks in one query (bounded by days, not all time)
+    const checks = monitorIds.length > 0
+        ? await DB.instance()
+            .select()
+            .from(DB.Tables.monitorStatusChecks)
+            .where(
+                and(
+                    inArray(DB.Tables.monitorStatusChecks.monitor_id, monitorIds),
+                    gte(DB.Tables.monitorStatusChecks.checked_at, startDate),
+                    lte(DB.Tables.monitorStatusChecks.checked_at, endDate)
+                )
+            )
+        : [];
+
+    const checksByMonitor = new Map<number, typeof checks>();
+    for (const check of checks) {
+        if (!checksByMonitor.has(check.monitor_id)) {
+            checksByMonitor.set(check.monitor_id, []);
+        }
+        checksByMonitor.get(check.monitor_id)!.push(check);
+    }
+
+    const statusRank: Record<StatusPagesReadModel.HistoryStatus, number> = {
+        up: 0,
+        unknown: 1,
+        degraded: 2,
+        down: 3,
+    };
+
+    function getBucketDate(timestamp: number): string {
+        return formatISODate(timestamp);
+    }
+
+    function getWorstStatus(bucketChecks: typeof checks): StatusPagesReadModel.HistoryStatus {
+        if (bucketChecks.length === 0) return 'unknown';
+        let worst: StatusPagesReadModel.HistoryStatus = 'up';
+        for (const check of bucketChecks) {
+            const status = check.status;
+            if (statusRank[status] > statusRank[worst]) {
+                worst = status;
+            }
+        }
+        return worst;
+    }
+
+    const monitors: StatusPagesReadModel.MonitorHistory[] = linkedMonitors.map((monitor) => {
+        const monitorChecks = checksByMonitor.get(monitor.id) ?? [];
+        const checksByDate = new Map<string, typeof checks>();
+
+        for (const check of monitorChecks) {
+            const dateKey = getBucketDate(check.checked_at ?? 0);
+            if (!bucketsByDate.has(dateKey)) continue;
+            if (!checksByDate.has(dateKey)) {
+                checksByDate.set(dateKey, []);
+            }
+            checksByDate.get(dateKey)!.push(check);
+        }
+
+        let totalUp = 0;
+        let totalKnown = 0;
+
+        const buckets: StatusPagesReadModel.HistoryBucket[] = [];
+        for (const [dateKey] of bucketsByDate) {
+            const dayChecks = checksByDate.get(dateKey) ?? [];
+            const worstStatus = getWorstStatus(dayChecks);
+
+            const upCount = dayChecks.filter((c) => c.status === 'up').length;
+            const knownCount = dayChecks.filter((c) => c.status !== 'unknown').length;
+
+            totalUp += upCount;
+            totalKnown += knownCount;
+
+            const uptimePercentage = knownCount > 0
+                ? Math.round((upCount / knownCount) * 1000) / 10
+                : 0;
+
+            buckets.push({
+                date: dateKey,
+                status: worstStatus,
+                uptime_percentage: uptimePercentage,
+                total_checks: dayChecks.length,
+            });
+        }
+
+        // Sort buckets by date ascending (oldest first) for bar display
+        buckets.sort((a, b) => a.date.localeCompare(b.date));
+
+        const uptimePercentage = totalKnown > 0
+            ? Math.round((totalUp / totalKnown) * 1000) / 10
+            : 0;
+
+        return {
+            monitor_id: monitor.id,
+            name: monitor.name,
+            display_name: monitor.display_name,
+            group_id: monitor.group_id,
+            uptime_percentage: uptimePercentage,
+            buckets,
+        };
+    });
+
+    return {
+        days,
+        start_date: formatISODate(startDate),
+        end_date: formatISODate(endDate),
+        monitors,
+    };
 }

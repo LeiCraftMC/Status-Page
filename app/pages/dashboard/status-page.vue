@@ -3,6 +3,7 @@ import type { DropdownMenuItem, TableColumn } from '#ui/types'
 import type {
     GetStatusPageResponses,
     GetStatusPageConfigResponses,
+    GetStatusPageHistoryResponses,
     GetMonitorsResponses
 } from '@/api-client/types.gen'
 import * as z from 'zod'
@@ -20,6 +21,7 @@ type Config = GetStatusPageConfigResponses[200]['data']['config']
 type Group = GetStatusPageConfigResponses[200]['data']['groups'][number]
 type Link = GetStatusPageConfigResponses[200]['data']['links'][number]
 type Monitor = GetMonitorsResponses[200]['data'][number]
+type MonitorHistory = GetStatusPageHistoryResponses[200]['data']
 type Incident = StatusPage['incidents'][number]
 type Maintenance = StatusPage['maintenance'][number]
 type Update = StatusPage['updates'][number]
@@ -82,6 +84,18 @@ const {
     return res.data
 })
 
+const {
+    data: history,
+    refresh: refreshHistory
+} = await useAPILazyAsyncData<MonitorHistory | null>('dashboard-status-page-history', async () => {
+    const res = await useAPI((api) => api.getStatusPageHistory({ query: { days: 90 } }))
+    if (!res.success) {
+        toast.add({ title: 'Failed to load uptime history', description: res.message, color: 'error' })
+        return null
+    }
+    return res.data
+})
+
 const config = computed(() => configData.value?.config ?? null)
 const groups = computed(() => configData.value?.groups ?? [])
 const links = computed(() => configData.value?.links ?? [])
@@ -114,6 +128,7 @@ async function refreshAll() {
     await refreshPage()
     await refreshConfig()
     await refreshMonitors()
+    await refreshHistory()
 }
 
 // Admin: config form
@@ -411,7 +426,11 @@ function maintenanceStatusColor(status: Maintenance['status']) {
                         </div>
                     </div>
 
-                    <MonitorList :groups="page.groups" :ungrouped="page.ungrouped" />
+                    <MonitorList
+                        :groups="page.groups"
+                        :ungrouped="page.ungrouped"
+                        :histories="history?.monitors"
+                    />
 
                     <UCard v-if="activeIncidents.length" class="border-slate-800 bg-slate-900/60">
                         <template #header>

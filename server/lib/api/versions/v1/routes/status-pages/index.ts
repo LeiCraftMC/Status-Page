@@ -20,7 +20,8 @@ import {
     deleteGroup,
     createLink,
     updateLink,
-    deleteLink
+    deleteLink,
+    buildMonitorHistory
 } from "./helpers";
 
 type StatusPageVariables = {
@@ -107,6 +108,47 @@ router.get('/config',
     async (c) => {
         const full = await buildFullPage();
         return APIResponse.success(c, "Status page retrieved successfully", full);
+    }
+);
+
+router.get('/history',
+
+    APIRouteSpec.authenticated({
+        summary: "Get monitor uptime history",
+        description: "Daily uptime history for each linked monitor. Default window is 90 days. Members and admins can read this.",
+        tags: [DOCS_TAGS.STATUS_PAGES],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("History retrieved successfully", StatusPagesReadModel.GetHistory.Response),
+            APIResponseSpec.unauthorized("Authentication required")
+        )
+    }),
+
+    zValidator("query", StatusPagesReadModel.GetHistory.Query),
+
+    async (c) => {
+        // @ts-ignore — zValidator query typing is lost in middleware chains
+        const { days } = c.req.valid("query") as StatusPagesReadModel.GetHistory.Query;
+
+        const links = await DB.instance()
+            .select({
+                link: DB.Tables.monitorGroupAssignments,
+                monitor: DB.Tables.monitors,
+            })
+            .from(DB.Tables.monitorGroupAssignments)
+            .innerJoin(DB.Tables.monitors, eq(DB.Tables.monitorGroupAssignments.monitor_id, DB.Tables.monitors.id))
+            .orderBy(DB.Tables.monitorGroupAssignments.sort_order);
+
+        const linkedMonitors = links.map(({ link, monitor }) => ({
+            id: monitor.id,
+            name: monitor.name,
+            display_name: link.display_name,
+            group_id: link.group_id ?? null,
+        }));
+
+        const history = await buildMonitorHistory(days, linkedMonitors);
+
+        return APIResponse.success(c, "History retrieved successfully", history);
     }
 );
 

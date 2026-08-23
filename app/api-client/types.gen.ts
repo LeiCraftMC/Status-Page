@@ -2301,6 +2301,59 @@ export type GetStatusPageConfigResponses = {
 
 export type GetStatusPageConfigResponse = GetStatusPageConfigResponses[keyof GetStatusPageConfigResponses];
 
+export type GetStatusPageHistoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/status-page/history';
+};
+
+export type GetStatusPageHistoryErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+};
+
+export type GetStatusPageHistoryError = GetStatusPageHistoryErrors[keyof GetStatusPageHistoryErrors];
+
+export type GetStatusPageHistoryResponses = {
+    /**
+     * History retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'History retrieved successfully';
+        data: {
+            days: number;
+            start_date: string;
+            end_date: string;
+            monitors: Array<{
+                monitor_id: number;
+                name: string;
+                display_name: string | null;
+                group_id: number | null;
+                uptime_percentage: number;
+                buckets: Array<{
+                    date: string;
+                    status: 'up' | 'down' | 'degraded' | 'unknown';
+                    uptime_percentage: number;
+                    total_checks: number;
+                }>;
+            }>;
+        };
+    };
+};
+
+export type GetStatusPageHistoryResponse = GetStatusPageHistoryResponses[keyof GetStatusPageHistoryResponses];
+
 export type GetStatusPageGroupsData = {
     body?: never;
     path?: never;
@@ -2860,6 +2913,59 @@ export type GetPublicStatusPageResponses = {
 };
 
 export type GetPublicStatusPageResponse = GetPublicStatusPageResponses[keyof GetPublicStatusPageResponses];
+
+export type GetPublicStatusPageHistoryData = {
+    body?: never;
+    path?: never;
+    query?: {
+        days?: number;
+    };
+    url: '/public/status-page/history';
+};
+
+export type GetPublicStatusPageHistoryErrors = {
+    /**
+     * Status page not found or not public
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Status page not found or not public';
+    };
+};
+
+export type GetPublicStatusPageHistoryError = GetPublicStatusPageHistoryErrors[keyof GetPublicStatusPageHistoryErrors];
+
+export type GetPublicStatusPageHistoryResponses = {
+    /**
+     * History retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'History retrieved successfully';
+        data: {
+            days: number;
+            start_date: string;
+            end_date: string;
+            monitors: Array<{
+                monitor_id: number;
+                name: string;
+                display_name: string | null;
+                group_id: number | null;
+                uptime_percentage: number;
+                buckets: Array<{
+                    date: string;
+                    status: 'up' | 'down' | 'degraded' | 'unknown';
+                    uptime_percentage: number;
+                    total_checks: number;
+                }>;
+            }>;
+        };
+    };
+};
+
+export type GetPublicStatusPageHistoryResponse = GetPublicStatusPageHistoryResponses[keyof GetPublicStatusPageHistoryResponses];
 
 export type GetPublicStatusPageIncidentsData = {
     body?: never;

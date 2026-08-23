@@ -7,7 +7,7 @@ import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { StatusPagesReadModel } from "./model";
 import { StatusPageContentModel } from "../../models/statusPageContent";
 import { DOCS_TAGS } from "../../docs";
-import { getOrCreateConfig } from "./helpers";
+import { buildMonitorHistory, getOrCreateConfig } from "./helpers";
 
 export const router = new Hono().basePath('/public');
 
@@ -151,6 +151,54 @@ router.get('/status-page',
             ...response,
             ...content,
         });
+    }
+);
+
+router.get('/status-page/history',
+
+    APIRouteSpec.unauthenticated({
+        summary: "Get public monitor uptime history",
+        description: "Daily uptime history for each linked, enabled monitor. Default window is 90 days.",
+        tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("History retrieved successfully", StatusPagesReadModel.GetHistory.Response),
+            APIResponseSpec.notFound("Status page not found or not public")
+        )
+    }),
+
+    zValidator("query", StatusPagesReadModel.GetHistory.Query),
+
+    async (c) => {
+        const page = await getStatusPageConfig();
+
+        if (!page.is_public || !page.is_enabled) {
+            return APIResponse.notFound(c, "Status page is not publicly accessible");
+        }
+
+        // @ts-ignore — zValidator query typing is lost in middleware chains
+        const { days } = c.req.valid("query") as StatusPagesReadModel.GetHistory.Query;
+
+        const links = await DB.instance()
+            .select({
+                link: DB.Tables.monitorGroupAssignments,
+                monitor: DB.Tables.monitors,
+            })
+            .from(DB.Tables.monitorGroupAssignments)
+            .innerJoin(DB.Tables.monitors, eq(DB.Tables.monitorGroupAssignments.monitor_id, DB.Tables.monitors.id))
+            .where(eq(DB.Tables.monitors.is_enabled, true))
+            .orderBy(DB.Tables.monitorGroupAssignments.sort_order);
+
+        const linkedMonitors = links.map(({ link, monitor }) => ({
+            id: monitor.id,
+            name: monitor.name,
+            display_name: link.display_name,
+            group_id: link.group_id ?? null,
+        }));
+
+        const history = await buildMonitorHistory(days, linkedMonitors);
+
+        return APIResponse.success(c, "History retrieved successfully", history);
     }
 );
 

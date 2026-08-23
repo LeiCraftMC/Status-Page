@@ -1,7 +1,11 @@
 <script setup lang="ts">
-import type { GetPublicStatusPageResponses } from '@/api-client/types.gen'
+import type {
+    GetPublicStatusPageResponses,
+    GetPublicStatusPageHistoryResponses
+} from '@/api-client/types.gen'
 
 type PublicPage = GetPublicStatusPageResponses[200]['data']
+type PublicHistory = GetPublicStatusPageHistoryResponses[200]['data']
 
 definePageMeta({
     layout: 'public'
@@ -16,6 +20,17 @@ const {
     pending: loading
 } = await useLazyAsyncData<PublicPage | null>('public-status-page', async () => {
     const res = await useAPI((api) => api.getPublicStatusPage({}), true)
+    if (!res.success) {
+        return null
+    }
+    return res.data
+})
+
+const {
+    data: history,
+    pending: historyLoading
+} = await useLazyAsyncData<PublicHistory | null>('public-status-page-history', async () => {
+    const res = await useAPI((api) => api.getPublicStatusPageHistory({ query: { days: 90 } }), true)
     if (!res.success) {
         return null
     }
@@ -130,8 +145,17 @@ const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0,
 
                 <!-- Monitors -->
                 <div>
-                    <h2 class="text-lg font-semibold text-white mb-3">Services</h2>
-                    <MonitorList :groups="pageDetails.groups" :ungrouped="pageDetails.ungrouped" />
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold text-white">Services</h2>
+                        <span v-if="!historyLoading && history" class="text-xs text-slate-400">
+                            Past {{ history.days }} days
+                        </span>
+                    </div>
+                    <MonitorList
+                        :groups="pageDetails.groups"
+                        :ungrouped="pageDetails.ungrouped"
+                        :histories="history?.monitors"
+                    />
                 </div>
 
                 <!-- Scheduled maintenance -->

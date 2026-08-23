@@ -54,6 +54,42 @@ export namespace StatusPagesReadModel {
         });
         export type Response = z.infer<typeof Response>;
     }
+
+    export const HistoryStatus = z.enum(['up', 'down', 'degraded', 'unknown']);
+    export type HistoryStatus = z.infer<typeof HistoryStatus>;
+
+    export const HistoryBucket = z.object({
+        date: z.string(),
+        status: HistoryStatus,
+        uptime_percentage: z.number().min(0).max(100),
+        total_checks: z.number().int(),
+    });
+    export type HistoryBucket = z.infer<typeof HistoryBucket>;
+
+    export const MonitorHistory = z.object({
+        monitor_id: z.number().int(),
+        name: z.string(),
+        display_name: z.string().nullable(),
+        group_id: z.number().nullable(),
+        uptime_percentage: z.number().min(0).max(100),
+        buckets: z.array(HistoryBucket),
+    });
+    export type MonitorHistory = z.infer<typeof MonitorHistory>;
+
+    export namespace GetHistory {
+        export const Query = z.object({
+            days: z.coerce.number().int().min(1).max(365).optional().default(90),
+        });
+        export type Query = z.infer<typeof Query>;
+
+        export const Response = z.object({
+            days: z.number().int(),
+            start_date: z.string(),
+            end_date: z.string(),
+            monitors: z.array(MonitorHistory),
+        });
+        export type Response = z.infer<typeof Response>;
+    }
 }
 
 export namespace StatusPageAdminModel {

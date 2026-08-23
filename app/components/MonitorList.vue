@@ -1,5 +1,10 @@
 <script setup lang="ts">
-import type { GetStatusPageResponses, GetPublicStatusPageResponses } from '@/api-client/types.gen';
+import type {
+    GetStatusPageResponses,
+    GetPublicStatusPageResponses,
+    GetPublicStatusPageHistoryResponses,
+    GetStatusPageHistoryResponses
+} from '@/api-client/types.gen';
 
 type GroupedMonitor = GetStatusPageResponses[200]['data']['groups'][number];
 type UngroupedMonitor = GetStatusPageResponses[200]['data']['ungrouped'][number];
@@ -7,12 +12,25 @@ type UngroupedMonitor = GetStatusPageResponses[200]['data']['ungrouped'][number]
 type PublicGroupedMonitor = GetPublicStatusPageResponses[200]['data']['groups'][number];
 type PublicUngroupedMonitor = GetPublicStatusPageResponses[200]['data']['ungrouped'][number];
 
+type PublicHistory = GetPublicStatusPageHistoryResponses[200]['data']['monitors'][number]
+type AuthHistory = GetStatusPageHistoryResponses[200]['data']['monitors'][number]
+type MonitorHistory = PublicHistory | AuthHistory
+
 interface Props {
     groups: GroupedMonitor[] | PublicGroupedMonitor[];
     ungrouped: UngroupedMonitor[] | PublicUngroupedMonitor[];
+    histories?: MonitorHistory[];
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const historyByMonitorId = computed(() => {
+    const map = new Map<number, MonitorHistory>()
+    for (const h of (props.histories ?? [])) {
+        map.set(h.monitor_id, h)
+    }
+    return map
+})
 </script>
 
 <template>
@@ -30,24 +48,32 @@ defineProps<Props>();
                 <div
                     v-for="monitor in group.monitors"
                     :key="monitor.id"
-                    class="flex items-center justify-between px-4 py-3"
+                    class="px-4 py-3"
                 >
-                    <div class="min-w-0">
-                        <p class="font-medium text-white truncate">
-                            {{ monitor.display_name || monitor.name }}
-                        </p>
-                        <p class="text-xs text-slate-400 truncate">{{ monitor.target }}</p>
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="font-medium text-white truncate">
+                                {{ monitor.display_name || monitor.name }}
+                            </p>
+                            <p class="text-xs text-slate-400 truncate">{{ monitor.target }}</p>
+                        </div>
+
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span
+                                v-if="monitor.latest_check?.response_time_ms != null"
+                                class="text-xs text-slate-400 hidden sm:inline"
+                            >
+                                {{ monitor.latest_check.response_time_ms }} ms
+                            </span>
+                            <StatusBadge :status="monitor.latest_check?.status" />
+                        </div>
                     </div>
 
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span
-                            v-if="monitor.latest_check?.response_time_ms != null"
-                            class="text-xs text-slate-400 hidden sm:inline"
-                        >
-                            {{ monitor.latest_check.response_time_ms }} ms
-                        </span>
-                        <StatusBadge :status="monitor.latest_check?.status" />
-                    </div>
+                    <MonitorUptimeBars
+                        v-if="historyByMonitorId.has(monitor.id)"
+                        :history="historyByMonitorId.get(monitor.id)!"
+                        class="mt-2"
+                    />
                 </div>
             </div>
         </div>
@@ -64,24 +90,32 @@ defineProps<Props>();
                 <div
                     v-for="monitor in ungrouped"
                     :key="monitor.id"
-                    class="flex items-center justify-between px-4 py-3"
+                    class="px-4 py-3"
                 >
-                    <div class="min-w-0">
-                        <p class="font-medium text-white truncate">
-                            {{ monitor.display_name || monitor.name }}
-                        </p>
-                        <p class="text-xs text-slate-400 truncate">{{ monitor.target }}</p>
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="min-w-0">
+                            <p class="font-medium text-white truncate">
+                                {{ monitor.display_name || monitor.name }}
+                            </p>
+                            <p class="text-xs text-slate-400 truncate">{{ monitor.target }}</p>
+                        </div>
+
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span
+                                v-if="monitor.latest_check?.response_time_ms != null"
+                                class="text-xs text-slate-400 hidden sm:inline"
+                            >
+                                {{ monitor.latest_check.response_time_ms }} ms
+                            </span>
+                            <StatusBadge :status="monitor.latest_check?.status" />
+                        </div>
                     </div>
 
-                    <div class="flex items-center gap-3 shrink-0">
-                        <span
-                            v-if="monitor.latest_check?.response_time_ms != null"
-                            class="text-xs text-slate-400 hidden sm:inline"
-                        >
-                            {{ monitor.latest_check.response_time_ms }} ms
-                        </span>
-                        <StatusBadge :status="monitor.latest_check?.status" />
-                    </div>
+                    <MonitorUptimeBars
+                        v-if="historyByMonitorId.has(monitor.id)"
+                        :history="historyByMonitorId.get(monitor.id)!"
+                        class="mt-2"
+                    />
                 </div>
             </div>
         </div>

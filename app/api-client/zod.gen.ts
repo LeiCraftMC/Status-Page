@@ -1169,6 +1169,42 @@ export const zGetStatusPageConfigResponse = z.object({
     })
 });
 
+export const zGetStatusPageHistoryQuery = z.object({
+    days: z.int().gte(1).lte(365).optional().default(90)
+});
+
+/**
+ * History retrieved successfully
+ */
+export const zGetStatusPageHistoryResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('History retrieved successfully'),
+    data: z.object({
+        days: z.int().gte(-9007199254740991).lte(9007199254740991),
+        start_date: z.string(),
+        end_date: z.string(),
+        monitors: z.array(z.object({
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            name: z.string(),
+            display_name: z.string().nullable(),
+            group_id: z.number().nullable(),
+            uptime_percentage: z.number().gte(0).lte(100),
+            buckets: z.array(z.object({
+                date: z.string(),
+                status: z.enum([
+                    'up',
+                    'down',
+                    'degraded',
+                    'unknown'
+                ]),
+                uptime_percentage: z.number().gte(0).lte(100),
+                total_checks: z.int().gte(-9007199254740991).lte(9007199254740991)
+            }))
+        }))
+    })
+});
+
 /**
  * Groups retrieved successfully
  */
@@ -1426,6 +1462,42 @@ export const zGetPublicStatusPageResponse = z.object({
             ]),
             created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
             updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }))
+    })
+});
+
+export const zGetPublicStatusPageHistoryQuery = z.object({
+    days: z.int().gte(1).lte(365).optional().default(90)
+});
+
+/**
+ * History retrieved successfully
+ */
+export const zGetPublicStatusPageHistoryResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('History retrieved successfully'),
+    data: z.object({
+        days: z.int().gte(-9007199254740991).lte(9007199254740991),
+        start_date: z.string(),
+        end_date: z.string(),
+        monitors: z.array(z.object({
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            name: z.string(),
+            display_name: z.string().nullable(),
+            group_id: z.number().nullable(),
+            uptime_percentage: z.number().gte(0).lte(100),
+            buckets: z.array(z.object({
+                date: z.string(),
+                status: z.enum([
+                    'up',
+                    'down',
+                    'degraded',
+                    'unknown'
+                ]),
+                uptime_percentage: z.number().gte(0).lte(100),
+                total_checks: z.int().gte(-9007199254740991).lte(9007199254740991)
+            }))
         }))
     })
 });
