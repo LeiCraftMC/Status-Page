@@ -7,13 +7,17 @@ import { APIResponse } from "../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { AuthHandler } from "../../../../utils/authHandler";
 import { MonitorsReadModel } from "./model";
-import { MonitorsModel } from "../admin/monitors/model";
+import { MonitorsModel } from "./model";
 import { DOCS_TAGS } from "../../docs";
-import { performMonitorCheck } from "../../../../../utils/monitor-checker";
+import { performMonitorCheck } from "../../../../../../utils/monitor-checker";
 
 const TARGET_MONITOR_KEY = "targetMonitor";
 
-const router = new Hono().basePath('/monitors');
+type MonitorVariables = {
+    targetMonitor: DB.Models.Monitor;
+};
+
+const router = new Hono<{ Variables: MonitorVariables }>().basePath('/monitors');
 
 function requireSession(c: any): AuthHandler.SessionAuthContext | null {
     const authContext = c.get("authContext") as AuthHandler.AuthContext;
@@ -131,6 +135,7 @@ router.post('/',
 router.use('/:monitorId/*',
     zValidator("param", MonitorsModel.MonitorId.Params),
     async (c, next) => {
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { monitorId } = c.req.valid("param") as MonitorsModel.MonitorId.Params;
 
         const monitor = await DB.instance().select().from(DB.Tables.monitors).where(
@@ -141,6 +146,7 @@ router.use('/:monitorId/*',
             return APIResponse.notFound(c, "Monitor not found");
         }
 
+        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set(TARGET_MONITOR_KEY, monitor);
         await next();
     }

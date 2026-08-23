@@ -22,17 +22,17 @@ export class InstanceSettings {
             const defaultData = this.schemas[key].parse(undefined);
             await DB.instance().insert(DB.Tables.instanceSettings).values({
                 key: key,
-                data: defaultData,
+                value: JSON.stringify(defaultData),
             });
             return defaultData;
         }
 
-        return this.schemas[key].parse(record.data);
+        return this.schemas[key].parse(JSON.parse(record.value));
     }
 
     protected static async setInstanceSetting<T extends keyof typeof this.schemas>(key: T, data: z.infer<(typeof this.schemas)[T]>): Promise<void> {
         await DB.instance().update(DB.Tables.instanceSettings).set({
-            data: data,
+            value: JSON.stringify(data),
         }).where(
             eq(DB.Tables.instanceSettings.key, key)
         );

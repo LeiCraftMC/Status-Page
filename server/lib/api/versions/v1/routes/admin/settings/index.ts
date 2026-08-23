@@ -66,10 +66,10 @@ router.put('/',
 );
 
 export async function getSettings(): Promise<SettingsModel.Response> {
-    const rows = await DB.instance().select().from(DB.Tables.settings);
+    const rows = await DB.instance().select().from(DB.Tables.instanceSettings);
     const map = new Map(rows.map((r) => [r.key, r.value]));
 
     return {
-        default_theme: map.get(SettingsModel.SettingsKeys.DEFAULT_THEME) ?? 'auto',
+        default_theme: (map.get(SettingsModel.SettingsKeys.DEFAULT_THEME) as 'light' | 'dark' | 'auto' | undefined) ?? 'auto',
     };
 }

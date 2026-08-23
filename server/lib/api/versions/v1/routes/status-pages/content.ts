@@ -2,10 +2,10 @@
 import { Hono } from "hono";
 import { validator as zValidator } from "hono-openapi";
 import { desc, eq } from "drizzle-orm";
-import { DB } from "../../../../../../../db";
-import { APIResponse } from "../../../../../utils/api-res";
-import { APIResponseSpec, APIRouteSpec } from "../../../../../utils/specHelpers";
-import { AuthHandler } from "../../../../../utils/authHandler";
+import { DB } from "../../../../../../db";
+import { APIResponse } from "../../../../utils/api-res";
+import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
+import { AuthHandler } from "../../../../utils/authHandler";
 import { StatusPageContentModel } from "../../models/statusPageContent";
 import { DOCS_TAGS } from "../../docs";
 
@@ -28,12 +28,20 @@ function adminOnly(c: any, next: any) {
     return next();
 }
 
-export const router = new Hono().basePath('/');
+type ContentVariables = {
+    targetIncident: DB.Models.Incident;
+    targetMaintenance: DB.Models.Maintenance;
+    targetUpdate: DB.Models.StatusUpdate;
+};
+
+export const router = new Hono<{ Variables: ContentVariables }>().basePath('/');
 
 // Incidents
 
 router.get('/incidents',
+
     APIRouteSpec.authenticated({
+
         summary: "List incidents",
         description: "Retrieve all incidents for the status page.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
@@ -42,6 +50,7 @@ router.get('/incidents',
             APIResponseSpec.unauthorized("Authentication required")
         )
     }),
+
     async (c) => {
         const incidents = await DB.instance()
             .select()
@@ -53,8 +62,7 @@ router.get('/incidents',
 );
 
 router.post('/incidents',
-    adminOnly,
-    zValidator("json", StatusPageContentModel.IncidentId.Body),
+
     APIRouteSpec.authenticated({
         summary: "Create incident",
         description: "Publish a new incident on the status page. Admin only.",
@@ -65,6 +73,10 @@ router.post('/incidents',
             APIResponseSpec.forbidden("Admin access required")
         )
     }),
+
+    adminOnly,
+    zValidator("json", StatusPageContentModel.IncidentId.Body),
+
     async (c) => {
         const body = c.req.valid("json") as StatusPageContentModel.IncidentId.Body;
 
@@ -82,6 +94,7 @@ router.post('/incidents',
 router.use('/incidents/:incidentId/*',
     zValidator("param", StatusPageContentModel.IncidentId.Params),
     async (c, next) => {
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { incidentId } = c.req.valid("param") as StatusPageContentModel.IncidentId.Params;
 
         const incident = await DB.instance().select().from(DB.Tables.incidents).where(
@@ -92,6 +105,7 @@ router.use('/incidents/:incidentId/*',
             return APIResponse.notFound(c, "Incident not found");
         }
 
+        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set(TARGET_INCIDENT_KEY, incident);
         await next();
     }
@@ -216,6 +230,7 @@ router.post('/maintenance',
 router.use('/maintenance/:maintenanceId/*',
     zValidator("param", StatusPageContentModel.MaintenanceId.Params),
     async (c, next) => {
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { maintenanceId } = c.req.valid("param") as StatusPageContentModel.MaintenanceId.Params;
 
         const maintenance = await DB.instance().select().from(DB.Tables.maintenance).where(
@@ -226,6 +241,7 @@ router.use('/maintenance/:maintenanceId/*',
             return APIResponse.notFound(c, "Maintenance not found");
         }
 
+        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set(TARGET_MAINTENANCE_KEY, maintenance);
         await next();
     }
@@ -344,6 +360,7 @@ router.post('/updates',
 router.use('/updates/:updateId/*',
     zValidator("param", StatusPageContentModel.UpdateId.Params),
     async (c, next) => {
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { updateId } = c.req.valid("param") as StatusPageContentModel.UpdateId.Params;
 
         const update = await DB.instance().select().from(DB.Tables.statusUpdates).where(
@@ -354,6 +371,7 @@ router.use('/updates/:updateId/*',
             return APIResponse.notFound(c, "Update not found");
         }
 
+        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set(TARGET_UPDATE_KEY, update);
         await next();
     }

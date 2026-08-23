@@ -6,9 +6,9 @@ import { DB } from "../../../../../../db";
 import { APIResponse } from "../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { AuthHandler } from "../../../../utils/authHandler";
-import { StatusPagesReadModel } from "./model";
+import { StatusPagesReadModel, StatusPageAdminModel } from "./model";
 import { buildPublicPageResponse } from "./public";
-import { StatusPageAdminModel } from "../admin/status-pages/model";
+import z from "zod";
 import { router as contentRouter } from "./content";
 import { DOCS_TAGS } from "../../docs";
 import {
@@ -23,7 +23,12 @@ import {
     deleteLink
 } from "./helpers";
 
-const router = new Hono().basePath('/status-page');
+type StatusPageVariables = {
+    targetGroup: StatusPageAdminModel.BaseGroup;
+    targetLink: StatusPageAdminModel.BaseLink;
+};
+
+const router = new Hono<{ Variables: StatusPageVariables }>().basePath('/status-page');
 
 router.route('/', contentRouter);
 
@@ -177,6 +182,7 @@ router.post('/groups',
 router.use('/groups/:groupId/*',
     zValidator("param", StatusPageAdminModel.GroupId.Params),
     async (c, next) => {
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { groupId } = c.req.valid("param") as StatusPageAdminModel.GroupId.Params;
         const group = await DB.instance().select().from(DB.Tables.monitorGroups).where(
             eq(DB.Tables.monitorGroups.id, groupId)
@@ -186,6 +192,7 @@ router.use('/groups/:groupId/*',
             return APIResponse.notFound(c, "Group not found");
         }
 
+        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set("targetGroup", group);
         await next();
     }
@@ -276,6 +283,7 @@ router.post('/monitors',
 router.use('/monitors/:linkId/*',
     zValidator("param", StatusPageAdminModel.LinkId.Params),
     async (c, next) => {
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { linkId } = c.req.valid("param") as StatusPageAdminModel.LinkId.Params;
         const link = await DB.instance().select().from(DB.Tables.monitorGroupAssignments).where(
             eq(DB.Tables.monitorGroupAssignments.id, linkId)
@@ -285,6 +293,7 @@ router.use('/monitors/:linkId/*',
             return APIResponse.notFound(c, "Monitor link not found");
         }
 
+        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set("targetLink", link);
         await next();
     }

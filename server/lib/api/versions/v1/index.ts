@@ -54,8 +54,6 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
                 name: "Admin",
                 tags: [
                     "Admin / Users",
-                    "Admin / Monitors",
-                    "Admin / Status Pages",
                     "Admin / Settings",
                 ],
             },
@@ -86,22 +84,6 @@ const openAPIConfig: Partial<GenerateSpecOptions> = {
                 summary: "Users",
                 parent: "Admin",
                 description: "Site-admin user management.",
-            },
-            {
-                name: "Admin / Monitors",
-                // @ts-ignore
-                "x-displayName": "Monitors",
-                summary: "Monitors",
-                parent: "Admin",
-                description: "Site-admin monitor management.",
-            },
-            {
-                name: "Admin / Status Pages",
-                // @ts-ignore
-                "x-displayName": "Status Pages",
-                summary: "Status Pages",
-                parent: "Admin",
-                description: "Site-admin status page management.",
             },
             {
                 name: "Admin / Settings",

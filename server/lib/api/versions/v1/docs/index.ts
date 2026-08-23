@@ -2,8 +2,6 @@
 export const DOCS_TAGS = {
 
     ADMIN_USERS: "Admin / Users",
-    ADMIN_MONITORS: "Admin / Monitors",
-    ADMIN_STATUS_PAGES: "Admin / Status Pages",
     ADMIN_SETTINGS: "Admin / Settings",
 
     ACCOUNT: "Account",

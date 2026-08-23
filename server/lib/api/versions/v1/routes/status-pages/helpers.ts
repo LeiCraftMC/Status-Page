@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
-import { DB } from "../../../../../../../db";
-import { StatusPageAdminModel } from "../admin/status-pages/model";
+import { DB } from "../../../../../../db";
+import { StatusPageAdminModel } from "./model";
 
 const CONFIG_ID = 1;
 

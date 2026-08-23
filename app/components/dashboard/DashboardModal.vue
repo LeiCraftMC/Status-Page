@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ModalProps } from '@nuxt/ui'
 
-interface Props extends ModalProps {
+interface Props extends /* @vue-ignore */ ModalProps {
     title: string
     description?: string
     icon?: string

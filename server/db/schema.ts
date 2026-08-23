@@ -152,6 +152,10 @@ export const statusPageConfig = sqliteTable('status_page_config', {
     title: text().notNull(),
     description: text(),
 
+    is_public: integer({ mode: 'boolean' }).notNull().default(true),
+    is_enabled: integer({ mode: 'boolean' }).notNull().default(true),
+    theme: text().notNull().default('auto'),
+
     created_at: SQLUtils.getCreatedAtColumn(),
     updated_at: SQLUtils.getCreatedAtColumn("updated_at"),
 });
@@ -159,9 +163,9 @@ export const statusPageConfig = sqliteTable('status_page_config', {
 /**
  * @deprecated Use DB.Tables.instanceSettings to access this table.
  */
-export const instanceSettings = sqliteTable('instance_settings', {
+export const instanceSettings = sqliteTable('settings', {
     key: text().primaryKey(),
-    data: text({ mode: 'json' }).$type<Record<string, any> | Array<any>>().notNull()
+    value: text().notNull()
 });
 
 /**

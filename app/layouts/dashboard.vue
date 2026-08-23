@@ -50,11 +50,6 @@ const sidebarItems = computed(() => {
             to: "/dashboard/admin/users",
         },
         {
-            label: "Monitors",
-            icon: "i-lucide-heart-pulse",
-            to: "/dashboard/admin/monitors",
-        },
-        {
             label: "Status Page",
             icon: "i-lucide-layout-grid",
             to: "/dashboard/admin/status-page",
