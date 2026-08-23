@@ -1,6 +1,7 @@
 import { and, eq } from "drizzle-orm";
 import type { DB } from "../db";
 import type { AuthHandler } from "../lib/api/utils/authHandler";
+import { InstanceSettings } from "../lib/api/utils/instanceSettings";
 
 export class PermissionHelper {
 
@@ -56,74 +57,26 @@ export class PermissionHelper {
         return this.compareRoles(a, b) >= 0 ? a : b;
     }
 
-    /**
-     * Whether the given user owns the publisher (i.e. publishers.owner_user_id === userId).
-     */
     static async isInstanceOwner(params: { userId: number; }): Promise<boolean> {
-
-        if (typeof params.publisher === 'object' && 'owner_user_id' in params.publisher) {
-            return params.publisher.owner_user_id === params.userId;
-        }
-        if (!params.publisherId) {
-            throw new Error("Either publisherId or publisher object must be provided");
-        }
-
-        const row = await this.DB.instance()
-            .select({ owner_user_id: this.DB.Tables.publishers.owner_user_id })
-            .from(this.DB.Tables.publishers)
-            .where(eq(this.DB.Tables.publishers.id, params.publisherId))
-            .get();
-
-        if (!row) {
-            console.warn(`isPublisherOwner: publisher with id ${params.publisherId} not found`);
-            return false;
-        }
-        
-        return row.owner_user_id === params.userId;
+        return await InstanceSettings.getInstanceOwnerUserID().then(owner => owner.userId === params.userId);
     }
 
-    /**
-     * Resolve the effective role for a user against a publisher (and optionally a
-     * specific package). Returns the highest of:
-     *   - publisherMembers.role for (userId, publisherId)
-     *   - roleAssignments.role for (userId, packageId) when packageId is given
-     * Publisher ownership and site-admin bypass are NOT applied here; callers
-     * that need those shortcuts should use `can`.
-     */
     static async getEffectiveRole(params: {
         userId: number;
     }): Promise<PermissionHelper.Roles | null> {
         const { userId } = params;
 
-        const membership = await this.DB.instance()
-            .select({ role: this.DB.Tables.publisherMembers.role })
-            .from(this.DB.Tables.publisherMembers)
-            .where(and(
-                eq(this.DB.Tables.publisherMembers.user_id, userId),
-                eq(this.DB.Tables.publisherMembers.publisher_id, publisherId)
-            ))
+        const role = await this.DB.instance()
+            .select({ role: this.DB.Tables.users.role })
+            .from(this.DB.Tables.users)
+            .where(eq(this.DB.Tables.users.id, userId))
             .get();
-
-        let role: PermissionHelper.Roles | null = membership?.role ?? null;
-
-        if (packageId !== undefined) {
-            const assignment = await this.DB.instance()
-                .select({ role: this.DB.Tables.roleAssignments.role })
-                .from(this.DB.Tables.roleAssignments)
-                .where(and(
-                    eq(this.DB.Tables.roleAssignments.user_id, userId),
-                    eq(this.DB.Tables.roleAssignments.package_id, packageId)
-                ))
-                .get();
-
-            role = this.maxRole(role, assignment?.role ?? null);
-        }
-
-        return role;
+        
+        return (role?.role.toUpperCase() as PermissionHelper.Roles) || null;
     }
 
     /**
-     * Effective permission bag for a user in a publisher/package scope.
+     * Effective permission bag for a user.
      * Returns `null` if the user has no role at all in that scope.
      */
     static async getEffectivePermissions(params: {
@@ -143,10 +96,6 @@ export class PermissionHelper {
         const { authContext, check: permission } = params;
 
         if (authContext.type === 'unauthenticated') return false;
-
-        if (await this.isInstanceOwner({ userId: authContext.user_id })) {
-            return true;
-        }
 
         const role = await this.getEffectiveRole({
             userId: authContext.user_id

@@ -161,7 +161,7 @@ export const statusPageConfig = sqliteTable('status_page_config', {
  */
 export const instanceSettings = sqliteTable('instance_settings', {
     key: text().primaryKey(),
-    value: text({ mode: 'json' }).$type<any>().notNull(),
+    data: text({ mode: 'json' }).$type<Record<string, any> | Array<any>>().notNull()
 });
 
 /**
