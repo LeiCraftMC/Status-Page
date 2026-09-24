@@ -1,12 +1,14 @@
 import { cloudflareBuildStubs } from './build/cloudflare-stubs';
+import { COMPATIBILITY_DATE, getCloudflareTarget, nitroWranglerConfig, writeCronWorkerConfig } from './build/cloudflare-config';
 
-// Set by the `build:cf` script. Enables the Cloudflare-only build settings
-// below; the Bun build is unaffected.
-const isCloudflareBuild = process.env.CF_BUILD === '1';
+// Set by the `build:cf*` scripts (see build/cloudflare-config.ts). Enables the
+// Cloudflare-only build settings below; the Bun build is unaffected.
+const cloudflareTarget = getCloudflareTarget();
+const isCloudflareBuild = cloudflareTarget !== null;
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-	compatibilityDate: '2025-07-15',
+	compatibilityDate: COMPATIBILITY_DATE,
 	devtools: { enabled: true },
 	modules: ['@nuxt/ui' ],
 
@@ -35,44 +37,32 @@ export default defineNuxtConfig({
 		},
 		...(isCloudflareBuild ? {
 			sourcemap: false,
-			// Nitro generates `.output/server/wrangler.json` from this (adding
-			// `main`, `assets`, `compatibility_date` and the `nodejs_compat`
-			// flag itself) plus a redirect in `.wrangler/deploy/`, so plain
-			// `wrangler deploy` / `wrangler dev` pick it up after a build
-			// (`wrangler d1` does not follow the redirect; see the db:d1:* scripts).
+			// Nitro generates the app's wrangler config from this:
+			// `.output/server/wrangler.json` (Workers) or `dist/_worker.js/wrangler.json`
+			// (Pages), plus a redirect in `.wrangler/deploy/` so `wrangler deploy` /
+			// `wrangler dev` find it (`wrangler d1` does not; see the db:d1:* scripts).
 			cloudflare: {
 				deployConfig: true,
 				nodeCompat: true,
-				wrangler: {
-					name: 'leicraftmc-status-page',
-					d1_databases: [{
-						binding: 'DB',
-						database_name: 'leicraftmc-status-page',
-						// From `wrangler d1 create leicraftmc-status-page`.
-						// Only needed for remote (production) access.
-						database_id: process.env.CLOUDFLARE_D1_DATABASE_ID || 'local-only',
-						// Relative to the generated .output/server/wrangler.json.
-						migrations_dir: '../../drizzle/migrations',
-					}],
-					// Runs the `check-monitors` scheduled task (see scheduledTasks).
-					triggers: { crons: ['* * * * *'] },
-					// Runtime configuration (see server/utils/config.ts).
-					// Migrations run via wrangler, not on boot.
-					vars: {
-						LCCFWSP_LOG_LEVEL: 'info',
-						LCCFWSP_API_DISABLE_DOCS: 'false',
-						LCCFWSP_DB_AUTO_MIGRATE: 'false',
-						LCCFWSP_APP_URL: process.env.LCCFWSP_APP_URL || 'http://localhost:8787',
-					},
-					// Keeps logs (e.g. the one-time initial admin reset URL).
-					observability: { enabled: true },
-				},
+				wrangler: nitroWranglerConfig(cloudflareTarget!),
 			},
 		} : {}),
 		rollupConfig: {
 			external: ['bun:sqlite', 'cloudflare:sockets'],
 			// Stubs Bun-only and unused optional imports (see build/cloudflare-stubs.ts).
 			plugins: isCloudflareBuild ? [cloudflareBuildStubs()] : [],
+		},
+	},
+
+	hooks: {
+		'nitro:init'(nitro) {
+			if (cloudflareTarget === 'pages') {
+				// Pages can't run cron triggers: the monitor checks run in a separate
+				// Worker, whose config is written next to the build. (Registered here
+				// rather than in `nitro.hooks`, which would replace the preset's own
+				// `compiled` hook instead of adding to it.)
+				nitro.hooks.hook('compiled', () => writeCronWorkerConfig(nitro.options.rootDir));
+			}
 		},
 	},
 

@@ -1,8 +1,9 @@
-# Cloudflare Workers + D1: build check on every pipeline, automatic deploy on main.
+# Cloudflare (Pages or Workers) + D1: automatic deploy on main.
 #
 # Required CI/CD variables (Settings → CI/CD → Variables; mark them Masked and
 # Protected, and protect the default branch so only it can read them):
-#   CLOUDFLARE_API_TOKEN        API token with "Workers Scripts: Edit" and "D1: Edit"
+#   CLOUDFLARE_API_TOKEN        API token with "Workers Scripts: Edit", "D1: Edit"
+#                               and (Pages target) "Cloudflare Pages: Edit"
 #   CLOUDFLARE_ACCOUNT_ID       your Cloudflare account id
 #   CLOUDFLARE_D1_DATABASE_ID   id printed by `wrangler d1 create leicraftmc-status-page`
 #   LCCFWSP_APP_URL             public URL of the status page, e.g. https://status.example.com
@@ -54,7 +55,8 @@ variables:
 #    - bun run build:cf
 #    - npx wrangler deploy --dry-run
 
-# Build → apply pending D1 migrations → deploy (see `deploy:cf` in package.json).
+# Build → apply pending D1 migrations → deploy (see `deploy:cf` / `deploy:cf:pages`
+# in package.json).
 # Migrations are idempotent: wrangler records applied files in `d1_migrations`,
 # and they always run before the new code goes live.
 deploy:cloudflare:
@@ -67,8 +69,13 @@ deploy:cloudflare:
 #    - test:build:cloudflare
   tags:
     - glar-linux-medium-amd64
+  variables:
+    # "pages": app on Cloudflare Pages + a small Worker for the monitor cron
+    # (custom domains via CNAME). "workers": everything in one Worker.
+    # See docs/deploy-cloudflare.md.
+    CLOUDFLARE_TARGET: pages
   script:
-    - bun run deploy:cf
+    - if [ "$CLOUDFLARE_TARGET" = "workers" ]; then bun run deploy:cf; else bun run deploy:cf:pages; fi
   environment:
     name: production
     url: $LCCFWSP_APP_URL

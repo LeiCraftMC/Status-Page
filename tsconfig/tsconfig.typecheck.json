@@ -7,9 +7,11 @@
     },
     // app/** is type-checked by `nuxt typecheck` (vue-tsc), which provides the
     // Nuxt auto-import declarations (ref, computed, useState, ...). Plain tsc
-    // cannot resolve those globals, so this pass only covers tests/ and server/.
+    // cannot resolve those globals, so this pass covers tests/, server/ and the
+    // build helpers used by nuxt.config.ts.
     "include": [
         "../tests/**/*",
         "../server/**/*",
+        "../build/**/*",
     ]
 }
