@@ -20,6 +20,16 @@ export function toJSONSchema(...args: never[]): never {
 	throw missingVendor('sury');
 }
 
+/** zod-to-json-schema: only used for zod v3 schemas; this app uses zod v4 */
+export function zodToJsonSchema(...args: never[]): never {
+	throw missingVendor('zod-to-json-schema');
+}
+
+/** zod-openapi: only used for zod v3 schemas; this app uses zod v4 */
+export function createSchema(...args: never[]): never {
+	throw missingVendor('zod-openapi');
+}
+
 /** @valibot/to-json-schema: `toJsonSchema` */
 export function toJsonSchema(...args: never[]): never {
 	throw missingVendor('@valibot/to-json-schema');

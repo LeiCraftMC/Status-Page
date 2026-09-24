@@ -44,6 +44,10 @@ export default defineNuxtConfig({
 				'effect': resolve('./server/stubs/schema-vendors.ts'),
 				'sury': resolve('./server/stubs/schema-vendors.ts'),
 				'@valibot/to-json-schema': resolve('./server/stubs/schema-vendors.ts'),
+				// Optional peers that are only used for zod v3 (this app uses zod v4);
+				// not installed by a clean `bun install`.
+				'zod-to-json-schema': resolve('./server/stubs/schema-vendors.ts'),
+				'zod-openapi': resolve('./server/stubs/schema-vendors.ts'),
 			},
 			// Nitro generates `.output/server/wrangler.json` from this (adding
 			// `main`, `assets`, `compatibility_date` and the `nodejs_compat`
