@@ -65,7 +65,8 @@ deploy:cloudflare:
     - test:typecheck
     - test:unit
     - test:build:cloudflare
-  tags: glar-linux-medium-amd64
+  tags:
+    - glar-linux-medium-amd64
   script:
     - bun run deploy:cf
   environment:
