@@ -1,0 +1,61 @@
+# Cloudflare Workers + D1: build check on every pipeline, automatic deploy on main.
+#
+# Required CI/CD variables (Settings → CI/CD → Variables; mark them Masked and
+# Protected, and protect the default branch so only it can read them):
+#   CLOUDFLARE_API_TOKEN        API token with "Workers Scripts: Edit" and "D1: Edit"
+#   CLOUDFLARE_ACCOUNT_ID       your Cloudflare account id
+#   CLOUDFLARE_D1_DATABASE_ID   id printed by `wrangler d1 create leicraftmc-status-page`
+#   LCCFWSP_APP_URL             public URL of the status page, e.g. https://status.example.com
+#
+# Wrangler needs Node.js >= 22 (and its dev server doesn't run under Bun), so
+# these jobs use the Node 22 image and install Bun on top.
+
+.cloudflare:
+  image: node:22
+  variables:
+    BUN_INSTALL_CACHE_DIR: .bun/install/cache
+    NUXT_TELEMETRY_DISABLED: '1'
+    WRANGLER_SEND_METRICS: 'false'
+  cache:
+    key:
+      files:
+        - bun.lock
+    paths:
+      - .bun/install/cache/
+      - node_modules/
+  before_script:
+    - npm install -g bun
+    - bun install --frozen-lockfile
+
+# Builds the worker and lets wrangler validate/bundle it without uploading.
+# Catches Workers-incompatible changes (e.g. Bun-only imports) before merge.
+test:build:cloudflare:
+  extends: .cloudflare
+  stage: test
+  interruptible: true
+  script:
+    - bun run build:cf
+    - npx wrangler deploy --dry-run
+
+# Build → apply pending D1 migrations → deploy (see `deploy:cf` in package.json).
+# Migrations are idempotent: wrangler records applied files in `d1_migrations`,
+# and they always run before the new code goes live.
+deploy:cloudflare:
+  extends: .cloudflare
+  stage: deploy
+  # Only deploy when all tests passed.
+  needs:
+    - test:typecheck
+    - test:unit
+    - test:build:cloudflare
+  script:
+    - bun run deploy:cf
+  environment:
+    name: production
+    url: $LCCFWSP_APP_URL
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  # Never run two deploys (and migration runs) at the same time.
+  resource_group: production
+  # A deploy must not be cancelled halfway by a newer pipeline.
+  interruptible: false

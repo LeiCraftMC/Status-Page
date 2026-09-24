@@ -6,6 +6,9 @@
 .cache
 dist
 
+# Wrangler (local D1 state, etc.)
+.wrangler
+
 # Node dependencies
 node_modules
 

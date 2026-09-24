@@ -32,13 +32,22 @@ export class DB {
         }
 
         if (autoMigrate) {
-            Logger.info("Running database migrations...");
-            if (this.dbType === "bun-sqlite") {
-                await migrateBunSQLite(this.db as DrizzleDB.BunSQLite, { migrationsFolder: "drizzle/migrations" });
+            if (Runtime.isCloudflare) {
+                // drizzle's migrator reads migration files from disk, which does
+                // not exist on Workers — apply D1 migrations with wrangler instead.
+                Logger.warn(
+                    "LCCFWSP_DB_AUTO_MIGRATE is ignored on Cloudflare Workers. " +
+                    "Apply migrations with `wrangler d1 migrations apply <database> --remote` instead."
+                );
             } else {
-                await migrateD1(this.db as DrizzleDB.D1, { migrationsFolder: "drizzle/migrations" });
+                Logger.info("Running database migrations...");
+                if (this.dbType === "bun-sqlite") {
+                    await migrateBunSQLite(this.db as DrizzleDB.BunSQLite, { migrationsFolder: "drizzle/migrations" });
+                } else {
+                    await migrateD1(this.db as DrizzleDB.D1, { migrationsFolder: "drizzle/migrations" });
+                }
+                Logger.info("Database migrations completed.");
             }
-            Logger.info("Database migrations completed.");
         }
 
         await this.createInitialAdminUserIfNeeded(configBaseDir ?? ".");

@@ -33,15 +33,19 @@ const LOGIN_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
 const LOGIN_MAX_ATTEMPTS = 10;
 const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
-// Periodic cleanup to prevent unbounded memory growth — runs every 5 minutes
-const LOGIN_CLEANUP_INTERVAL = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of loginAttempts) {
-        if (entry.resetAt <= now) loginAttempts.delete(key);
-    }
-}, LOGIN_WINDOW_MS);
-// Allow the process to exit without waiting for this interval
-LOGIN_CLEANUP_INTERVAL.unref();
+// Periodic cleanup to prevent unbounded memory growth — runs every 5 minutes.
+// Skipped on Cloudflare Workers: timers are not allowed at module scope there,
+// and isolates are short-lived, so the map never grows long enough to matter.
+if (!Runtime.isCloudflare) {
+    const LOGIN_CLEANUP_INTERVAL = setInterval(() => {
+        const now = Date.now();
+        for (const [key, entry] of loginAttempts) {
+            if (entry.resetAt <= now) loginAttempts.delete(key);
+        }
+    }, LOGIN_WINDOW_MS);
+    // Allow the process to exit without waiting for this interval
+    LOGIN_CLEANUP_INTERVAL.unref();
+}
 
 function getClientId(c: Context) {
     // Behind a reverse proxy (the Nitro-embedded production path builds a synthetic

@@ -54,6 +54,21 @@ export namespace Runtime {
 
 	export type Name = 'bun' | 'cloudflare';
 
+	/**
+	 * The env/bindings object of the running Cloudflare Worker.
+	 *
+	 * Nitro's `cloudflare-module` runtime assigns the worker's `env` (vars +
+	 * bindings like `DB` or `ASSETS`) to `globalThis.__env__` on every
+	 * invocation, and its workerd polyfills seed the same global from
+	 * `cloudflare:workers` at module load — so it is available both inside
+	 * request handlers and during app/plugin startup.
+	 *
+	 * Returns an empty object on non-Cloudflare runtimes.
+	 */
+	export function getWorkerBindings(): Record<string, unknown> {
+		return ((globalThis as any).__env__ ?? {}) as Record<string, unknown>;
+	}
+
 }
 
 export namespace Runtime.FS {

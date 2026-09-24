@@ -17,17 +17,21 @@ const RESET_CONSUME_MAX_PER_TOKEN = 3;
 const resetRequestAttempts = new Map<string, { count: number; resetAt: number }>();
 const resetConsumeAttempts = new Map<string, { count: number; resetAt: number }>();
 
-// Periodic cleanup to prevent memory leaks
-const RESET_CLEANUP_INTERVAL = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of resetRequestAttempts) {
-        if (entry.resetAt <= now) resetRequestAttempts.delete(key);
-    }
-    for (const [key, entry] of resetConsumeAttempts) {
-        if (entry.resetAt <= now) resetConsumeAttempts.delete(key);
-    }
-}, RESET_REQUEST_WINDOW_MS);
-RESET_CLEANUP_INTERVAL.unref();
+// Periodic cleanup to prevent memory leaks.
+// Skipped on Cloudflare Workers: timers are not allowed at module scope there,
+// and isolates are short-lived, so the maps never grow long enough to matter.
+if (!Runtime.isCloudflare) {
+    const RESET_CLEANUP_INTERVAL = setInterval(() => {
+        const now = Date.now();
+        for (const [key, entry] of resetRequestAttempts) {
+            if (entry.resetAt <= now) resetRequestAttempts.delete(key);
+        }
+        for (const [key, entry] of resetConsumeAttempts) {
+            if (entry.resetAt <= now) resetConsumeAttempts.delete(key);
+        }
+    }, RESET_REQUEST_WINDOW_MS);
+    RESET_CLEANUP_INTERVAL.unref();
+}
 
 export async function hashResetToken(resetToken: string): Promise<string> {
     return Runtime.Crypto.sha256(resetToken);

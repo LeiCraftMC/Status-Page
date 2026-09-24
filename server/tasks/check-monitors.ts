@@ -1,6 +1,7 @@
 import { defineTask } from "nitropack/runtime";
 import { eq, desc, and } from "drizzle-orm";
 import { DB } from "../db";
+import { Runtime } from "../utils/runtime";
 import { performMonitorCheck } from "../utils/monitor-checker";
 
 export default defineTask({
@@ -13,10 +14,11 @@ export default defineTask({
         try {
             DB.instance();
         } catch {
-            // Not initialized — try to init from Cloudflare Workers env binding
-            const env = (globalThis as any).__env__;
+            // Not initialized (e.g. the cron fired before any request ran the
+            // startup plugin) — init from the Cloudflare Workers D1 binding.
+            const env = ((context as any)?.cloudflare?.env ?? Runtime.getWorkerBindings()) as { DB?: unknown };
             if (env?.DB) {
-                await DB.init(env.DB, false);
+                await DB.init(env.DB as any, false);
             } else {
                 throw new Error("Database not initialized and no D1 binding available");
             }

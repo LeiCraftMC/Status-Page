@@ -5,9 +5,12 @@
     "scripts": {
         "db:generate": "bun scripts/db-utils && bunx --bun drizzle-kit generate --config=drizzle/configs/drizzle.base.config.ts",
         "db:bun:migrate": "bun scripts/db-utils && bunx --bun drizzle-kit migrate --config=drizzle/configs/drizzle.bun-sqlite.config.ts",
-        "db:d1:migrate": "bunx --bun drizzle-kit migrate --config=drizzle/configs/drizzle.d1.config.ts",
+        "db:d1:migrate": "wrangler d1 migrations apply DB --config .output/server/wrangler.json --local --persist-to .wrangler/state",
+        "db:d1:migrate:prod": "CI=1 wrangler d1 migrations apply DB --config .output/server/wrangler.json --remote",
         "build:bun": "nuxt build --preset bun",
-        "build:cf": "nuxt build --preset cloudflare_pages",
+        "build:cf": "CF_BUILD=1 NODE_OPTIONS=--max-old-space-size=4096 nuxt build --preset cloudflare_module",
+        "preview:cf": "bun run build:cf && bun run db:d1:migrate && wrangler dev --persist-to .wrangler/state --test-scheduled",
+        "deploy:cf": "bun run build:cf && bun run db:d1:migrate:prod && wrangler deploy",
         "start": "PORT=12336 bun run .output/server/index.mjs",
         "dev": "bunx --bun nuxt dev --port=12336",
         "generate": "bunx --bun nuxt generate",
@@ -40,6 +43,7 @@
         "@iconify-json/lucide": "^1.2.117",
         "@libsql/client": "^0.17.4",
         "@types/bun": "^1.3.14",
-        "vue-tsc": "^3.3.11"
+        "vue-tsc": "^3.3.11",
+        "wrangler": "^4.138.0"
     }
 }
