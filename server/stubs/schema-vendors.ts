@@ -5,9 +5,10 @@
  * dynamic import target gets inlined, and `effect` alone drags in
  * `fast-check` + `pure-rand` — far too much for the worker size limit.
  *
- * This app only uses **zod** schemas, so these vendor code paths are never
- * selected at runtime.  Swapped in through `nitro.alias` in `nuxt.config.ts`
- * when `CF_BUILD=1` is set.
+ * This app only uses **zod v4** schemas, so these vendor code paths are never
+ * selected at runtime.  Every non-zod import of those packages resolves here
+ * (see `build/cloudflare-stubs.ts`); the named exports below just make the
+ * known ones fail with a clear message if they were ever reached.
  */
 
 /** effect: `JSONSchema` */

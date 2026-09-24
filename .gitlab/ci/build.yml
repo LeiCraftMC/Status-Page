@@ -1,6 +1,11 @@
 
 build-and-push:
   stage: build
+  # The Docker image build needs docker/Dockerfile, which doesn't exist yet.
+  # Until it's added, skip the job instead of failing every pipeline.
+  rules:
+    - exists:
+        - docker/Dockerfile
   variables:
     BUN_INSTALL_CACHE_DIR: .bun/install/cache
     NUXT_TELEMETRY_DISABLED: '1'
@@ -40,7 +45,7 @@ build-and-push:
   script:
 
     # Build the nuxt app and docker image, then push to the registry
-    - bun run build
+    - bun run build:bun
 
     - docker build -f docker/Dockerfile -t "$CI_REGISTRY_IMAGE:latest" .
     - docker push "$CI_REGISTRY_IMAGE:latest"

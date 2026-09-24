@@ -1,7 +1,6 @@
 /**
  * Build-time stub that replaces `drizzle-orm/bun-sqlite` (and its `/migrator`
- * subpath) during Cloudflare builds.  Swapped in through `nitro.alias` in
- * `nuxt.config.ts` when `CF_BUILD=1` is set.
+ * subpath) during Cloudflare builds (see `build/cloudflare-stubs.ts`).
  *
  * The real module statically imports `bun:sqlite`, which cannot be resolved in
  * a Cloudflare Workers bundle.  Nothing here is ever called on Workers:

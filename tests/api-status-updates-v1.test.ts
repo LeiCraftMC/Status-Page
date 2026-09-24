@@ -15,8 +15,8 @@ let memberToken: string;
 beforeAll(async () => {
     const admin = await seedUser("admin", { username: "updates_admin" });
     const member = await seedUser("member", { username: "updates_member" });
-    adminToken = (await seedSession(admin.id) as any).token;
-    memberToken = (await seedSession(member.id) as any).token;
+    adminToken = (await seedSession(admin.id)).token;
+    memberToken = (await seedSession(member.id)).token;
 });
 
 async function createIncident(title = "API outage") {

@@ -37,8 +37,8 @@ describe("Auth routes and access checks", async () => {
 
         const session = await AuthHandler.getAuthContext(data.token);
 
-        expect(session).toBeDefined();
-        if (!session) return;
+        expect(session?.type).toBe("session");
+        if (session?.type !== "session") return;
 
         expect(session.user_id).toBe(testUser.id);
         expect(session.user_role).toBe("member");
@@ -212,7 +212,7 @@ describe("Account routes", async () => {
         testUser.username = newUserData.username;
         testUser.email = newUserData.email;
 
-        const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
+        const dbresult = await DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
 
         expect(dbresult?.display_name).toBe(newUserData.display_name);
         expect(dbresult?.username).toBe(newUserData.username);
@@ -227,7 +227,7 @@ describe("Account routes", async () => {
             body: { role: "admin" }
         }, 400);
         
-        const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
+        const dbresult = await DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
         expect(dbresult?.role).toBe("member");
     });
 
@@ -292,7 +292,7 @@ describe("Account routes", async () => {
             authToken: session_token
         });
 
-        const dbresult = DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
+        const dbresult = await DB.instance().select().from(DB.Tables.users).where(eq(DB.Tables.users.id, testUser.id)).get();
         expect(dbresult).toBeUndefined();
 
         // recreate test user for further tests
