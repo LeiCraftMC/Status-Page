@@ -1,7 +1,7 @@
 
 import { Hono } from "hono";
 import { validator as zValidator } from "hono-openapi";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { DB } from "../../../../../../db";
 import { APIResponse } from "../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
@@ -10,6 +10,7 @@ import { MonitorsReadModel } from "./model";
 import { MonitorsModel } from "./model";
 import { DOCS_TAGS } from "../../docs";
 import { performMonitorCheck } from "../../../../../../utils/monitor-checker";
+import { MonitorStats } from "../../../../../../utils/monitor-stats";
 
 const TARGET_MONITOR_KEY = "targetMonitor";
 
@@ -68,14 +69,10 @@ router.get('/',
             .from(DB.Tables.monitors)
             .orderBy(DB.Tables.monitors.id);
 
-        const enriched = await Promise.all(monitors.map(async (monitor: DB.Models.Monitor) => {
-            const latest = await DB.instance()
-                .select()
-                .from(DB.Tables.monitorStatusChecks)
-                .where(eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id))
-                .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at))
-                .limit(1)
-                .get();
+        const latestChecks = await MonitorStats.getLatestChecks(monitors.map((monitor) => monitor.id));
+
+        const enriched = monitors.map((monitor: DB.Models.Monitor) => {
+            const latest = latestChecks.get(monitor.id);
 
             return {
                 ...monitor,
@@ -85,7 +82,7 @@ router.get('/',
                     checked_at: latest.checked_at ?? null,
                 } : null,
             };
-        }));
+        });
 
         return APIResponse.success(c, "Monitors retrieved successfully", enriched);
     }
@@ -123,10 +120,11 @@ router.post('/',
             expected_http_status: body.type === 'http' ? body.expected_http_status : null,
         }).returning().get();
 
-        await DB.instance().insert(DB.Tables.monitorStatusChecks).values({
+        await MonitorStats.recordChecks([{
             monitor_id: created.id,
             status: 'unknown',
-        }).run();
+            response_time_ms: null,
+        }]);
 
         return APIResponse.created(c, "Monitor created successfully", created);
     }
@@ -169,20 +167,8 @@ router.get('/:monitorId',
     async (c) => {
         const monitor = c.get(TARGET_MONITOR_KEY) as DB.Models.Monitor;
 
-        const latest = await DB.instance()
-            .select()
-            .from(DB.Tables.monitorStatusChecks)
-            .where(eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id))
-            .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at))
-            .limit(1)
-            .get();
-
-        const recentChecks = await DB.instance()
-            .select()
-            .from(DB.Tables.monitorStatusChecks)
-            .where(eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id))
-            .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at))
-            .limit(50);
+        const recentChecks = await MonitorStats.getRecentChecks(monitor.id, 50);
+        const latest = recentChecks[0];
 
         return APIResponse.success(c, "Monitor retrieved successfully", {
             ...monitor,
@@ -280,6 +266,10 @@ router.delete('/:monitorId',
             eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id)
         ).run();
 
+        await DB.instance().delete(DB.Tables.monitorDailyStats).where(
+            eq(DB.Tables.monitorDailyStats.monitor_id, monitor.id)
+        ).run();
+
         await DB.instance().delete(DB.Tables.monitors).where(
             eq(DB.Tables.monitors.id, monitor.id)
         ).run();
@@ -307,11 +297,11 @@ router.post('/:monitorId/check',
 
         const result = await performMonitorCheck(monitor);
 
-        const check = await DB.instance().insert(DB.Tables.monitorStatusChecks).values({
+        const [check] = await MonitorStats.recordChecks([{
             monitor_id: monitor.id,
             status: result.status,
             response_time_ms: result.response_time_ms,
-        }).returning().get();
+        }]);
 
         return APIResponse.success(c, "Monitor check completed", { check });
     }

@@ -4,6 +4,8 @@ import {
     sqliteTable,
     integer,
     text,
+    index,
+    uniqueIndex,
 } from 'drizzle-orm/sqlite-core';
 import { SQLUtils } from './utils';
 import { UserAccountSettings } from '../lib/api/utils/shared-models/accountData';
@@ -144,7 +146,54 @@ export const monitorStatusChecks = sqliteTable('monitor_status_checks', {
     status: text({ enum: ['up', 'down', 'degraded', 'unknown'] as const }).notNull().default('unknown'),
     response_time_ms: integer(),
     checked_at: SQLUtils.getCreatedAtColumn(),
-});
+}, (table) => [
+    // Latest/recent checks per monitor and retention pruning are index range scans.
+    index('monitor_status_checks_monitor_checked_idx').on(table.monitor_id, table.checked_at),
+]);
+
+/**
+ * Per-monitor, per-day (UTC) aggregate of status checks, maintained whenever a
+ * check is recorded (see server/utils/monitor-stats.ts). Uptime history and
+ * latency statistics read these rows instead of scanning raw checks, so their
+ * cost no longer grows with the number of stored checks.
+ * @deprecated Use DB.Tables.monitorDailyStats to access this table.
+ */
+export const monitorDailyStats = sqliteTable('monitor_daily_stats', {
+    id: integer().primaryKey({ autoIncrement: true }),
+
+    monitor_id: integer().notNull().references(() => monitors.id, { onDelete: 'cascade' }),
+    // UTC calendar day, formatted YYYY-MM-DD
+    day: text().notNull(),
+
+    up_count: integer().notNull().default(0),
+    down_count: integer().notNull().default(0),
+    degraded_count: integer().notNull().default(0),
+    unknown_count: integer().notNull().default(0),
+
+    // Over checks that have a response time
+    response_time_count: integer().notNull().default(0),
+    response_time_sum: integer().notNull().default(0),
+    response_time_min: integer(),
+    response_time_max: integer(),
+
+    // Response-time histogram used for percentiles. Bucket i counts checks with
+    // a response time <= MonitorStats.LATENCY_BUCKET_BOUNDS_MS[i]; the last
+    // bucket counts everything slower than the last bound.
+    latency_bucket_0: integer().notNull().default(0),
+    latency_bucket_1: integer().notNull().default(0),
+    latency_bucket_2: integer().notNull().default(0),
+    latency_bucket_3: integer().notNull().default(0),
+    latency_bucket_4: integer().notNull().default(0),
+    latency_bucket_5: integer().notNull().default(0),
+    latency_bucket_6: integer().notNull().default(0),
+    latency_bucket_7: integer().notNull().default(0),
+    latency_bucket_8: integer().notNull().default(0),
+    latency_bucket_9: integer().notNull().default(0),
+    latency_bucket_10: integer().notNull().default(0),
+    latency_bucket_11: integer().notNull().default(0),
+}, (table) => [
+    uniqueIndex('monitor_daily_stats_monitor_day_idx').on(table.monitor_id, table.day),
+]);
 
 /**
  * Single status page configuration. There is exactly one row (id = 1).

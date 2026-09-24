@@ -55,12 +55,24 @@ export class AuthUtils {
         }
     }
 
+    /**
+     * Hash the secret part of a session token or API key for storage.
+     *
+     * Token bases are 256-bit random values, so a fast SHA-256 is enough —
+     * brute-forcing them is infeasible either way. A deliberately slow password
+     * hash here would only add ~100 ms+ of CPU to every authenticated request.
+     */
     static hashTokenBase(tokenBase: string) {
-        return Runtime.Password.hashPassword(tokenBase);
+        return Runtime.Crypto.sha256(tokenBase);
     }
 
-    static verifyHashedTokenBase(tokenBase: string, hashedToken: string) {
-        return Runtime.Password.verifyPassword(tokenBase, hashedToken);
+    static async verifyHashedTokenBase(tokenBase: string, hashedToken: string) {
+        // Tokens issued before the switch to SHA-256 are stored as password
+        // hashes (`$argon2id$…`, `$pbkdf2-sha256$…`); hex digests never start with `$`.
+        if (hashedToken.startsWith('$')) {
+            return Runtime.Password.verifyPassword(tokenBase, hashedToken);
+        }
+        return Runtime.Crypto.timingSafeEqual(await Runtime.Crypto.sha256(tokenBase), hashedToken);
     }
 
 }

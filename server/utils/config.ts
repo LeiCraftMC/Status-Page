@@ -116,7 +116,24 @@ export class ConfigHandler {
         .add("LCCFWSP_CONFIG_BASE_DIR", false)
 
         .add("LCCFWSP_APP_URL", false)
+
+        // Days to keep raw status checks (0 = forever). Uptime history and
+        // latency statistics come from daily aggregates and are kept regardless.
+        .add("LCCFWSP_CHECK_RETENTION_DAYS", false)
     ;
+
+    static readonly DEFAULT_CHECK_RETENTION_DAYS = 90;
+
+    static getCheckRetentionDays(config: ParsedConfig): number {
+        const raw = config.LCCFWSP_CHECK_RETENTION_DAYS;
+        if (raw === undefined) return this.DEFAULT_CHECK_RETENTION_DAYS;
+        const days = Number(raw);
+        if (!Number.isInteger(days) || days < 0) {
+            Logger.warn(`LCCFWSP_CHECK_RETENTION_DAYS must be a non-negative integer, got "${raw}". Using ${this.DEFAULT_CHECK_RETENTION_DAYS}.`);
+            return this.DEFAULT_CHECK_RETENTION_DAYS;
+        }
+        return days;
+    }
 
 
     private static config: ParsedConfig | null = null;

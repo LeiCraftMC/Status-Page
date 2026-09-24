@@ -161,3 +161,38 @@ describe("Filesystem helpers", () => {
     });
 
 });
+
+describe("token hashing", () => {
+
+    test("new token hashes are SHA-256 and verify only the matching token", async () => {
+        const { AuthUtils } = await import("../server/lib/api/utils/authHandler");
+        const token = Runtime.Crypto.randomBytesHex(32);
+        const hash = await AuthUtils.hashTokenBase(token);
+
+        expect(hash).toMatch(/^[0-9a-f]{64}$/);
+        expect(await AuthUtils.verifyHashedTokenBase(token, hash)).toBe(true);
+        expect(await AuthUtils.verifyHashedTokenBase(token + "0", hash)).toBe(false);
+        expect(await AuthUtils.verifyHashedTokenBase("", hash)).toBe(false);
+    });
+
+    test("tokens stored with the previous password-hash format still verify", async () => {
+        const { AuthUtils } = await import("../server/lib/api/utils/authHandler");
+        const token = Runtime.Crypto.randomBytesHex(32);
+        const legacyHash = await Runtime.Password.hashPassword(token);
+
+        expect(legacyHash.startsWith("$")).toBe(true);
+        expect(await AuthUtils.verifyHashedTokenBase(token, legacyHash)).toBe(true);
+        expect(await AuthUtils.verifyHashedTokenBase(token + "0", legacyHash)).toBe(false);
+    });
+
+    test("an account without a password never matches", async () => {
+        expect(await Runtime.Password.verifyPassword("", Runtime.Password.NO_PASSWORD)).toBe(false);
+        expect(await Runtime.Password.verifyPassword("!", Runtime.Password.NO_PASSWORD)).toBe(false);
+    });
+
+    test("timingSafeEqual compares exactly", () => {
+        expect(Runtime.Crypto.timingSafeEqual("abc", "abc")).toBe(true);
+        expect(Runtime.Crypto.timingSafeEqual("abc", "abd")).toBe(false);
+        expect(Runtime.Crypto.timingSafeEqual("abc", "abcd")).toBe(false);
+    });
+});

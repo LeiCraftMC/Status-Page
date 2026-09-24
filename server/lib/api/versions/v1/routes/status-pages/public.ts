@@ -1,15 +1,21 @@
 import { Hono } from "hono";
 import { validator as zValidator } from "hono-openapi";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { DB } from "../../../../../../db";
 import { APIResponse } from "../../../../utils/api-res";
+import { publicResponseCache } from "../../../../utils/publicResponseCache";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { StatusPagesReadModel } from "./model";
 import { StatusPageContentModel } from "../../models/statusPageContent";
 import { DOCS_TAGS } from "../../docs";
+import { MonitorStats } from "../../../../../../utils/monitor-stats";
 import { buildMonitorHistory, buildSingleMonitorHistory, fetchParentedUpdates, getOrCreateConfig } from "./helpers";
 
 export const router = new Hono().basePath('/public');
+
+// Public responses only change when the cron records checks (once a minute) or
+// an admin edits content, so a short cache is invisible to visitors.
+router.use('*', publicResponseCache(30));
 
 export async function getStatusPageConfig(): Promise<DB.Models.StatusPageConfig> {
     return getOrCreateConfig();
@@ -46,20 +52,7 @@ export async function buildPublicPageResponse(
 
     const monitorIds = links.map(({ monitor }) => monitor.id);
 
-    const latestChecksByMonitor = new Map<number, DB.Models.MonitorStatusCheck>();
-    if (monitorIds.length > 0) {
-        const recentChecks = await DB.instance()
-            .select()
-            .from(DB.Tables.monitorStatusChecks)
-            .where(inArray(DB.Tables.monitorStatusChecks.monitor_id, monitorIds))
-            .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at));
-
-        for (const check of recentChecks) {
-            if (!latestChecksByMonitor.has(check.monitor_id)) {
-                latestChecksByMonitor.set(check.monitor_id, check);
-            }
-        }
-    }
+    const latestChecksByMonitor = await MonitorStats.getLatestChecks(monitorIds);
 
     const monitorSummary = (monitor: DB.Models.Monitor, link: DB.Models.MonitorGroupAssignment): StatusPagesReadModel.MonitorSummary => {
         const latest = latestChecksByMonitor.get(monitor.id);

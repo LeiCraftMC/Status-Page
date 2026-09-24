@@ -86,6 +86,20 @@ export default defineNuxtConfig({
 	routeRules: {
 		"/dashboard/**": { ssr: false },
 		"/auth/**": { ssr: false },
-		"/**": { ssr: true }
+		"/**": { ssr: true },
+
+		// On Workers, rendering a page costs more CPU than the Free plan's 10 ms
+		// per request, so rendered public pages are cached for 30 s (Nitro's
+		// cache lives in the isolate's memory) and refreshed in the background.
+		// Only safe because these pages render the same for every visitor: they
+		// must never show anything based on the session cookie.
+		...(isCloudflareBuild ? {
+			"/": { swr: 30 },
+			"/incidents": { swr: 30 },
+			"/incident/**": { swr: 30 },
+			"/scheduled-events": { swr: 30 },
+			"/scheduled-events/**": { swr: 30 },
+			"/monitors/**": { swr: 30 },
+		} : {}),
 	}
 });

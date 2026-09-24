@@ -1,8 +1,28 @@
 import { defineTask } from "nitropack/runtime";
-import { eq, desc, and } from "drizzle-orm";
 import { DB } from "../db";
 import { Runtime } from "../utils/runtime";
+import { ConfigHandler } from "../utils/config";
 import { performMonitorCheck } from "../utils/monitor-checker";
+import { MonitorStats } from "../utils/monitor-stats";
+
+/**
+ * Cloudflare Workers allow six connections waiting for a response at a time
+ * per invocation; running more checks at once would just queue them.
+ */
+const MAX_PARALLEL_CHECKS = 6;
+
+async function mapWithConcurrency<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
+    const results: R[] = new Array(items.length);
+    let next = 0;
+    async function worker() {
+        while (next < items.length) {
+            const index = next++;
+            results[index] = await fn(items[index]!);
+        }
+    }
+    await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+    return results;
+}
 
 export default defineTask({
     meta: {
@@ -24,42 +44,31 @@ export default defineTask({
             }
         }
 
-        const db = DB.instance();
+        const config = await ConfigHandler.loadConfig();
         const now = Date.now();
 
-        // Get all enabled monitors that are not paused
-        const monitors = await db.select().from(DB.Tables.monitors)
-            .where(and(
-                eq(DB.Tables.monitors.is_enabled, true),
-                eq(DB.Tables.monitors.is_paused, false)
-            ));
+        const allMonitors = await DB.instance().select().from(DB.Tables.monitors);
+        // Paused monitors keep their history but are not checked.
+        const active = allMonitors.filter((monitor) => monitor.is_enabled && !monitor.is_paused);
 
-        let checkedCount = 0;
-
-        for (const monitor of monitors) {
+        const latest = await MonitorStats.getLatestChecks(active.map((monitor) => monitor.id));
+        const due = active.filter((monitor) => {
             const intervalMs = (monitor.interval_seconds ?? 60) * 1000;
+            return now - (latest.get(monitor.id)?.checked_at ?? 0) >= intervalMs;
+        });
 
-            // Get the latest check timestamp for this monitor
-            const lastCheck = await db.select()
-                .from(DB.Tables.monitorStatusChecks)
-                .where(eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id))
-                .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at))
-                .get();
+        const results = await mapWithConcurrency(due, MAX_PARALLEL_CHECKS, async (monitor) => ({
+            monitor_id: monitor.id,
+            ...await performMonitorCheck(monitor),
+        }));
 
-            const lastCheckTime = lastCheck?.checked_at ?? 0;
+        await MonitorStats.recordChecks(results);
 
-            // Only check if enough time has passed since the last check
-            if (now - lastCheckTime >= intervalMs) {
-                const result = await performMonitorCheck(monitor as any);
-                await db.insert(DB.Tables.monitorStatusChecks).values({
-                    monitor_id: monitor.id,
-                    status: result.status,
-                    response_time_ms: result.response_time_ms,
-                }).run();
-                checkedCount++;
-            }
+        const retentionDays = ConfigHandler.getCheckRetentionDays(config);
+        if (retentionDays > 0 && allMonitors.length > 0) {
+            await MonitorStats.pruneRawChecks(allMonitors.map((monitor) => monitor.id), retentionDays);
         }
 
-        return { result: { checked: checkedCount } };
+        return { result: { checked: results.length } };
     },
 });

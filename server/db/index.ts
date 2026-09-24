@@ -7,6 +7,7 @@ import { migrate as migrateD1 } from 'drizzle-orm/d1/migrator';
 import { migrate as migrateBunSQLite } from 'drizzle-orm/bun-sqlite/migrator';
 import { D1Database } from '@cloudflare/workers-types';
 import { DrizzleDB } from './utils';
+import type { BatchItem, BatchResponse } from 'drizzle-orm/batch';
 import { Runtime } from '../utils/runtime';
 
 export class DB {
@@ -64,7 +65,8 @@ export class DB {
         const createdAdmin = await this.db.insert(DB.Tables.users).values({
             username,
             email: "admin@app.local",
-            password_hash: await Runtime.Password.hashPassword(Runtime.Crypto.randomBytesHex(32)),
+            // No usable password until it is set via the reset link below.
+            password_hash: Runtime.Password.NO_PASSWORD,
             display_name: "Default Administrator",
             role: "admin"
         }).returning().get();
@@ -108,6 +110,27 @@ export class DB {
         return DB.db;
     }
 
+    /**
+     * Run several queries in one round-trip where the driver supports it.
+     *
+     * - **D1**: a single `batch()` call — one subrequest on Workers (which
+     *   matters for the per-invocation subrequest limit), executed atomically.
+     * - **bun:sqlite**: the queries run one after another on the local file.
+     *
+     * Results are returned in the same order as the queries.
+     */
+    static async batch<U extends BatchItem<'sqlite'>, T extends Readonly<[U, ...U[]]>>(queries: T): Promise<BatchResponse<T>> {
+        const db = this.instance();
+        if (this.dbType === "d1") {
+            return await (db as DrizzleDB.D1).batch(queries);
+        }
+        const results: unknown[] = [];
+        for (const query of queries) {
+            results.push(await query);
+        }
+        return results as BatchResponse<T>;
+    }
+
     static async close() {
         if (!this.db) return;
 
@@ -132,6 +155,7 @@ export namespace DB.Tables {
 
     export const monitors = TableSchema.monitors;
     export const monitorStatusChecks = TableSchema.monitorStatusChecks;
+    export const monitorDailyStats = TableSchema.monitorDailyStats;
 
     export const monitorGroups = TableSchema.monitorGroups;
     export const monitorGroupAssignments = TableSchema.monitorGroupAssignments;
@@ -155,6 +179,7 @@ export namespace DB.Models {
 
     export type Monitor = typeof DB.Tables.monitors.$inferSelect;
     export type MonitorStatusCheck = typeof DB.Tables.monitorStatusChecks.$inferSelect;
+    export type MonitorDailyStats = typeof DB.Tables.monitorDailyStats.$inferSelect;
 
     export type MonitorGroup = typeof DB.Tables.monitorGroups.$inferSelect;
     export type MonitorGroupAssignment = typeof DB.Tables.monitorGroupAssignments.$inferSelect;

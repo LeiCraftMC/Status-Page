@@ -29,6 +29,13 @@
       "when": 1790266205901,
       "tag": "0003_parented_updates",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1790277196725,
+      "tag": "0004_monitor_daily_stats",
+      "breakpoints": true
     }
   ]
 }

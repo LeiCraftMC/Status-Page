@@ -39,10 +39,10 @@ const {
     return res.data
 })
 
-// Keep the page live: statuses refresh automatically while the tab is visible
-usePollingRefresh(async () => {
-    await Promise.all([refreshPage(), refreshHistory()])
-}, 30_000)
+// Keep the page live: statuses refresh automatically while the tab is visible.
+// The daily history bars change slowly, so they refresh less often.
+usePollingRefresh(refreshPage, 30_000)
+usePollingRefresh(refreshHistory, 5 * 60_000)
 
 watchEffect(() => {
     const page = pageDetails.value?.page

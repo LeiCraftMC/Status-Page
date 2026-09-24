@@ -101,15 +101,27 @@ bun run preview:cf     # build → migrate local D1 → wrangler dev on http://l
 Trigger the cron manually with
 `curl "http://localhost:8787/__scheduled?cron=*+*+*+*+*"`.
 
-## Limits to keep in mind
+## Running on the Workers Free plan
 
-| Limit | Impact |
+The app is built to fit the Free plan. What each limit means here:
+
+| Free-plan limit | How the app stays within it |
 |---|---|
-| **CPU time: 10 ms/request on the Free plan** | Login and password reset hash with PBKDF2 (600k iterations), which takes far more than 10 ms of CPU. **Use the Workers Paid plan** or those requests will fail. |
-| Subrequests per invocation: 50 (Free) / 1000 (Paid) | Each monitor check uses about 3 D1 queries plus 1 fetch/socket, so the Free plan handles roughly 12–15 monitors per cron run. |
-| Cron granularity: 1 minute | `interval_seconds` below 60 has no effect. |
-| In-memory rate limits | Login/reset rate limits are kept per Worker isolate, not globally, so they are weaker than on Bun. |
-| Worker size: 3 MB gzip (Free) / 10 MB (Paid) | The current build is ~0.8 MB gzip. |
+| **10 ms CPU per request** | Public API responses are cached for 30 s per isolate (`publicResponseCache`), and rendered public pages for 30 s (`swr` route rules, Cloudflare build only). History reads one pre-aggregated row per monitor and day instead of raw checks. Session tokens and API keys are verified with SHA-256 (they are 256-bit random values), so authenticated requests don't run a password hash. |
+| 10 ms CPU per request: **login, password reset/change** | These run PBKDF2-SHA256 with 600,000 iterations (OWASP's recommendation), about 150 ms of CPU. That is deliberately kept for security. Cloudflare allows occasional overruns ("each isolate has some built-in flexibility to allow for cases where your Worker infrequently runs over the configured limit"), and logins are infrequent. If they fail with error 1102, the Workers Paid plan removes the limit. |
+| 50 subrequests and 50 D1 queries per invocation | The cron uses 4 database round-trips (batched) plus one fetch per monitor, and checks at most 6 monitors at a time (the concurrent-connection limit), so up to about 45 monitors per run. |
+| **100,000 D1 rows written per day** | Each check writes about 5 rows (raw check + its index entry, the daily aggregate, and later deleting the raw check + index entry). That's roughly **13 monitors at a 60 s interval**, or 27 at 120 s. |
+| 5,000,000 D1 rows read per day | A public page view reads about 90 aggregate rows per monitor for its history, at most once per 30 s per isolate thanks to the cache. The history bars re-fetch every 5 minutes, the live status every 30 s. |
+| 100,000 requests per day | An open status page makes about 2 requests per minute while visible (polling pauses in hidden tabs). |
+| 500 MB database | Raw checks are kept for `LCCFWSP_CHECK_RETENTION_DAYS` (default 90; `0` keeps them forever). Uptime history and latency statistics come from the daily aggregates and are kept regardless. |
+
+Other limits:
+
+- Cron granularity is 1 minute, so `interval_seconds` below 60 has no effect.
+- Login/reset rate limits are kept per Worker isolate, not globally, so they are weaker than on Bun.
+- Worker size: the build is ~0.7 MB gzip (limit 3 MB on Free).
+
+To check real CPU usage after deploying, open **Workers → leicraftmc-status-page → Logs**: every invocation shows its CPU time.
 
 ## Troubleshooting
 
@@ -122,6 +134,13 @@ Trigger the cron manually with
 - **`D1 binding "DB" not found`**: `nitro.cloudflare.wrangler.d1_databases`
   is missing or the binding isn't named `DB`.
 - **`wrangler dev` hangs**: it's running under Bun; use Node ≥ 22.
+
+## Why Workers and not Pages
+
+Nuxt's `cloudflare_pages` preset would also deploy the app, but Pages Functions
+don't support **cron triggers**, and the monitor checks run from a cron.
+Cloudflare also recommends Workers with static assets for new projects; Pages
+is not getting new features. The `cloudflare_module` preset builds for Workers.
 
 ## Differences from the Bun deployment
 

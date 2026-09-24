@@ -4,6 +4,7 @@ import { Logger } from '../utils/logger'
 import { DB } from '../db'
 import { API } from '../lib/api'
 import { Runtime } from '../utils/runtime'
+import { MonitorStats } from '../utils/monitor-stats'
 import type { D1Database } from '@cloudflare/workers-types'
 
 async function initialize() {
@@ -29,6 +30,17 @@ async function initialize() {
 		config.LCCFWSP_DB_AUTO_MIGRATE,
 		config.LCCFWSP_CONFIG_BASE_DIR
 	)
+
+	if (!Runtime.isCloudflare) {
+		// Installations upgraded from a version without daily aggregates get them
+		// built once from their raw checks. Skipped on Workers: a D1 database is
+		// always created with the aggregate table, and a large backfill would not
+		// fit in a request's CPU budget.
+		const backfilled = await MonitorStats.backfillDailyStatsIfEmpty()
+		if (backfilled > 0) {
+			Logger.info(`Built daily monitor statistics from ${backfilled} existing status checks.`)
+		}
+	}
 
 	await API.init(config.LCCFWSP_API_DISABLE_DOCS === true)
 }

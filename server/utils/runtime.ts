@@ -247,6 +247,24 @@ export namespace Runtime.Crypto {
 		return crypto.randomUUID();
 	}
 
+	/**
+	 * Compare two strings in time independent of where they differ (it still
+	 * depends on their lengths). Use for secrets such as token hashes.
+	 */
+	export function timingSafeEqual(a: string, b: string): boolean {
+		const encoder = new TextEncoder();
+		const aBytes = encoder.encode(a);
+		const bBytes = encoder.encode(b);
+		if (aBytes.length !== bBytes.length) {
+			return false;
+		}
+		let result = 0;
+		for (let i = 0; i < aBytes.length; i++) {
+			result |= aBytes[i]! ^ bBytes[i]!;
+		}
+		return result === 0;
+	}
+
 	// ---------------------------------------------------------------------------
 	// Internal helpers
 	// ---------------------------------------------------------------------------
@@ -282,6 +300,12 @@ export namespace Runtime.Password {
 	/** Prefix for the Web Crypto hash format. */
 	const PBKDF2_PREFIX = '$pbkdf2-sha256';
 
+	/**
+	 * Stored instead of a hash for accounts that have no password yet (e.g. the
+	 * initial admin, who sets one via a reset link). Never matches any password.
+	 */
+	export const NO_PASSWORD = '!';
+
 	// ---------------------------------------------------------------------------
 	// Public API
 	// ---------------------------------------------------------------------------
@@ -307,6 +331,9 @@ export namespace Runtime.Password {
 	 * - `$pbkdf2-sha256$...` → Web Crypto PBKDF2 format
 	 */
 	export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+		if (hash === NO_PASSWORD) {
+			return false;
+		}
 		if (hash.startsWith(PBKDF2_PREFIX)) {
 			return verifyPasswordWithWebCrypto(password, hash);
 		}

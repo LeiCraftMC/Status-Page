@@ -41,10 +41,10 @@ const {
     return res.data
 })
 
-// Keep the page live while the tab is visible
-usePollingRefresh(async () => {
-    await Promise.all([refreshMonitor(), refreshHistory()])
-}, 30_000)
+// Keep the page live while the tab is visible. The daily history and latency
+// statistics change slowly, so they refresh less often.
+usePollingRefresh(refreshMonitor, 30_000)
+usePollingRefresh(refreshHistory, 5 * 60_000)
 
 const monitor = computed(() => monitorDetails.value?.monitor)
 const displayName = computed(() => monitorDetails.value?.display_name || monitor.value?.name || 'Monitor')
