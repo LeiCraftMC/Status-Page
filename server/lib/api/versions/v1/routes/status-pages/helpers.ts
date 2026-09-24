@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, inArray } from "drizzle-orm";
+import { eq, and, gte, lte, inArray, desc } from "drizzle-orm";
 import { DB } from "../../../../../../db";
 import { StatusPageAdminModel, StatusPagesReadModel } from "./model";
 
@@ -322,5 +322,118 @@ export async function buildMonitorHistory(
         start_date: formatISODate(startDate),
         end_date: formatISODate(endDate),
         monitors,
+    };
+}
+
+/**
+ * Detailed daily history for a single monitor, including response-time
+ * aggregation (per-day averages plus overall min/avg/max/p95) and the most
+ * recent checks. Used by the public monitor detail page.
+ */
+export async function buildSingleMonitorHistory(
+    days: number,
+    monitor: { id: number }
+): Promise<StatusPagesReadModel.GetPublicMonitorHistory.Response> {
+    const now = Date.now();
+    const endDate = endOfDayUTC(now);
+    const startDate = startOfDayUTC(now - (days - 1) * 24 * 60 * 60 * 1000);
+
+    const bucketsByDate = new Map<string, { start: number; end: number }>();
+    for (let d = 0; d < days; d++) {
+        const dayStart = startDate + d * 24 * 60 * 60 * 1000;
+        bucketsByDate.set(formatISODate(dayStart), { start: dayStart, end: endOfDayUTC(dayStart) });
+    }
+
+    const checks = await DB.instance()
+        .select()
+        .from(DB.Tables.monitorStatusChecks)
+        .where(
+            and(
+                eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id),
+                gte(DB.Tables.monitorStatusChecks.checked_at, startDate),
+                lte(DB.Tables.monitorStatusChecks.checked_at, endDate)
+            )
+        );
+
+    const statusRank: Record<StatusPagesReadModel.HistoryStatus, number> = {
+        up: 0,
+        unknown: 1,
+        degraded: 2,
+        down: 3,
+    };
+
+    const checksByDate = new Map<string, typeof checks>();
+    let totalUp = 0;
+    let totalKnown = 0;
+
+    for (const check of checks) {
+        const dateKey = formatISODate(check.checked_at ?? 0);
+        if (!bucketsByDate.has(dateKey)) continue;
+        if (!checksByDate.has(dateKey)) {
+            checksByDate.set(dateKey, []);
+        }
+        checksByDate.get(dateKey)!.push(check);
+        if (check.status === 'up') totalUp++;
+        if (check.status !== 'unknown') totalKnown++;
+    }
+
+    const buckets: StatusPagesReadModel.GetPublicMonitorHistory.LatencyBucket[] = [];
+    for (const [dateKey] of bucketsByDate) {
+        const list = checksByDate.get(dateKey) ?? [];
+
+        let worst: StatusPagesReadModel.HistoryStatus = 'up';
+        for (const check of list) {
+            if (statusRank[check.status] > statusRank[worst]) {
+                worst = check.status;
+            }
+        }
+
+        const upCount = list.filter((c) => c.status === 'up').length;
+        const knownCount = list.filter((c) => c.status !== 'unknown').length;
+        const times = list.map((c) => c.response_time_ms).filter((t): t is number => t != null);
+
+        buckets.push({
+            date: dateKey,
+            status: list.length === 0 ? 'unknown' : worst,
+            uptime_percentage: knownCount > 0 ? Math.round((upCount / knownCount) * 1000) / 10 : 0,
+            total_checks: list.length,
+            avg_response_time_ms: times.length > 0
+                ? Math.round(times.reduce((a, b) => a + b, 0) / times.length)
+                : null,
+        });
+    }
+
+    buckets.sort((a, b) => a.date.localeCompare(b.date));
+
+    const allTimes = checks.map((c) => c.response_time_ms).filter((t): t is number => t != null);
+    const sortedTimes = [...allTimes].sort((a, b) => a - b);
+
+    const p95 = sortedTimes.length > 0
+        ? sortedTimes[Math.min(sortedTimes.length - 1, Math.ceil(sortedTimes.length * 0.95) - 1)]
+        : null;
+
+    const recentChecks = await DB.instance()
+        .select()
+        .from(DB.Tables.monitorStatusChecks)
+        .where(eq(DB.Tables.monitorStatusChecks.monitor_id, monitor.id))
+        .orderBy(desc(DB.Tables.monitorStatusChecks.checked_at))
+        .limit(30);
+
+    return {
+        days,
+        start_date: formatISODate(startDate),
+        end_date: formatISODate(endDate),
+        uptime_percentage: totalKnown > 0 ? Math.round((totalUp / totalKnown) * 1000) / 10 : 0,
+        total_checks: checks.length,
+        latency: {
+            avg_response_time_ms: allTimes.length > 0
+                ? Math.round(allTimes.reduce((a, b) => a + b, 0) / allTimes.length)
+                : null,
+            min_response_time_ms: sortedTimes[0] ?? null,
+            max_response_time_ms: sortedTimes[sortedTimes.length - 1] ?? null,
+            p95_response_time_ms: p95,
+        },
+        buckets,
+        recent_checks: recentChecks,
     };
 }

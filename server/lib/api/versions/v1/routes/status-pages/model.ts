@@ -14,6 +14,7 @@ export namespace StatusPagesReadModel {
         target: z.string(),
         display_name: z.string().nullable(),
         sort_order: z.number(),
+        is_paused: z.boolean(),
         latest_check: z.object({
             status: z.enum(['up', 'down', 'degraded', 'unknown']),
             response_time_ms: z.number().nullable(),
@@ -42,6 +43,9 @@ export namespace StatusPagesReadModel {
         export type Response = z.infer<typeof Response>;
     }
 
+    export const HistoryStatus = z.enum(['up', 'down', 'degraded', 'unknown']);
+    export type HistoryStatus = z.infer<typeof HistoryStatus>;
+
     export namespace GetPublicMonitor {
         export const Params = z.object({
             monitorId: z.coerce.number().int().positive(),
@@ -50,13 +54,52 @@ export namespace StatusPagesReadModel {
 
         export const Response = z.object({
             monitor: createSelectSchema(DB.Tables.monitors),
+            display_name: z.string().nullable(),
             latest_check: createSelectSchema(DB.Tables.monitorStatusChecks).nullable(),
         });
         export type Response = z.infer<typeof Response>;
     }
 
-    export const HistoryStatus = z.enum(['up', 'down', 'degraded', 'unknown']);
-    export type HistoryStatus = z.infer<typeof HistoryStatus>;
+    export namespace GetPublicMonitorHistory {
+        export const Params = z.object({
+            monitorId: z.coerce.number().int().positive(),
+        });
+        export type Params = z.infer<typeof Params>;
+
+        export const Query = z.object({
+            days: z.coerce.number().int().min(1).max(365).optional().default(90),
+        });
+        export type Query = z.infer<typeof Query>;
+
+        export const LatencyStats = z.object({
+            avg_response_time_ms: z.number().nullable(),
+            min_response_time_ms: z.number().nullable(),
+            max_response_time_ms: z.number().nullable(),
+            p95_response_time_ms: z.number().nullable(),
+        });
+        export type LatencyStats = z.infer<typeof LatencyStats>;
+
+        export const LatencyBucket = z.object({
+            date: z.string(),
+            status: HistoryStatus,
+            uptime_percentage: z.number().min(0).max(100),
+            total_checks: z.number().int(),
+            avg_response_time_ms: z.number().nullable(),
+        });
+        export type LatencyBucket = z.infer<typeof LatencyBucket>;
+
+        export const Response = z.object({
+            days: z.number().int(),
+            start_date: z.string(),
+            end_date: z.string(),
+            uptime_percentage: z.number().min(0).max(100),
+            total_checks: z.number().int(),
+            latency: LatencyStats,
+            buckets: z.array(LatencyBucket),
+            recent_checks: z.array(createSelectSchema(DB.Tables.monitorStatusChecks)),
+        });
+        export type Response = z.infer<typeof Response>;
+    }
 
     export const HistoryBucket = z.object({
         date: z.string(),

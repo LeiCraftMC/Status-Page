@@ -66,10 +66,11 @@ const monitorCounts = computed(() => {
     const list = monitors.value || []
     return {
         total: list.length,
-        up: list.filter(m => m.latest_check?.status === 'up').length,
-        down: list.filter(m => m.latest_check?.status === 'down').length,
-        degraded: list.filter(m => m.latest_check?.status === 'degraded').length,
-        unknown: list.filter(m => !m.latest_check || m.latest_check.status === 'unknown').length
+        paused: list.filter(m => m.is_paused).length,
+        up: list.filter(m => !m.is_paused && m.latest_check?.status === 'up').length,
+        down: list.filter(m => !m.is_paused && m.latest_check?.status === 'down').length,
+        degraded: list.filter(m => !m.is_paused && m.latest_check?.status === 'degraded').length,
+        unknown: list.filter(m => !m.is_paused && (!m.latest_check || m.latest_check.status === 'unknown')).length
     }
 })
 
@@ -79,9 +80,11 @@ const pageOverallStatus = computed(() => {
         ...statusPage.value.groups.flatMap((g: any) => g.monitors),
         ...statusPage.value.ungrouped
     ]
-    if (all.some((m: any) => m.latest_check?.status === 'down')) return 'down'
-    if (all.some((m: any) => m.latest_check?.status === 'degraded')) return 'degraded'
-    if (all.every((m: any) => m.latest_check?.status === 'up')) return 'up'
+    // Paused monitors do not affect the overall status
+    const active = all.filter((m: any) => !m.is_paused)
+    if (active.some((m: any) => m.latest_check?.status === 'down')) return 'down'
+    if (active.some((m: any) => m.latest_check?.status === 'degraded')) return 'degraded'
+    if (active.length > 0 && active.every((m: any) => m.latest_check?.status === 'up')) return 'up'
     return 'unknown'
 })
 
@@ -169,11 +172,11 @@ function refreshAll() {
                         <UCard class="border-slate-800 bg-slate-900/60">
                             <div class="flex items-center gap-3">
                                 <div class="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                    <UIcon name="i-lucide-alert-triangle" class="size-5 text-amber-400" />
+                                    <UIcon name="i-lucide-pause-circle" class="size-5 text-amber-400" />
                                 </div>
                                 <div>
-                                    <p class="text-2xl font-bold text-white">{{ monitorCounts.degraded }}</p>
-                                    <p class="text-sm text-slate-400">Degraded</p>
+                                    <p class="text-2xl font-bold text-white">{{ monitorCounts.paused }}</p>
+                                    <p class="text-sm text-slate-400">Paused</p>
                                 </div>
                             </div>
                         </UCard>

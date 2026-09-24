@@ -53,6 +53,8 @@ export function getStatusIcon(status: string | null | undefined): string {
             return 'i-lucide-x-circle';
         case 'degraded':
             return 'i-lucide-alert-triangle';
+        case 'paused':
+            return 'i-lucide-pause-circle';
         default:
             return 'i-lucide-help-circle';
     }

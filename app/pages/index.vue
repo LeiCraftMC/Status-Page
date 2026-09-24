@@ -17,7 +17,8 @@ useSeoMeta({
 
 const {
     data: pageDetails,
-    pending: loading
+    pending: loading,
+    refresh: refreshPage
 } = await useLazyAsyncData<PublicPage | null>('public-status-page', async () => {
     const res = await useAPI((api) => api.getPublicStatusPage({}), true)
     if (!res.success) {
@@ -28,7 +29,8 @@ const {
 
 const {
     data: history,
-    pending: historyLoading
+    pending: historyLoading,
+    refresh: refreshHistory
 } = await useLazyAsyncData<PublicHistory | null>('public-status-page-history', async () => {
     const res = await useAPI((api) => api.getPublicStatusPageHistory({ query: { days: 90 } }), true)
     if (!res.success) {
@@ -36,6 +38,11 @@ const {
     }
     return res.data
 })
+
+// Keep the page live: statuses refresh automatically while the tab is visible
+usePollingRefresh(async () => {
+    await Promise.all([refreshPage(), refreshHistory()])
+}, 30_000)
 
 watchEffect(() => {
     const page = pageDetails.value?.page
@@ -50,9 +57,11 @@ const overallStatus = computed(() => {
         ...pageDetails.value.groups.flatMap((g: any) => g.monitors),
         ...pageDetails.value.ungrouped
     ]
-    if (all.some((m: any) => m.latest_check?.status === 'down')) return 'down'
-    if (all.some((m: any) => m.latest_check?.status === 'degraded')) return 'degraded'
-    if (all.every((m: any) => m.latest_check?.status === 'up')) return 'up'
+    // Paused monitors do not affect the overall status
+    const active = all.filter((m: any) => !m.is_paused)
+    if (active.some((m: any) => m.latest_check?.status === 'down')) return 'down'
+    if (active.some((m: any) => m.latest_check?.status === 'degraded')) return 'degraded'
+    if (active.length > 0 && active.every((m: any) => m.latest_check?.status === 'up')) return 'up'
     return 'unknown'
 })
 
@@ -110,7 +119,13 @@ const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0,
                             <h1 class="text-2xl font-bold text-white">
                                 {{ overallStatus === 'up' ? 'All systems operational' : overallStatus === 'down' ? 'Major outage' : overallStatus === 'degraded' ? 'Partial degradation' : 'Status unknown' }}
                             </h1>
-                            <p class="text-slate-400">{{ pageDetails.page.title }}</p>
+                            <p class="text-slate-400 flex flex-wrap items-center gap-2">
+                                {{ pageDetails.page.title }}
+                                <span class="inline-flex items-center gap-1.5 rounded-full border border-slate-700 bg-slate-900/80 px-2 py-0.5 text-[10px] text-slate-400">
+                                    <span class="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                    Live
+                                </span>
+                            </p>
                         </div>
                     </div>
                 </div>

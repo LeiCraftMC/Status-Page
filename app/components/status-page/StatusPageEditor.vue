@@ -516,7 +516,7 @@ function confirmUnlinkLink() {
                                             >
                                                 {{ link.monitor.latest_check.response_time_ms }} ms
                                             </span>
-                                            <StatusBadge :status="link.monitor?.latest_check?.status" />
+                                            <StatusBadge :status="link.monitor?.is_paused ? 'paused' : link.monitor?.latest_check?.status" />
                                             <UButton
                                                 icon="i-lucide-pencil"
                                                 color="neutral"

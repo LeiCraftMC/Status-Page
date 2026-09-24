@@ -99,6 +99,11 @@ function getMonitorOptionsDropdownItems(row: { original: Monitor }): DropdownMen
                 label: 'Check now',
                 icon: 'i-lucide-activity',
                 onSelect: () => runCheck(row.original)
+            },
+            {
+                label: row.original.is_paused ? 'Resume checks' : 'Pause checks',
+                icon: row.original.is_paused ? 'i-lucide-play' : 'i-lucide-pause',
+                onSelect: () => togglePause(row.original)
             }
         ])
         items.push([
@@ -157,6 +162,25 @@ async function submitEdit() {
     if (res.success) {
         toast.add({ title: 'Monitor updated', color: 'success' })
         showEditModal.value = false
+        await refresh()
+    } else {
+        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
+    }
+}
+
+async function togglePause(monitor: Monitor) {
+    const res = monitor.is_paused
+        ? await useAPI((api) => api.postMonitorsByMonitorIdResume({ path: { monitorId: monitor.id } }))
+        : await useAPI((api) => api.postMonitorsByMonitorIdPause({ path: { monitorId: monitor.id } }))
+
+    if (res.success) {
+        toast.add({
+            title: monitor.is_paused ? 'Monitor resumed' : 'Monitor paused',
+            description: monitor.is_paused
+                ? 'The scheduler will check this monitor again.'
+                : 'The scheduler skips this monitor, but it stays visible on the public status page.',
+            color: 'success'
+        })
         await refresh()
     } else {
         toast.add({ title: 'Update failed', description: res.message, color: 'error' })
@@ -252,8 +276,17 @@ async function onDeleteMonitor() {
                     </template>
 
                     <template #enabled-cell="{ row }">
-                        <UBadge :color="row.original.is_enabled ? 'success' : 'neutral'" variant="soft">
-                            {{ row.original.is_enabled ? 'Enabled' : 'Disabled' }}
+                        <UBadge
+                            :color="row.original.is_paused ? 'warning' : row.original.is_enabled ? 'success' : 'neutral'"
+                            variant="soft"
+                        >
+                            <template #leading>
+                                <UIcon
+                                    :name="row.original.is_paused ? 'i-lucide-pause' : undefined"
+                                    class="size-3.5"
+                                />
+                            </template>
+                            {{ row.original.is_paused ? 'Paused' : row.original.is_enabled ? 'Enabled' : 'Disabled' }}
                         </UBadge>
                     </template>
 

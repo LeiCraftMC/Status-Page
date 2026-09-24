@@ -119,4 +119,9 @@ export namespace MonitorsModel {
         });
         export type Response = z.infer<typeof Response>;
     }
+
+    export namespace Pause {
+        export const Response = BaseMonitor;
+        export type Response = z.infer<typeof Response>;
+    }
 }

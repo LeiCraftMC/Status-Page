@@ -48,6 +48,20 @@ const checking = ref(false)
 
 const overallStatus = computed(() => monitor.value?.latest_check?.status ?? 'unknown')
 
+async function togglePause() {
+    if (!monitor.value) return
+    const isPaused = monitor.value.is_paused
+    const res = isPaused
+        ? await useAPI((api) => api.postMonitorsByMonitorIdResume({ path: { monitorId } }))
+        : await useAPI((api) => api.postMonitorsByMonitorIdPause({ path: { monitorId } }))
+    if (res.success) {
+        toast.add({ title: isPaused ? 'Monitor resumed' : 'Monitor paused', color: 'success' })
+        await refresh()
+    } else {
+        toast.add({ title: 'Update failed', description: res.message, color: 'error' })
+    }
+}
+
 async function runCheck() {
     if (!monitor.value) return
     checking.value = true
@@ -87,7 +101,15 @@ async function runCheck() {
                 </div>
 
                 <div v-else class="space-y-6">
-                    <div class="flex justify-end">
+                    <div class="flex justify-end gap-2">
+                        <UButton
+                            v-if="isAdmin"
+                            :icon="monitor.is_paused ? 'i-lucide-play' : 'i-lucide-pause'"
+                            :label="monitor.is_paused ? 'Resume checks' : 'Pause checks'"
+                            color="neutral"
+                            variant="soft"
+                            @click="togglePause"
+                        />
                         <UButton
                             v-if="isAdmin"
                             icon="i-lucide-activity"
@@ -101,7 +123,7 @@ async function runCheck() {
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                             <div>
                                 <p class="text-sm text-slate-400">Status</p>
-                                <StatusBadge :status="overallStatus" />
+                                <StatusBadge :status="monitor.is_paused ? 'paused' : overallStatus" />
                             </div>
                             <div>
                                 <p class="text-sm text-slate-400">Type</p>

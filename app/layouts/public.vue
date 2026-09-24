@@ -2,6 +2,15 @@
 import Header from '~/components/layout/Header.vue';
 import Footer from '~/components/layout/Footer.vue';
 
+// Atom feed discoverable from every public page
+useHead({
+    link: [{
+        rel: 'alternate',
+        type: 'application/atom+xml',
+        title: 'LeiCraft_MC Status Feed',
+        href: '/api/v1/public/status-page/feed'
+    }]
+})
 </script>
 
 <template>

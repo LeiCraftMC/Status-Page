@@ -1,5 +1,5 @@
 import { defineTask } from "nitropack/runtime";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, and } from "drizzle-orm";
 import { DB } from "../db";
 import { performMonitorCheck } from "../utils/monitor-checker";
 
@@ -25,9 +25,12 @@ export default defineTask({
         const db = DB.instance();
         const now = Date.now();
 
-        // Get all enabled monitors
+        // Get all enabled monitors that are not paused
         const monitors = await db.select().from(DB.Tables.monitors)
-            .where(eq(DB.Tables.monitors.is_enabled, true));
+            .where(and(
+                eq(DB.Tables.monitors.is_enabled, true),
+                eq(DB.Tables.monitors.is_paused, false)
+            ));
 
         let checkedCount = 0;
 

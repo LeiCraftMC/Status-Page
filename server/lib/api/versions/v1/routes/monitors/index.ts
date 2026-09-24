@@ -317,4 +317,64 @@ router.post('/:monitorId/check',
     }
 );
 
+// Shared handler for pause/resume — a paused monitor stays visible on the public
+// status page (shown as "paused") but the scheduler skips its checks.
+async function setPaused(c: any, isPaused: boolean) {
+    const monitor = c.get(TARGET_MONITOR_KEY) as MonitorsModel.BaseMonitor;
+
+    await DB.instance().update(DB.Tables.monitors).set({
+        is_paused: isPaused,
+    }).where(
+        eq(DB.Tables.monitors.id, monitor.id)
+    ).run();
+
+    const refreshed = await DB.instance().select().from(DB.Tables.monitors).where(
+        eq(DB.Tables.monitors.id, monitor.id)
+    ).get();
+
+    if (!refreshed) {
+        throw new Error("Monitor not found after update");
+    }
+
+    return APIResponse.success(
+        c,
+        isPaused ? "Monitor paused successfully" : "Monitor resumed successfully",
+        refreshed
+    );
+}
+
+router.post('/:monitorId/pause',
+    adminOnly,
+    APIRouteSpec.authenticated({
+        summary: "Pause monitor",
+        description: "Pause a monitor. Paused monitors keep their history and stay visible on the public status page, but the scheduler skips their checks. Admin only.",
+        tags: [DOCS_TAGS.MONITORS],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Monitor paused successfully", MonitorsModel.Pause.Response),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Monitor not found")
+        )
+    }),
+    async (c) => setPaused(c, true)
+);
+
+router.post('/:monitorId/resume',
+    adminOnly,
+    APIRouteSpec.authenticated({
+        summary: "Resume monitor",
+        description: "Resume a paused monitor so the scheduler checks it again. Admin only.",
+        tags: [DOCS_TAGS.MONITORS],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Monitor resumed successfully", MonitorsModel.Pause.Response),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Monitor not found")
+        )
+    }),
+    async (c) => setPaused(c, false)
+);
+
 export { router };

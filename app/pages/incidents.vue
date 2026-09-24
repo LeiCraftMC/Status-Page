@@ -13,7 +13,8 @@ useSeoMeta({
 
 const {
     data: incidents,
-    pending: loading
+    pending: loading,
+    refresh: refreshIncidents
 } = await useLazyAsyncData<Incident[]>('public-incidents', async () => {
     const res = await useAPI((api) => api.getPublicStatusPageIncidents({}), true)
     if (!res.success) {
@@ -21,6 +22,9 @@ const {
     }
     return res.data
 })
+
+// Keep the page live while the tab is visible
+usePollingRefresh(refreshIncidents, 60_000)
 
 const activeIncidents = computed(() => (incidents.value || []).filter(i => !i.is_resolved))
 const resolvedIncidents = computed(() => (incidents.value || []).filter(i => i.is_resolved))

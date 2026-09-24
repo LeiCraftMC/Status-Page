@@ -1005,6 +1005,7 @@ export type GetMonitorsResponses = {
             follow_redirects: boolean;
             verify_tls: boolean;
             is_enabled: boolean;
+            is_paused: boolean;
             created_at: number;
             latest_check: {
                 status: 'up' | 'down' | 'degraded' | 'unknown';
@@ -1029,6 +1030,7 @@ export type PostMonitorsData = {
         follow_redirects?: boolean;
         verify_tls?: boolean;
         is_enabled?: boolean;
+        is_paused?: boolean;
     };
     path?: never;
     query?: never;
@@ -1092,6 +1094,7 @@ export type PostMonitorsResponses = {
             follow_redirects: boolean;
             verify_tls: boolean;
             is_enabled: boolean;
+            is_paused: boolean;
             created_at: number;
         };
     };
@@ -1201,6 +1204,7 @@ export type GetMonitorsByMonitorIdResponses = {
             follow_redirects: boolean;
             verify_tls: boolean;
             is_enabled: boolean;
+            is_paused: boolean;
             created_at: number;
             latest_check: {
                 status: 'up' | 'down' | 'degraded' | 'unknown';
@@ -1232,6 +1236,7 @@ export type PutMonitorsByMonitorIdData = {
         follow_redirects?: boolean;
         verify_tls?: boolean;
         is_enabled?: boolean;
+        is_paused?: boolean;
     };
     path: {
         monitorId: number;
@@ -1305,6 +1310,7 @@ export type PutMonitorsByMonitorIdResponses = {
             follow_redirects: boolean;
             verify_tls: boolean;
             is_enabled: boolean;
+            is_paused: boolean;
             created_at: number;
         };
     };
@@ -1371,6 +1377,138 @@ export type PostMonitorsByMonitorIdCheckResponses = {
 };
 
 export type PostMonitorsByMonitorIdCheckResponse = PostMonitorsByMonitorIdCheckResponses[keyof PostMonitorsByMonitorIdCheckResponses];
+
+export type PostMonitorsByMonitorIdPauseData = {
+    body?: never;
+    path: {
+        monitorId: number;
+    };
+    query?: never;
+    url: '/monitors/{monitorId}/pause';
+};
+
+export type PostMonitorsByMonitorIdPauseErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Monitor not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Monitor not found';
+    };
+};
+
+export type PostMonitorsByMonitorIdPauseError = PostMonitorsByMonitorIdPauseErrors[keyof PostMonitorsByMonitorIdPauseErrors];
+
+export type PostMonitorsByMonitorIdPauseResponses = {
+    /**
+     * Monitor paused successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Monitor paused successfully';
+        data: {
+            id: number;
+            name: string;
+            type: 'http' | 'tcp';
+            target: string;
+            interval_seconds: number;
+            timeout_seconds: number;
+            http_method: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | null;
+            expected_http_status: number | null;
+            follow_redirects: boolean;
+            verify_tls: boolean;
+            is_enabled: boolean;
+            is_paused: boolean;
+            created_at: number;
+        };
+    };
+};
+
+export type PostMonitorsByMonitorIdPauseResponse = PostMonitorsByMonitorIdPauseResponses[keyof PostMonitorsByMonitorIdPauseResponses];
+
+export type PostMonitorsByMonitorIdResumeData = {
+    body?: never;
+    path: {
+        monitorId: number;
+    };
+    query?: never;
+    url: '/monitors/{monitorId}/resume';
+};
+
+export type PostMonitorsByMonitorIdResumeErrors = {
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+    /**
+     * Monitor not found
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Monitor not found';
+    };
+};
+
+export type PostMonitorsByMonitorIdResumeError = PostMonitorsByMonitorIdResumeErrors[keyof PostMonitorsByMonitorIdResumeErrors];
+
+export type PostMonitorsByMonitorIdResumeResponses = {
+    /**
+     * Monitor resumed successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Monitor resumed successfully';
+        data: {
+            id: number;
+            name: string;
+            type: 'http' | 'tcp';
+            target: string;
+            interval_seconds: number;
+            timeout_seconds: number;
+            http_method: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS' | null;
+            expected_http_status: number | null;
+            follow_redirects: boolean;
+            verify_tls: boolean;
+            is_enabled: boolean;
+            is_paused: boolean;
+            created_at: number;
+        };
+    };
+};
+
+export type PostMonitorsByMonitorIdResumeResponse = PostMonitorsByMonitorIdResumeResponses[keyof PostMonitorsByMonitorIdResumeResponses];
 
 export type GetStatusPageIncidentsData = {
     body?: never;
@@ -2122,6 +2260,7 @@ export type GetStatusPageResponses = {
                     target: string;
                     display_name: string | null;
                     sort_order: number;
+                    is_paused: boolean;
                     latest_check: {
                         status: 'up' | 'down' | 'degraded' | 'unknown';
                         response_time_ms: number | null;
@@ -2136,6 +2275,7 @@ export type GetStatusPageResponses = {
                 target: string;
                 display_name: string | null;
                 sort_order: number;
+                is_paused: boolean;
                 latest_check: {
                     status: 'up' | 'down' | 'degraded' | 'unknown';
                     response_time_ms: number | null;
@@ -2984,6 +3124,7 @@ export type GetPublicStatusPageResponses = {
                     target: string;
                     display_name: string | null;
                     sort_order: number;
+                    is_paused: boolean;
                     latest_check: {
                         status: 'up' | 'down' | 'degraded' | 'unknown';
                         response_time_ms: number | null;
@@ -2998,6 +3139,7 @@ export type GetPublicStatusPageResponses = {
                 target: string;
                 display_name: string | null;
                 sort_order: number;
+                is_paused: boolean;
                 latest_check: {
                     status: 'up' | 'down' | 'degraded' | 'unknown';
                     response_time_ms: number | null;
@@ -3265,8 +3407,10 @@ export type GetPublicMonitorsByMonitorIdResponses = {
                 follow_redirects: boolean;
                 verify_tls: boolean;
                 is_enabled: boolean;
+                is_paused: boolean;
                 created_at: number;
             };
+            display_name: string | null;
             latest_check: {
                 id: number;
                 monitor_id: number;
@@ -3279,3 +3423,67 @@ export type GetPublicMonitorsByMonitorIdResponses = {
 };
 
 export type GetPublicMonitorsByMonitorIdResponse = GetPublicMonitorsByMonitorIdResponses[keyof GetPublicMonitorsByMonitorIdResponses];
+
+export type GetPublicMonitorsByMonitorIdHistoryData = {
+    body?: never;
+    path: {
+        monitorId: number;
+    };
+    query?: {
+        days?: number;
+    };
+    url: '/public/monitors/{monitorId}/history';
+};
+
+export type GetPublicMonitorsByMonitorIdHistoryErrors = {
+    /**
+     * Monitor not found or not publicly visible
+     */
+    404: {
+        success: false;
+        code: 404;
+        message: 'Monitor not found or not publicly visible';
+    };
+};
+
+export type GetPublicMonitorsByMonitorIdHistoryError = GetPublicMonitorsByMonitorIdHistoryErrors[keyof GetPublicMonitorsByMonitorIdHistoryErrors];
+
+export type GetPublicMonitorsByMonitorIdHistoryResponses = {
+    /**
+     * History retrieved successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'History retrieved successfully';
+        data: {
+            days: number;
+            start_date: string;
+            end_date: string;
+            uptime_percentage: number;
+            total_checks: number;
+            latency: {
+                avg_response_time_ms: number | null;
+                min_response_time_ms: number | null;
+                max_response_time_ms: number | null;
+                p95_response_time_ms: number | null;
+            };
+            buckets: Array<{
+                date: string;
+                status: 'up' | 'down' | 'degraded' | 'unknown';
+                uptime_percentage: number;
+                total_checks: number;
+                avg_response_time_ms: number | null;
+            }>;
+            recent_checks: Array<{
+                id: number;
+                monitor_id: number;
+                status: 'up' | 'down' | 'degraded' | 'unknown';
+                response_time_ms: number | null;
+                checked_at: number;
+            }>;
+        };
+    };
+};
+
+export type GetPublicMonitorsByMonitorIdHistoryResponse = GetPublicMonitorsByMonitorIdHistoryResponses[keyof GetPublicMonitorsByMonitorIdHistoryResponses];

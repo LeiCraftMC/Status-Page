@@ -13,7 +13,8 @@ useSeoMeta({
 
 const {
     data: maintenance,
-    pending: loading
+    pending: loading,
+    refresh: refreshMaintenance
 } = await useLazyAsyncData<Maintenance[]>('public-maintenance', async () => {
     const res = await useAPI((api) => api.getPublicStatusPageMaintenance({}), true)
     if (!res.success) {
@@ -21,6 +22,9 @@ const {
     }
     return res.data
 })
+
+// Keep the page live while the tab is visible
+usePollingRefresh(refreshMaintenance, 60_000)
 
 const upcoming = computed(() => (maintenance.value || []).filter(m => ['scheduled', 'in_progress'].includes(m.status)))
 const past = computed(() => (maintenance.value || []).filter(m => ['completed', 'cancelled'].includes(m.status)))

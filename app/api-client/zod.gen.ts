@@ -410,6 +410,7 @@ export const zGetMonitorsResponse = z.object({
         follow_redirects: z.boolean(),
         verify_tls: z.boolean(),
         is_enabled: z.boolean(),
+        is_paused: z.boolean(),
         created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
         latest_check: z.object({
             status: z.enum([
@@ -442,7 +443,8 @@ export const zPostMonitorsBody = z.object({
     expected_http_status: z.int().gte(100).lte(599).optional(),
     follow_redirects: z.boolean().optional(),
     verify_tls: z.boolean().optional(),
-    is_enabled: z.boolean().optional()
+    is_enabled: z.boolean().optional(),
+    is_paused: z.boolean().optional()
 });
 
 /**
@@ -472,6 +474,7 @@ export const zPostMonitorsResponse = z.object({
         follow_redirects: z.boolean(),
         verify_tls: z.boolean(),
         is_enabled: z.boolean(),
+        is_paused: z.boolean(),
         created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
     })
 });
@@ -521,6 +524,7 @@ export const zGetMonitorsByMonitorIdResponse = z.object({
         follow_redirects: z.boolean(),
         verify_tls: z.boolean(),
         is_enabled: z.boolean(),
+        is_paused: z.boolean(),
         created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
         latest_check: z.object({
             status: z.enum([
@@ -565,7 +569,8 @@ export const zPutMonitorsByMonitorIdBody = z.object({
     expected_http_status: z.int().gte(100).lte(599).nullish(),
     follow_redirects: z.boolean().optional(),
     verify_tls: z.boolean().optional(),
-    is_enabled: z.boolean().optional()
+    is_enabled: z.boolean().optional(),
+    is_paused: z.boolean().optional()
 });
 
 export const zPutMonitorsByMonitorIdPath = z.object({
@@ -599,6 +604,7 @@ export const zPutMonitorsByMonitorIdResponse = z.object({
         follow_redirects: z.boolean(),
         verify_tls: z.boolean(),
         is_enabled: z.boolean(),
+        is_paused: z.boolean(),
         created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
     })
 });
@@ -627,6 +633,78 @@ export const zPostMonitorsByMonitorIdCheckResponse = z.object({
             response_time_ms: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
             checked_at: z.int().gte(-9007199254740991).lte(9007199254740991)
         })
+    })
+});
+
+export const zPostMonitorsByMonitorIdPausePath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor paused successfully
+ */
+export const zPostMonitorsByMonitorIdPauseResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor paused successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        is_paused: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zPostMonitorsByMonitorIdResumePath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+/**
+ * Monitor resumed successfully
+ */
+export const zPostMonitorsByMonitorIdResumeResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitor resumed successfully'),
+    data: z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        name: z.string(),
+        type: z.enum(['http', 'tcp']),
+        target: z.string(),
+        interval_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        timeout_seconds: z.int().gte(-9007199254740991).lte(9007199254740991),
+        http_method: z.enum([
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS'
+        ]).nullable(),
+        expected_http_status: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        follow_redirects: z.boolean(),
+        verify_tls: z.boolean(),
+        is_enabled: z.boolean(),
+        is_paused: z.boolean(),
+        created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
     })
 });
 
@@ -1022,6 +1100,7 @@ export const zGetStatusPageResponse = z.object({
                 target: z.string(),
                 display_name: z.string().nullable(),
                 sort_order: z.number(),
+                is_paused: z.boolean(),
                 latest_check: z.object({
                     status: z.enum([
                         'up',
@@ -1041,6 +1120,7 @@ export const zGetStatusPageResponse = z.object({
             target: z.string(),
             display_name: z.string().nullable(),
             sort_order: z.number(),
+            is_paused: z.boolean(),
             latest_check: z.object({
                 status: z.enum([
                     'up',
@@ -1434,6 +1514,7 @@ export const zGetPublicStatusPageResponse = z.object({
                 target: z.string(),
                 display_name: z.string().nullable(),
                 sort_order: z.number(),
+                is_paused: z.boolean(),
                 latest_check: z.object({
                     status: z.enum([
                         'up',
@@ -1453,6 +1534,7 @@ export const zGetPublicStatusPageResponse = z.object({
             target: z.string(),
             display_name: z.string().nullable(),
             sort_order: z.number(),
+            is_paused: z.boolean(),
             latest_check: z.object({
                 status: z.enum([
                     'up',
@@ -1660,8 +1742,10 @@ export const zGetPublicMonitorsByMonitorIdResponse = z.object({
             follow_redirects: z.boolean(),
             verify_tls: z.boolean(),
             is_enabled: z.boolean(),
+            is_paused: z.boolean(),
             created_at: z.int().gte(-9007199254740991).lte(9007199254740991)
         }),
+        display_name: z.string().nullable(),
         latest_check: z.object({
             id: z.int().gte(-9007199254740991).lte(9007199254740991),
             monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
@@ -1674,5 +1758,59 @@ export const zGetPublicMonitorsByMonitorIdResponse = z.object({
             response_time_ms: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
             checked_at: z.int().gte(-9007199254740991).lte(9007199254740991)
         }).nullable()
+    })
+});
+
+export const zGetPublicMonitorsByMonitorIdHistoryPath = z.object({
+    monitorId: z.int().gt(0).lte(9007199254740991)
+});
+
+export const zGetPublicMonitorsByMonitorIdHistoryQuery = z.object({
+    days: z.int().gte(1).lte(365).optional().default(90)
+});
+
+/**
+ * History retrieved successfully
+ */
+export const zGetPublicMonitorsByMonitorIdHistoryResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('History retrieved successfully'),
+    data: z.object({
+        days: z.int().gte(-9007199254740991).lte(9007199254740991),
+        start_date: z.string(),
+        end_date: z.string(),
+        uptime_percentage: z.number().gte(0).lte(100),
+        total_checks: z.int().gte(-9007199254740991).lte(9007199254740991),
+        latency: z.object({
+            avg_response_time_ms: z.number().nullable(),
+            min_response_time_ms: z.number().nullable(),
+            max_response_time_ms: z.number().nullable(),
+            p95_response_time_ms: z.number().nullable()
+        }),
+        buckets: z.array(z.object({
+            date: z.string(),
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            uptime_percentage: z.number().gte(0).lte(100),
+            total_checks: z.int().gte(-9007199254740991).lte(9007199254740991),
+            avg_response_time_ms: z.number().nullable()
+        })),
+        recent_checks: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            status: z.enum([
+                'up',
+                'down',
+                'degraded',
+                'unknown'
+            ]),
+            response_time_ms: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            checked_at: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }))
     })
 });

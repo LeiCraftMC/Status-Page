@@ -48,13 +48,16 @@ const historyByMonitorId = computed(() => {
                 <div
                     v-for="monitor in group.monitors"
                     :key="monitor.id"
-                    class="px-4 py-3"
+                    class="px-4 py-3 transition-colors hover:bg-slate-800/40"
                 >
                     <div class="flex items-center justify-between gap-4">
                         <div class="min-w-0">
-                            <p class="font-medium text-white truncate">
+                            <NuxtLink
+                                :to="`/monitors/${monitor.id}`"
+                                class="font-medium text-white truncate hover:text-primary-400 transition-colors"
+                            >
                                 {{ monitor.display_name || monitor.name }}
-                            </p>
+                            </NuxtLink>
                             <p class="text-xs text-slate-400 truncate">{{ monitor.target }}</p>
                         </div>
 
@@ -65,7 +68,7 @@ const historyByMonitorId = computed(() => {
                             >
                                 {{ monitor.latest_check.response_time_ms }} ms
                             </span>
-                            <StatusBadge :status="monitor.latest_check?.status" />
+                            <StatusBadge :status="monitor.is_paused ? 'paused' : monitor.latest_check?.status" />
                         </div>
                     </div>
 
@@ -90,13 +93,16 @@ const historyByMonitorId = computed(() => {
                 <div
                     v-for="monitor in ungrouped"
                     :key="monitor.id"
-                    class="px-4 py-3"
+                    class="px-4 py-3 transition-colors hover:bg-slate-800/40"
                 >
                     <div class="flex items-center justify-between gap-4">
                         <div class="min-w-0">
-                            <p class="font-medium text-white truncate">
+                            <NuxtLink
+                                :to="`/monitors/${monitor.id}`"
+                                class="font-medium text-white truncate hover:text-primary-400 transition-colors"
+                            >
                                 {{ monitor.display_name || monitor.name }}
-                            </p>
+                            </NuxtLink>
                             <p class="text-xs text-slate-400 truncate">{{ monitor.target }}</p>
                         </div>
 
@@ -107,7 +113,7 @@ const historyByMonitorId = computed(() => {
                             >
                                 {{ monitor.latest_check.response_time_ms }} ms
                             </span>
-                            <StatusBadge :status="monitor.latest_check?.status" />
+                            <StatusBadge :status="monitor.is_paused ? 'paused' : monitor.latest_check?.status" />
                         </div>
                     </div>
 

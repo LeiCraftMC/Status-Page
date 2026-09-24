@@ -15,6 +15,13 @@
       "when": 1784212825246,
       "tag": "0001_single_status_page",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1790243110587,
+      "tag": "0002_monitor_paused",
+      "breakpoints": true
     }
   ]
 }

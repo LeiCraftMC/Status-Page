@@ -3,8 +3,8 @@
 -- 2. Copy data from the configured root status page (or the first available page) into the new tables.
 -- 3. Rename old multi-page tables out of the way (safer than DROP TABLE in SQLite).
 -- 4. Remove the root_status_page_id setting.
-
---> statement-breakpoint
+-- Note: comments share the first statement's chunk — bun:sqlite cannot run a
+-- comment-only chunk between breakpoint markers.
 CREATE TABLE IF NOT EXISTS `monitor_groups` (
 	`id` integer PRIMARY KEY AUTOINCREMENT NOT NULL,
 	`name` text NOT NULL,

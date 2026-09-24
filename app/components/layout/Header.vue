@@ -55,6 +55,18 @@ const mobileLinks = computed<NavigationMenuItem[][]>(() => [
 
         <template #right>
             <div class="hidden lg:flex items-center gap-2">
+                <UTooltip text="Subscribe via Atom feed">
+                    <UButton
+                        to="/api/v1/public/status-page/feed"
+                        target="_blank"
+                        icon="i-lucide-rss"
+                        color="neutral"
+                        variant="ghost"
+                        size="lg"
+                        aria-label="Atom feed"
+                        class="hover:scale-110 transition-transform duration-200"
+                    />
+                </UTooltip>
                 <UButton
                     v-for="social in socialLinks"
                     :key="social.label"

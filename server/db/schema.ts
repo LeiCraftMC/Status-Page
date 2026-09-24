@@ -97,7 +97,11 @@ export const monitors = sqliteTable('monitors', {
     follow_redirects: integer({ mode: 'boolean' }).notNull().default(true),
     verify_tls: integer({ mode: 'boolean' }).notNull().default(true),
 
+    // Whether the monitor is shown on the public status page and checked at all
     is_enabled: integer({ mode: 'boolean' }).notNull().default(true),
+    // A paused monitor keeps its history and stays visible on the public page
+    // (shown as "paused"), but the scheduler skips its checks.
+    is_paused: integer({ mode: 'boolean' }).notNull().default(false),
 
     created_at: SQLUtils.getCreatedAtColumn(),
 });
