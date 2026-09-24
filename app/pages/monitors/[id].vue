@@ -87,7 +87,7 @@ const recentChecks = computed(() => (history.value?.recent_checks ?? []).slice(0
             </NuxtLink>
         </div>
 
-        <div v-if="loading" class="flex items-center justify-center py-12">
+        <div v-if="loading && !monitorDetails" class="flex items-center justify-center py-12">
             <UIcon name="i-lucide-loader-2" class="animate-spin text-3xl text-slate-400" />
         </div>
 

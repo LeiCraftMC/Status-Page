@@ -5,7 +5,8 @@ export default defineNuxtRouteMiddleware(async(to) => {
     const token = useCookie("lccfwsp_session_token").value;
 
     // Public status page routes do not require authentication
-    if (to.path === '/' || to.path === '/incidents' || to.path === '/scheduled-events' || to.path.startsWith('/monitors')) {
+    const publicPrefixes = ['/incident', '/scheduled-events', '/monitors'];
+    if (to.path === '/' || publicPrefixes.some((prefix) => to.path.startsWith(prefix))) {
         return;
     }
 

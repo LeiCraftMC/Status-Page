@@ -102,3 +102,29 @@ export function getMaintenanceStatusColor(status: string | null | undefined): 'w
             return 'neutral';
     }
 }
+
+/** Human label for a status value, e.g. "in_progress" → "in progress". */
+export function formatStatusLabel(status: string | null | undefined): string {
+    if (!status) return 'unknown';
+    return status.replaceAll('_', ' ');
+}
+
+/** Short relative time, e.g. "5 minutes ago", "in 2 days". */
+export function formatRelativeTime(ts: number | null | undefined): string {
+    if (!ts) return '-';
+    const diffSeconds = Math.round((ts - Date.now()) / 1000);
+    const units: [Intl.RelativeTimeFormatUnit, number][] = [
+        ['year', 31536000],
+        ['month', 2592000],
+        ['day', 86400],
+        ['hour', 3600],
+        ['minute', 60],
+    ];
+    const rtf = new Intl.RelativeTimeFormat('en-US', { numeric: 'auto' });
+    for (const [unit, seconds] of units) {
+        if (Math.abs(diffSeconds) >= seconds) {
+            return rtf.format(Math.round(diffSeconds / seconds), unit);
+        }
+    }
+    return 'just now';
+}

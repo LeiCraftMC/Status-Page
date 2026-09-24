@@ -46,11 +46,6 @@ const sidebarItems = computed(() => {
             label: 'Maintenance',
             icon: 'i-lucide-calendar-clock',
             to: '/dashboard/maintenance',
-        },
-        {
-            label: 'Updates',
-            icon: 'i-lucide-megaphone',
-            to: '/dashboard/updates',
         }
     ];
 

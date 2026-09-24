@@ -212,15 +212,23 @@ export const maintenance = sqliteTable('maintenance', {
 });
 
 /**
+ * Update entries attached to an incident or maintenance entry. An update is
+ * how you keep customers informed while an incident is ongoing or maintenance
+ * is running — it carries the parent's status at posting time and syncs it.
+ * The parent is polymorphic (no FK); the API validates the pairing.
  * @deprecated Use DB.Tables.statusUpdates to access this table.
  */
 export const statusUpdates = sqliteTable('status_updates', {
     id: integer().primaryKey({ autoIncrement: true }),
 
-    title: text().notNull(),
+    parent_type: text({ enum: ['incident', 'maintenance'] as const }).notNull(),
+    parent_id: integer().notNull(),
+
     message: text().notNull(),
 
-    type: text({ enum: ['general', 'incident', 'maintenance'] as const }).notNull().default('general'),
+    // Parent status at the time this update was posted. Plain text because
+    // incidents and maintenance have different status enums.
+    status: text().notNull(),
 
     created_at: SQLUtils.getCreatedAtColumn(),
     updated_at: SQLUtils.getCreatedAtColumn("updated_at"),

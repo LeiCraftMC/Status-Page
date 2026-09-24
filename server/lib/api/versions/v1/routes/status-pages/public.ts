@@ -7,7 +7,7 @@ import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { StatusPagesReadModel } from "./model";
 import { StatusPageContentModel } from "../../models/statusPageContent";
 import { DOCS_TAGS } from "../../docs";
-import { buildMonitorHistory, buildSingleMonitorHistory, getOrCreateConfig } from "./helpers";
+import { buildMonitorHistory, buildSingleMonitorHistory, fetchParentedUpdates, getOrCreateConfig } from "./helpers";
 
 export const router = new Hono().basePath('/public');
 
@@ -103,9 +103,8 @@ export async function buildPublicPageResponse(
 }
 
 async function fetchRecentContent(): Promise<{
-    incidents: DB.Models.Incident[];
-    maintenance: DB.Models.Maintenance[];
-    updates: DB.Models.StatusUpdate[];
+    incidents: StatusPagesReadModel.IncidentWithUpdates[];
+    maintenance: StatusPagesReadModel.MaintenanceWithUpdates[];
 }> {
     const incidents = await DB.instance()
         .select()
@@ -117,12 +116,19 @@ async function fetchRecentContent(): Promise<{
         .from(DB.Tables.maintenance)
         .orderBy(desc(DB.Tables.maintenance.scheduled_start_at));
 
-    const updates = await DB.instance()
-        .select()
-        .from(DB.Tables.statusUpdates)
-        .orderBy(desc(DB.Tables.statusUpdates.created_at));
+    const updatesByIncident = await fetchParentedUpdates('incident', incidents.map((i) => i.id));
+    const updatesByMaintenance = await fetchParentedUpdates('maintenance', maintenance.map((m) => m.id));
 
-    return { incidents, maintenance, updates };
+    return {
+        incidents: incidents.map((incident) => ({
+            ...incident,
+            updates: updatesByIncident.get(incident.id) ?? [],
+        })),
+        maintenance: maintenance.map((entry) => ({
+            ...entry,
+            updates: updatesByMaintenance.get(entry.id) ?? [],
+        })),
+    };
 }
 
 router.get('/status-page',
@@ -228,7 +234,60 @@ router.get('/status-page/incidents',
             .from(DB.Tables.incidents)
             .orderBy(desc(DB.Tables.incidents.started_at));
 
-        return APIResponse.success(c, "Incidents retrieved successfully", incidents);
+        const updatesByIncident = await fetchParentedUpdates('incident', incidents.map((i) => i.id));
+
+        const enriched: StatusPagesReadModel.IncidentWithUpdates[] = incidents.map((incident) => ({
+            ...incident,
+            updates: updatesByIncident.get(incident.id) ?? [],
+        }));
+
+        return APIResponse.success(c, "Incidents retrieved successfully", enriched);
+    }
+);
+
+router.get('/incidents/:incidentId',
+
+    APIRouteSpec.unauthenticated({
+        summary: "Get public incident",
+        description: "Public detail view of a single incident with its update timeline.",
+        tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Incident retrieved successfully", StatusPagesReadModel.GetPublicIncident.Response),
+            APIResponseSpec.notFound("Incident not found or status page not public")
+        )
+    }),
+
+    zValidator("param", StatusPagesReadModel.GetPublicIncident.Params),
+
+    async (c) => {
+        const page = await getStatusPageConfig();
+
+        if (!page.is_public || !page.is_enabled) {
+            return APIResponse.notFound(c, "Status page is not publicly accessible");
+        }
+
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
+        const { incidentId } = c.req.valid("param") as StatusPagesReadModel.GetPublicIncident.Params;
+
+        const incident = await DB.instance().select().from(DB.Tables.incidents).where(
+            eq(DB.Tables.incidents.id, incidentId)
+        ).get();
+
+        if (!incident) {
+            return APIResponse.notFound(c, "Incident not found");
+        }
+
+        const updatesByIncident = await fetchParentedUpdates('incident', [incident.id]);
+
+        const enriched: StatusPagesReadModel.IncidentWithUpdates = {
+            ...incident,
+            updates: updatesByIncident.get(incident.id) ?? [],
+        };
+
+        return APIResponse.success(c, "Incident retrieved successfully", {
+            incident: enriched,
+        });
     }
 );
 
@@ -257,22 +316,31 @@ router.get('/status-page/maintenance',
             .from(DB.Tables.maintenance)
             .orderBy(desc(DB.Tables.maintenance.scheduled_start_at));
 
-        return APIResponse.success(c, "Maintenance retrieved successfully", maintenance);
+        const updatesByMaintenance = await fetchParentedUpdates('maintenance', maintenance.map((m) => m.id));
+
+        const enriched: StatusPagesReadModel.MaintenanceWithUpdates[] = maintenance.map((entry) => ({
+            ...entry,
+            updates: updatesByMaintenance.get(entry.id) ?? [],
+        }));
+
+        return APIResponse.success(c, "Maintenance retrieved successfully", enriched);
     }
 );
 
-router.get('/status-page/updates',
+router.get('/maintenance/:maintenanceId',
 
     APIRouteSpec.unauthenticated({
-        summary: "Get public updates",
-        description: "List public updates for the status page.",
+        summary: "Get public maintenance",
+        description: "Public detail view of a single scheduled maintenance entry with its update timeline.",
         tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Updates retrieved successfully", StatusPageContentModel.Lists.Updates),
-            APIResponseSpec.notFound("Status page not found or not public")
+            APIResponseSpec.success("Maintenance retrieved successfully", StatusPagesReadModel.GetPublicMaintenance.Response),
+            APIResponseSpec.notFound("Maintenance not found or status page not public")
         )
     }),
+
+    zValidator("param", StatusPagesReadModel.GetPublicMaintenance.Params),
 
     async (c) => {
         const page = await getStatusPageConfig();
@@ -281,12 +349,27 @@ router.get('/status-page/updates',
             return APIResponse.notFound(c, "Status page not found or not public");
         }
 
-        const updates = await DB.instance()
-            .select()
-            .from(DB.Tables.statusUpdates)
-            .orderBy(desc(DB.Tables.statusUpdates.created_at));
+        // @ts-ignore — zValidator param target typing is lost in middleware chains
+        const { maintenanceId } = c.req.valid("param") as StatusPagesReadModel.GetPublicMaintenance.Params;
 
-        return APIResponse.success(c, "Updates retrieved successfully", updates);
+        const maintenance = await DB.instance().select().from(DB.Tables.maintenance).where(
+            eq(DB.Tables.maintenance.id, maintenanceId)
+        ).get();
+
+        if (!maintenance) {
+            return APIResponse.notFound(c, "Maintenance not found");
+        }
+
+        const updatesByMaintenance = await fetchParentedUpdates('maintenance', [maintenance.id]);
+
+        const enriched: StatusPagesReadModel.MaintenanceWithUpdates = {
+            ...maintenance,
+            updates: updatesByMaintenance.get(maintenance.id) ?? [],
+        };
+
+        return APIResponse.success(c, "Maintenance retrieved successfully", {
+            maintenance: enriched,
+        });
     }
 );
 
@@ -403,9 +486,9 @@ router.get('/monitors/:monitorId/history',
 );
 
 /**
- * Atom feed of status page content (incidents and updates).
- * Intentionally returns raw XML instead of the JSON envelope, so it is not
- * part of the generated OpenAPI/TypeScript API client.
+ * Atom feed of status page content: incidents, scheduled maintenance, and
+ * their update entries. Intentionally returns raw XML instead of the JSON
+ * envelope, so it is not part of the generated OpenAPI/TypeScript API client.
  */
 router.get('/status-page/feed', async (c) => {
     const page = await getStatusPageConfig();
@@ -422,19 +505,23 @@ router.get('/status-page/feed', async (c) => {
         .orderBy(desc(DB.Tables.incidents.started_at))
         .limit(50);
 
-    const updates = await DB.instance()
+    const maintenance = await DB.instance()
         .select()
-        .from(DB.Tables.statusUpdates)
-        .orderBy(desc(DB.Tables.statusUpdates.created_at))
+        .from(DB.Tables.maintenance)
+        .orderBy(desc(DB.Tables.maintenance.scheduled_start_at))
         .limit(50);
+
+    const updatesByIncident = await fetchParentedUpdates('incident', incidents.map((i) => i.id));
+    const updatesByMaintenance = await fetchParentedUpdates('maintenance', maintenance.map((m) => m.id));
 
     type FeedEntry = {
         id: string;
         title: string;
         message: string;
-        kind: "incident" | "update";
+        kind: "incident" | "incident-update" | "maintenance" | "maintenance-update";
         timestamp: number;
         extra?: string;
+        detail_path: string;
     };
 
     const entries: FeedEntry[] = [
@@ -445,15 +532,40 @@ router.get('/status-page/feed', async (c) => {
             kind: "incident",
             timestamp: incident.started_at ?? incident.created_at ?? Date.now(),
             extra: `${incident.status}${incident.is_resolved ? " (resolved)" : ""}`,
+            detail_path: `/incident/${incident.id}`,
         })),
-        ...updates.map((update): FeedEntry => ({
-            id: `update-${update.id}`,
-            title: update.title,
-            message: update.message,
-            kind: "update",
-            timestamp: update.created_at ?? Date.now(),
-            extra: update.type,
+        ...incidents.flatMap((incident) =>
+            (updatesByIncident.get(incident.id) ?? []).map((update): FeedEntry => ({
+                id: `incident-${incident.id}-update-${update.id}`,
+                title: `Update: ${incident.title}`,
+                message: update.message,
+                kind: "incident-update",
+                timestamp: update.created_at ?? Date.now(),
+                extra: update.status,
+                detail_path: `/incident/${incident.id}`,
+            }))
+        ),
+        ...maintenance.map((entry): FeedEntry => ({
+            id: `maintenance-${entry.id}`,
+            title: entry.title,
+            message: entry.message,
+            kind: "maintenance",
+            // Dated by announcement, not by the (possibly future) scheduled start
+            timestamp: entry.created_at ?? Date.now(),
+            extra: entry.status,
+            detail_path: `/scheduled-events/${entry.id}`,
         })),
+        ...maintenance.flatMap((maint) =>
+            (updatesByMaintenance.get(maint.id) ?? []).map((update): FeedEntry => ({
+                id: `maintenance-${maint.id}-update-${update.id}`,
+                title: `Update: ${maint.title}`,
+                message: update.message,
+                kind: "maintenance-update",
+                timestamp: update.created_at ?? Date.now(),
+                extra: update.status,
+                detail_path: `/scheduled-events/${maint.id}`,
+            }))
+        ),
     ].sort((a, b) => b.timestamp - a.timestamp).slice(0, 50);
 
     function escapeXml(value: string): string {
@@ -465,12 +577,19 @@ router.get('/status-page/feed', async (c) => {
             .replaceAll("'", "&apos;");
     }
 
-    const lastUpdated = entries.length > 0 ? entries[0].timestamp : Date.now();
+    const kindLabels: Record<FeedEntry["kind"], string> = {
+        "incident": "Incident",
+        "incident-update": "Incident update",
+        "maintenance": "Scheduled maintenance",
+        "maintenance-update": "Maintenance update",
+    };
+
+    const lastUpdated = entries[0]?.timestamp ?? Date.now();
 
     const xml = `<?xml version="1.0" encoding="utf-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
     <title>${escapeXml(page.title)}</title>
-    <subtitle>LeiCraft_MC status incidents and updates</subtitle>
+    <subtitle>LeiCraft_MC status incidents, scheduled maintenance and updates</subtitle>
     <id>${origin}/api/v1/public/status-page/feed</id>
     <link rel="self" type="application/atom+xml" href="${origin}/api/v1/public/status-page/feed"/>
     <link rel="alternate" type="text/html" href="${origin}/"/>
@@ -478,12 +597,12 @@ router.get('/status-page/feed', async (c) => {
 ${entries.map((entry) => `    <entry>
         <title>${escapeXml(entry.title)}</title>
         <id>${origin}/api/v1/public/status-page/feed#${entry.id}</id>
-        <link rel="alternate" type="text/html" href="${origin}/incidents"/>
+        <link rel="alternate" type="text/html" href="${origin}${entry.detail_path}"/>
         <published>${new Date(entry.timestamp).toISOString()}</published>
         <updated>${new Date(entry.timestamp).toISOString()}</updated>
         <category term="${entry.kind}"/>
         <content type="html">${escapeXml(
-            `<p><strong>${entry.kind === "incident" ? "Incident" : "Update"}${entry.extra ? ` — ${entry.extra}` : ""}</strong></p>` +
+            `<p><strong>${kindLabels[entry.kind]}${entry.extra ? ` — ${entry.extra}` : ""}</strong></p>` +
             entry.message.split("\n").map((line) => `<p>${line}</p>`).join("")
         )}</content>
     </entry>`).join("\n")}

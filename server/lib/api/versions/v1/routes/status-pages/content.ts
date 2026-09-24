@@ -1,17 +1,17 @@
 
 import { Hono } from "hono";
 import { validator as zValidator } from "hono-openapi";
-import { desc, eq } from "drizzle-orm";
+import { desc, eq, and, inArray } from "drizzle-orm";
 import { DB } from "../../../../../../db";
 import { APIResponse } from "../../../../utils/api-res";
 import { APIResponseSpec, APIRouteSpec } from "../../../../utils/specHelpers";
 import { AuthHandler } from "../../../../utils/authHandler";
 import { StatusPageContentModel } from "../../models/statusPageContent";
+import { fetchParentedUpdates } from "./helpers";
 import { DOCS_TAGS } from "../../docs";
 
 const TARGET_INCIDENT_KEY = "targetIncident";
 const TARGET_MAINTENANCE_KEY = "targetMaintenance";
-const TARGET_UPDATE_KEY = "targetUpdate";
 
 function requireAdmin(c: any): AuthHandler.SessionAuthContext | null {
     const authContext = c.get("authContext") as AuthHandler.AuthContext;
@@ -31,10 +31,64 @@ function adminOnly(c: any, next: any) {
 type ContentVariables = {
     targetIncident: DB.Models.Incident;
     targetMaintenance: DB.Models.Maintenance;
-    targetUpdate: DB.Models.StatusUpdate;
 };
 
 export const router = new Hono<{ Variables: ContentVariables }>().basePath('/');
+
+/**
+ * Fetches an update entry and verifies it belongs to the given parent.
+ */
+async function fetchScopedUpdate(
+    updateId: number,
+    parentType: 'incident' | 'maintenance',
+    parentId: number
+): Promise<DB.Models.StatusUpdate | null> {
+    const update = await DB.instance().select().from(DB.Tables.statusUpdates).where(
+        eq(DB.Tables.statusUpdates.id, updateId)
+    ).get();
+
+    if (!update || update.parent_type !== parentType || update.parent_id !== parentId) {
+        return null;
+    }
+    return update;
+}
+
+/**
+ * Applies an update's status to its incident, syncing the resolution state.
+ */
+async function syncIncidentStatus(incidentId: number, status: DB.Models.Incident['status']): Promise<void> {
+    const incident = await DB.instance().select().from(DB.Tables.incidents).where(
+        eq(DB.Tables.incidents.id, incidentId)
+    ).get();
+
+    if (!incident) return;
+
+    const updates: Record<string, unknown> = { status, updated_at: Date.now() };
+
+    if (status === 'resolved' && !incident.is_resolved) {
+        updates.is_resolved = true;
+        updates.resolved_at = Date.now();
+    } else if (status !== 'resolved' && incident.is_resolved) {
+        updates.is_resolved = false;
+        updates.resolved_at = null;
+    }
+
+    await DB.instance().update(DB.Tables.incidents).set(updates).where(
+        eq(DB.Tables.incidents.id, incidentId)
+    ).run();
+}
+
+/**
+ * Applies an update's status to its maintenance entry.
+ */
+async function syncMaintenanceStatus(maintenanceId: number, status: DB.Models.Maintenance['status']): Promise<void> {
+    await DB.instance().update(DB.Tables.maintenance).set({
+        status,
+        updated_at: Date.now(),
+    }).where(
+        eq(DB.Tables.maintenance.id, maintenanceId)
+    ).run();
+}
 
 // Incidents
 
@@ -57,7 +111,14 @@ router.get('/incidents',
             .from(DB.Tables.incidents)
             .orderBy(desc(DB.Tables.incidents.started_at));
 
-        return APIResponse.success(c, "Incidents retrieved successfully", incidents);
+        const updatesByIncident = await fetchParentedUpdates('incident', incidents.map((i) => i.id));
+
+        const withUpdates = incidents.map((incident) => ({
+            ...incident,
+            updates: updatesByIncident.get(incident.id) ?? [],
+        }));
+
+        return APIResponse.success(c, "Incidents retrieved successfully", withUpdates);
     }
 );
 
@@ -108,6 +169,29 @@ router.use('/incidents/:incidentId/*',
         // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set(TARGET_INCIDENT_KEY, incident);
         await next();
+    }
+);
+
+router.get('/incidents/:incidentId',
+    APIRouteSpec.authenticated({
+        summary: "Get incident",
+        description: "Retrieve a single incident with its update timeline. Readable regardless of the status page's public flag.",
+        tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Incident retrieved successfully", StatusPageContentModel.IncidentWithUpdates),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.notFound("Incident not found")
+        )
+    }),
+    async (c) => {
+        const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
+
+        const grouped = await fetchParentedUpdates('incident', [incident.id]);
+
+        return APIResponse.success(c, "Incident retrieved successfully", {
+            ...incident,
+            updates: grouped.get(incident.id) ?? [],
+        });
     }
 );
 
@@ -170,6 +254,13 @@ router.delete('/incidents/:incidentId',
     async (c) => {
         const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
 
+        await DB.instance().delete(DB.Tables.statusUpdates).where(
+            and(
+                eq(DB.Tables.statusUpdates.parent_type, 'incident'),
+                eq(DB.Tables.statusUpdates.parent_id, incident.id)
+            )
+        ).run();
+
         await DB.instance().delete(DB.Tables.incidents).where(
             eq(DB.Tables.incidents.id, incident.id)
         ).run();
@@ -196,7 +287,14 @@ router.get('/maintenance',
             .from(DB.Tables.maintenance)
             .orderBy(desc(DB.Tables.maintenance.scheduled_start_at));
 
-        return APIResponse.success(c, "Maintenance retrieved successfully", maintenance);
+        const updatesByMaintenance = await fetchParentedUpdates('maintenance', maintenance.map((m) => m.id));
+
+        const withUpdates = maintenance.map((entry) => ({
+            ...entry,
+            updates: updatesByMaintenance.get(entry.id) ?? [],
+        }));
+
+        return APIResponse.success(c, "Maintenance retrieved successfully", withUpdates);
     }
 );
 
@@ -244,6 +342,29 @@ router.use('/maintenance/:maintenanceId/*',
         // @ts-ignore — Hono's context variables type is lost across the zValidator chain
         c.set(TARGET_MAINTENANCE_KEY, maintenance);
         await next();
+    }
+);
+
+router.get('/maintenance/:maintenanceId',
+    APIRouteSpec.authenticated({
+        summary: "Get maintenance",
+        description: "Retrieve a single scheduled maintenance entry with its update timeline. Readable regardless of the status page's public flag.",
+        tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Maintenance retrieved successfully", StatusPageContentModel.MaintenanceWithUpdates),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.notFound("Maintenance not found")
+        )
+    }),
+    async (c) => {
+        const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
+
+        const grouped = await fetchParentedUpdates('maintenance', [maintenance.id]);
+
+        return APIResponse.success(c, "Maintenance retrieved successfully", {
+            ...maintenance,
+            updates: grouped.get(maintenance.id) ?? [],
+        });
     }
 );
 
@@ -300,6 +421,13 @@ router.delete('/maintenance/:maintenanceId',
     async (c) => {
         const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
 
+        await DB.instance().delete(DB.Tables.statusUpdates).where(
+            and(
+                eq(DB.Tables.statusUpdates.parent_type, 'maintenance'),
+                eq(DB.Tables.statusUpdates.parent_id, maintenance.id)
+            )
+        ).run();
+
         await DB.instance().delete(DB.Tables.maintenance).where(
             eq(DB.Tables.maintenance.id, maintenance.id)
         ).run();
@@ -308,97 +436,104 @@ router.delete('/maintenance/:maintenanceId',
     }
 );
 
-// Updates
+// Incident update entries
 
-router.get('/updates',
+router.get('/incidents/:incidentId/updates',
+
     APIRouteSpec.authenticated({
-        summary: "List updates",
-        description: "Retrieve all general updates for the status page.",
+        summary: "List incident updates",
+        description: "Retrieve all update entries for an incident, newest first.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Updates retrieved successfully", StatusPageContentModel.Lists.Updates),
-            APIResponseSpec.unauthorized("Authentication required")
+            APIResponseSpec.success("Incident updates retrieved successfully", StatusPageContentModel.Lists.UpdateEntries),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.notFound("Incident not found")
         )
     }),
-    async (c) => {
-        const updates = await DB.instance()
-            .select()
-            .from(DB.Tables.statusUpdates)
-            .orderBy(desc(DB.Tables.statusUpdates.created_at));
 
-        return APIResponse.success(c, "Updates retrieved successfully", updates);
+    async (c) => {
+        const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
+
+        const grouped = await fetchParentedUpdates('incident', [incident.id]);
+        const updates = grouped.get(incident.id) ?? [];
+
+        return APIResponse.success(c, "Incident updates retrieved successfully", updates);
     }
 );
 
-router.post('/updates',
+router.post('/incidents/:incidentId/updates',
     adminOnly,
-    zValidator("json", StatusPageContentModel.UpdateId.Body),
+    zValidator("json", StatusPageContentModel.IncidentId.CreateUpdateBody),
     APIRouteSpec.authenticated({
-        summary: "Create update",
-        description: "Publish a new update on the status page. Admin only.",
+        summary: "Post incident update",
+        description: "Post an update on an incident. The update carries a status that is also applied to the incident (including its resolution state). Admin only.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
         responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.created("Update created successfully", StatusPageContentModel.BaseUpdate),
+            APIResponseSpec.created("Incident update posted successfully", StatusPageContentModel.BaseUpdate),
             APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required")
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Incident not found")
         )
     }),
     async (c) => {
-        const body = c.req.valid("json") as StatusPageContentModel.UpdateId.Body;
+        const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
+        const body = c.req.valid("json") as StatusPageContentModel.IncidentId.CreateUpdateBody;
 
         const now = Date.now();
         const created = await DB.instance().insert(DB.Tables.statusUpdates).values({
-            ...body,
+            parent_type: 'incident',
+            parent_id: incident.id,
+            message: body.message,
+            status: body.status,
             created_at: now,
             updated_at: now,
         }).returning().get();
 
-        return APIResponse.created(c, "Update created successfully", created);
+        await syncIncidentStatus(incident.id, body.status);
+
+        return APIResponse.created(c, "Incident update posted successfully", created);
     }
 );
 
-router.use('/updates/:updateId/*',
-    zValidator("param", StatusPageContentModel.UpdateId.Params),
-    async (c, next) => {
-        // @ts-ignore — zValidator param target typing is lost in middleware chains
-        const { updateId } = c.req.valid("param") as StatusPageContentModel.UpdateId.Params;
-
-        const update = await DB.instance().select().from(DB.Tables.statusUpdates).where(
-            eq(DB.Tables.statusUpdates.id, updateId)
-        ).get();
-
-        if (!update) {
-            return APIResponse.notFound(c, "Update not found");
-        }
-
-        // @ts-ignore — Hono's context variables type is lost across the zValidator chain
-        c.set(TARGET_UPDATE_KEY, update);
-        await next();
-    }
-);
-
-router.put('/updates/:updateId',
+router.put('/incidents/:incidentId/updates/:updateId',
     adminOnly,
-    zValidator("json", StatusPageContentModel.UpdateId.UpdateBody),
+    zValidator("param", StatusPageContentModel.IncidentId.UpdateParams),
+    zValidator("json", StatusPageContentModel.IncidentId.UpdateUpdateBody),
     APIRouteSpec.authenticated({
-        summary: "Update update",
-        description: "Update a status page update. Admin only.",
+        summary: "Edit incident update",
+        description: "Edit an incident update's message, or its status (which is re-applied to the incident). Admin only.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
         responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.success("Update updated successfully", StatusPageContentModel.BaseUpdate),
+            APIResponseSpec.success("Incident update edited successfully", StatusPageContentModel.BaseUpdate),
             APIResponseSpec.unauthorized("Authentication required"),
             APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Update not found")
+            APIResponseSpec.notFound("Incident or update not found")
         )
     }),
     async (c) => {
-        const update = c.get(TARGET_UPDATE_KEY) as StatusPageContentModel.BaseUpdate;
-        const body = c.req.valid("json") as StatusPageContentModel.UpdateId.UpdateBody;
+        const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
+        // @ts-ignore — zValidator typing is lost in middleware chains
+        const { updateId } = c.req.valid("param") as StatusPageContentModel.IncidentId.UpdateParams;
+        const body = c.req.valid("json") as StatusPageContentModel.IncidentId.UpdateUpdateBody;
 
-        await DB.instance().update(DB.Tables.statusUpdates).set({
-            ...body,
-            updated_at: Date.now(),
-        }).where(
+        const update = await fetchScopedUpdate(updateId, 'incident', incident.id);
+        if (!update) {
+            return APIResponse.notFound(c, "Incident or update not found");
+        }
+
+        const updates: Record<string, unknown> = { updated_at: Date.now() };
+        if (body.message !== undefined) {
+            updates.message = body.message;
+        }
+        if (body.status !== undefined) {
+            updates.status = body.status;
+            await syncIncidentStatus(incident.id, body.status);
+        }
+
+        await DB.instance().update(DB.Tables.statusUpdates).set(updates).where(
             eq(DB.Tables.statusUpdates.id, update.id)
         ).run();
 
@@ -407,33 +542,189 @@ router.put('/updates/:updateId',
         ).get();
 
         if (!refreshed) {
-            throw new Error("Update not found after update");
+            throw new Error("Incident update not found after edit");
         }
 
-        return APIResponse.success(c, "Update updated successfully", refreshed);
+        return APIResponse.success(c, "Incident update edited successfully", refreshed);
     }
 );
 
-router.delete('/updates/:updateId',
+router.delete('/incidents/:incidentId/updates/:updateId',
     adminOnly,
+    zValidator("param", StatusPageContentModel.IncidentId.UpdateParams),
     APIRouteSpec.authenticated({
-        summary: "Delete update",
-        description: "Remove a status page update. Admin only.",
+        summary: "Delete incident update",
+        description: "Delete an update entry from an incident. Admin only.",
         tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.successNoData("Update deleted successfully"),
+            APIResponseSpec.successNoData("Incident update deleted successfully"),
             APIResponseSpec.unauthorized("Authentication required"),
             APIResponseSpec.forbidden("Admin access required"),
-            APIResponseSpec.notFound("Update not found")
+            APIResponseSpec.notFound("Incident or update not found")
         )
     }),
     async (c) => {
-        const update = c.get(TARGET_UPDATE_KEY) as StatusPageContentModel.BaseUpdate;
+        const incident = c.get(TARGET_INCIDENT_KEY) as StatusPageContentModel.BaseIncident;
+        // @ts-ignore — zValidator typing is lost in middleware chains
+        const { updateId } = c.req.valid("param") as StatusPageContentModel.IncidentId.UpdateParams;
+
+        const update = await fetchScopedUpdate(updateId, 'incident', incident.id);
+        if (!update) {
+            return APIResponse.notFound(c, "Incident or update not found");
+        }
 
         await DB.instance().delete(DB.Tables.statusUpdates).where(
             eq(DB.Tables.statusUpdates.id, update.id)
         ).run();
 
-        return APIResponse.successNoData(c, "Update deleted successfully");
+        return APIResponse.successNoData(c, "Incident update deleted successfully");
     }
 );
+
+// Maintenance update entries
+
+router.get('/maintenance/:maintenanceId/updates',
+
+    APIRouteSpec.authenticated({
+        summary: "List maintenance updates",
+        description: "Retrieve all update entries for a scheduled maintenance entry, newest first.",
+        tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.success("Maintenance updates retrieved successfully", StatusPageContentModel.Lists.UpdateEntries),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.notFound("Maintenance not found")
+        )
+    }),
+
+    async (c) => {
+        const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
+
+        const grouped = await fetchParentedUpdates('maintenance', [maintenance.id]);
+        const updates = grouped.get(maintenance.id) ?? [];
+
+        return APIResponse.success(c, "Maintenance updates retrieved successfully", updates);
+    }
+);
+
+router.post('/maintenance/:maintenanceId/updates',
+    adminOnly,
+    zValidator("json", StatusPageContentModel.MaintenanceId.CreateUpdateBody),
+    APIRouteSpec.authenticated({
+        summary: "Post maintenance update",
+        description: "Post an update during scheduled maintenance. The update carries a status that is also applied to the maintenance entry. Admin only.",
+        tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
+        responses: APIResponseSpec.describeWithWrongInputs(
+            APIResponseSpec.created("Maintenance update posted successfully", StatusPageContentModel.BaseUpdate),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Maintenance not found")
+        )
+    }),
+    async (c) => {
+        const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
+        const body = c.req.valid("json") as StatusPageContentModel.MaintenanceId.CreateUpdateBody;
+
+        const now = Date.now();
+        const created = await DB.instance().insert(DB.Tables.statusUpdates).values({
+            parent_type: 'maintenance',
+            parent_id: maintenance.id,
+            message: body.message,
+            status: body.status,
+            created_at: now,
+            updated_at: now,
+        }).returning().get();
+
+        await syncMaintenanceStatus(maintenance.id, body.status);
+
+        return APIResponse.created(c, "Maintenance update posted successfully", created);
+    }
+);
+
+router.put('/maintenance/:maintenanceId/updates/:updateId',
+    adminOnly,
+    zValidator("param", StatusPageContentModel.MaintenanceId.UpdateParams),
+    zValidator("json", StatusPageContentModel.MaintenanceId.UpdateUpdateBody),
+    APIRouteSpec.authenticated({
+        summary: "Edit maintenance update",
+        description: "Edit a maintenance update's message, or its status (which is re-applied to the maintenance entry). Admin only.",
+        tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
+        responses: APIResponseSpec.describeWithWrongInputs(
+            APIResponseSpec.success("Maintenance update edited successfully", StatusPageContentModel.BaseUpdate),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Maintenance or update not found")
+        )
+    }),
+    async (c) => {
+        const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
+        // @ts-ignore — zValidator typing is lost in middleware chains
+        const { updateId } = c.req.valid("param") as StatusPageContentModel.MaintenanceId.UpdateParams;
+        const body = c.req.valid("json") as StatusPageContentModel.MaintenanceId.UpdateUpdateBody;
+
+        const update = await fetchScopedUpdate(updateId, 'maintenance', maintenance.id);
+        if (!update) {
+            return APIResponse.notFound(c, "Maintenance or update not found");
+        }
+
+        const updates: Record<string, unknown> = { updated_at: Date.now() };
+        if (body.message !== undefined) {
+            updates.message = body.message;
+        }
+        if (body.status !== undefined) {
+            updates.status = body.status;
+            await syncMaintenanceStatus(maintenance.id, body.status);
+        }
+
+        await DB.instance().update(DB.Tables.statusUpdates).set(updates).where(
+            eq(DB.Tables.statusUpdates.id, update.id)
+        ).run();
+
+        const refreshed = await DB.instance().select().from(DB.Tables.statusUpdates).where(
+            eq(DB.Tables.statusUpdates.id, update.id)
+        ).get();
+
+        if (!refreshed) {
+            throw new Error("Maintenance update not found after edit");
+        }
+
+        return APIResponse.success(c, "Maintenance update edited successfully", refreshed);
+    }
+);
+
+router.delete('/maintenance/:maintenanceId/updates/:updateId',
+    adminOnly,
+    zValidator("param", StatusPageContentModel.MaintenanceId.UpdateParams),
+    APIRouteSpec.authenticated({
+        summary: "Delete maintenance update",
+        description: "Delete an update entry from a scheduled maintenance entry. Admin only.",
+        tags: [DOCS_TAGS.STATUS_PAGE_CONTENT],
+
+        responses: APIResponseSpec.describeBasic(
+            APIResponseSpec.successNoData("Maintenance update deleted successfully"),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required"),
+            APIResponseSpec.notFound("Maintenance or update not found")
+        )
+    }),
+    async (c) => {
+        const maintenance = c.get(TARGET_MAINTENANCE_KEY) as StatusPageContentModel.BaseMaintenance;
+        // @ts-ignore — zValidator typing is lost in middleware chains
+        const { updateId } = c.req.valid("param") as StatusPageContentModel.MaintenanceId.UpdateParams;
+
+        const update = await fetchScopedUpdate(updateId, 'maintenance', maintenance.id);
+        if (!update) {
+            return APIResponse.notFound(c, "Maintenance or update not found");
+        }
+
+        await DB.instance().delete(DB.Tables.statusUpdates).where(
+            eq(DB.Tables.statusUpdates.id, update.id)
+        ).run();
+
+        return APIResponse.successNoData(c, "Maintenance update deleted successfully");
+    }
+);
+

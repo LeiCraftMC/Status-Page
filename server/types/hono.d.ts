@@ -6,7 +6,6 @@ declare module "hono" {
         targetMonitor: DB.Models.Monitor;
         targetIncident: DB.Models.Incident;
         targetMaintenance: DB.Models.Maintenance;
-        targetUpdate: DB.Models.StatusUpdate;
         targetGroup: StatusPageAdminModel.BaseGroup;
         targetLink: StatusPageAdminModel.BaseLink;
     }

@@ -23,7 +23,8 @@ import {
     deleteLink,
     buildMonitorHistory,
     reorderGroups,
-    reorderLinks
+    reorderLinks,
+    fetchParentedUpdates
 } from "./helpers";
 
 type StatusPageVariables = {
@@ -32,6 +33,21 @@ type StatusPageVariables = {
 };
 
 const router = new Hono<{ Variables: StatusPageVariables }>().basePath('/status-page');
+
+// Every /status-page route (including the content routes below) needs an
+// authenticated caller; writes are further restricted with adminOnly.
+// Unauthenticated reads are served by the /public router instead.
+router.use('*', async (c, next) => {
+    if (isUnauthenticated(c)) {
+        return APIResponse.unauthorized(c, "Authentication required");
+    }
+    await next();
+});
+
+function isUnauthenticated(c: any): boolean {
+    const authContext = c.get("authContext") as AuthHandler.AuthContext;
+    return authContext.type === 'unauthenticated';
+}
 
 router.route('/', contentRouter);
 
@@ -80,16 +96,19 @@ router.get('/',
             .from(DB.Tables.maintenance)
             .orderBy(desc(DB.Tables.maintenance.scheduled_start_at));
 
-        const updates = await DB.instance()
-            .select()
-            .from(DB.Tables.statusUpdates)
-            .orderBy(desc(DB.Tables.statusUpdates.created_at));
+        const updatesByIncident = await fetchParentedUpdates('incident', incidents.map((i) => i.id));
+        const updatesByMaintenance = await fetchParentedUpdates('maintenance', maintenance.map((m) => m.id));
 
         return APIResponse.success(c, "Status page retrieved successfully", {
             ...response,
-            incidents,
-            maintenance,
-            updates,
+            incidents: incidents.map((incident) => ({
+                ...incident,
+                updates: updatesByIncident.get(incident.id) ?? [],
+            })),
+            maintenance: maintenance.map((entry) => ({
+                ...entry,
+                updates: updatesByMaintenance.get(entry.id) ?? [],
+            })),
         });
     }
 );

@@ -39,6 +39,7 @@ const maintenanceColumns = computed<TableColumn<Maintenance>[]>(() => {
         { accessorKey: 'id', header: 'ID' },
         { accessorKey: 'title', header: 'Title' },
         { id: 'status', header: 'Status' },
+        { id: 'updates', header: 'Updates' },
         { id: 'start', header: 'Start' },
         { id: 'end', header: 'End' }
     ]
@@ -82,14 +83,14 @@ async function handleCreate(event: FormSubmitEvent<CreateOutput>) {
 
     const res = await useAPI((api) => api.postStatusPageMaintenance({ body }))
     if (res.success) {
-        toast.add({ title: 'Maintenance scheduled', color: 'success' })
+        toast.add({ title: 'Maintenance scheduled', description: 'Post updates to keep customers informed.', color: 'success' })
         showCreateModal.value = false
         createForm.title = ''
         createForm.message = ''
         createForm.status = 'scheduled'
         createForm.scheduled_start_at = ''
         createForm.scheduled_end_at = undefined
-        await refresh()
+        await navigateTo(`/dashboard/maintenance/${res.data.id}`)
     } else {
         toast.add({ title: 'Create failed', description: res.message, color: 'error' })
     }
@@ -172,6 +173,7 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
     if (!isAdmin.value) return []
     return [
         [
+            { label: 'Open & post updates', icon: 'i-lucide-messages-square', onSelect: () => navigateTo(`/dashboard/maintenance/${row.original.id}`) },
             { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(row.original) },
             { label: 'Delete', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => openDelete(row.original) }
         ]
@@ -212,9 +214,23 @@ function getDropdownItems(row: { original: Maintenance }): DropdownMenuItem[][] 
                         <span class="font-mono text-sm">#{{ row.original.id }}</span>
                     </template>
 
+                    <template #title-cell="{ row }">
+                        <NuxtLink :to="`/dashboard/maintenance/${row.original.id}`" class="font-medium text-white hover:text-primary-400">
+                            {{ row.original.title }}
+                        </NuxtLink>
+                    </template>
+
+                    <template #updates-cell="{ row }">
+                        <div v-if="row.original.updates.length" class="text-sm">
+                            <span class="text-slate-300">{{ row.original.updates.length }}</span>
+                            <span class="text-slate-500"> · last {{ formatRelativeTime(row.original.updates[0]!.created_at) }}</span>
+                        </div>
+                        <span v-else class="text-sm text-slate-500">None yet</span>
+                    </template>
+
                     <template #status-cell="{ row }">
                         <UBadge :color="getMaintenanceStatusColor(row.original.status)" variant="soft" class="capitalize">
-                            {{ row.original.status.replace('_', ' ') }}
+                            {{ formatStatusLabel(row.original.status) }}
                         </UBadge>
                     </template>
 

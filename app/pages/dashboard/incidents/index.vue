@@ -43,6 +43,7 @@ const incidentColumns = computed<TableColumn<Incident>[]>(() => {
         { accessorKey: 'title', header: 'Title' },
         { id: 'status', header: 'Status' },
         { id: 'severity', header: 'Severity' },
+        { id: 'updates', header: 'Updates' },
         { id: 'started', header: 'Started' }
     ]
     if (isAdmin.value) {
@@ -79,13 +80,13 @@ const showCreateModal = ref(false)
 async function handleCreate() {
     const res = await useAPI((api) => api.postStatusPageIncidents({ body: createForm }))
     if (res.success) {
-        toast.add({ title: 'Incident created', color: 'success' })
+        toast.add({ title: 'Incident created', description: 'Post updates to keep customers informed.', color: 'success' })
         showCreateModal.value = false
         createForm.title = ''
         createForm.message = ''
         createForm.status = 'investigating'
         createForm.severity = 'minor'
-        await refresh()
+        await navigateTo(`/dashboard/incidents/${res.data.id}`)
     } else {
         toast.add({ title: 'Create failed', description: res.message, color: 'error' })
     }
@@ -158,6 +159,7 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
     if (!isAdmin.value) return []
     return [
         [
+            { label: 'Open & post updates', icon: 'i-lucide-messages-square', onSelect: () => navigateTo(`/dashboard/incidents/${row.original.id}`) },
             { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => openEdit(row.original) },
             { label: 'Delete', icon: 'i-lucide-trash-2', color: 'error', onSelect: () => openDelete(row.original) }
         ]
@@ -197,6 +199,20 @@ function getDropdownItems(row: { original: Incident }): DropdownMenuItem[][] {
 
                     <template #id-cell="{ row }">
                         <span class="font-mono text-sm">#{{ row.original.id }}</span>
+                    </template>
+
+                    <template #title-cell="{ row }">
+                        <NuxtLink :to="`/dashboard/incidents/${row.original.id}`" class="font-medium text-white hover:text-primary-400">
+                            {{ row.original.title }}
+                        </NuxtLink>
+                    </template>
+
+                    <template #updates-cell="{ row }">
+                        <div v-if="row.original.updates.length" class="text-sm">
+                            <span class="text-slate-300">{{ row.original.updates.length }}</span>
+                            <span class="text-slate-500"> · last {{ formatRelativeTime(row.original.updates[0]!.created_at) }}</span>
+                        </div>
+                        <span v-else class="text-sm text-slate-500">None yet</span>
                     </template>
 
                     <template #status-cell="{ row }">

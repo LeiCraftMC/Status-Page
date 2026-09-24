@@ -4,6 +4,42 @@ import { StatusPageAdminModel, StatusPagesReadModel } from "./model";
 
 const CONFIG_ID = 1;
 
+/**
+ * Fetches all update entries for the given parent type and ids in one query
+ * and groups them by parent id, newest first. Used to embed update timelines
+ * in status page responses and content lists.
+ */
+export async function fetchParentedUpdates(
+    parentType: 'incident' | 'maintenance',
+    parentIds: number[]
+): Promise<Map<number, DB.Models.StatusUpdate[]>> {
+    const grouped = new Map<number, DB.Models.StatusUpdate[]>();
+
+    if (parentIds.length === 0) {
+        return grouped;
+    }
+
+    const updates = await DB.instance()
+        .select()
+        .from(DB.Tables.statusUpdates)
+        .where(
+            and(
+                eq(DB.Tables.statusUpdates.parent_type, parentType),
+                inArray(DB.Tables.statusUpdates.parent_id, parentIds)
+            )
+        )
+        .orderBy(desc(DB.Tables.statusUpdates.created_at));
+
+    for (const update of updates) {
+        if (!grouped.has(update.parent_id)) {
+            grouped.set(update.parent_id, []);
+        }
+        grouped.get(update.parent_id)!.push(update);
+    }
+
+    return grouped;
+}
+
 export async function getOrCreateConfig(): Promise<DB.Models.StatusPageConfig> {
     const existing = await DB.instance()
         .select()
@@ -409,7 +445,7 @@ export async function buildSingleMonitorHistory(
     const sortedTimes = [...allTimes].sort((a, b) => a - b);
 
     const p95 = sortedTimes.length > 0
-        ? sortedTimes[Math.min(sortedTimes.length - 1, Math.ceil(sortedTimes.length * 0.95) - 1)]
+        ? sortedTimes[Math.min(sortedTimes.length - 1, Math.ceil(sortedTimes.length * 0.95) - 1)] ?? null
         : null;
 
     const recentChecks = await DB.instance()

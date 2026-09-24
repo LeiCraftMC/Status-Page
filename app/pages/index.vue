@@ -65,15 +65,15 @@ const overallStatus = computed(() => {
     return 'unknown'
 })
 
-const activeIncidents = computed(() => (pageDetails.value?.incidents || []).filter((i: any) => !i.is_resolved))
-const scheduledMaintenance = computed(() => (pageDetails.value?.maintenance || []).filter((m: any) => ['scheduled', 'in_progress'].includes(m.status)))
-const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0, 5))
+const activeIncidents = computed(() => (pageDetails.value?.incidents || []).filter((i) => !i.is_resolved))
+const inProgressMaintenance = computed(() => (pageDetails.value?.maintenance || []).filter((m) => m.status === 'in_progress'))
+const upcomingMaintenance = computed(() => (pageDetails.value?.maintenance || []).filter((m) => m.status === 'scheduled'))
 
 </script>
 
 <template>
     <div class="space-y-8">
-        <div v-if="loading" class="flex items-center justify-center py-12">
+        <div v-if="loading && !pageDetails" class="flex items-center justify-center py-12">
             <UIcon name="i-lucide-loader-2" class="animate-spin text-3xl text-slate-400" />
         </div>
 
@@ -137,24 +137,63 @@ const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0,
                         <NuxtLink to="/incidents" class="text-sm text-primary-400 hover:text-primary-300">View all</NuxtLink>
                     </div>
                     <div class="space-y-3">
-                        <UCard
+                        <NuxtLink
                             v-for="incident in activeIncidents"
                             :key="incident.id"
-                            class="border-slate-800 bg-slate-900/60"
+                            :to="`/incident/${incident.id}`"
+                            class="block rounded-xl border border-red-900/60 bg-red-950/20 p-4 transition-colors hover:border-red-800 hover:bg-red-950/30"
                         >
-                            <template #header>
-                                <div class="flex items-center justify-between">
-                                    <div>
-                                        <h3 class="font-semibold text-white">{{ incident.title }}</h3>
-                                        <p class="text-xs text-slate-400">{{ formatDate(incident.started_at) }}</p>
-                                    </div>
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
+                                    <h3 class="font-semibold text-white">{{ incident.title }}</h3>
+                                    <p class="text-xs text-slate-400">Started {{ formatDate(incident.started_at) }}</p>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
                                     <UBadge :color="getIncidentStatusColor(incident.status)" variant="soft" class="capitalize">
                                         {{ incident.status }}
                                     </UBadge>
+                                    <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
                                 </div>
-                            </template>
-                            <p class="text-slate-300 whitespace-pre-line">{{ incident.message }}</p>
-                        </UCard>
+                            </div>
+                            <p class="text-sm text-slate-300 mt-3 line-clamp-2 whitespace-pre-line">
+                                <span v-if="incident.updates[0]" class="text-slate-500">Latest update ({{ formatDate(incident.updates[0].created_at) }}): </span>{{ incident.updates[0]?.message ?? incident.message }}
+                            </p>
+                        </NuxtLink>
+                    </div>
+                </div>
+
+                <!-- Maintenance in progress -->
+                <div v-if="inProgressMaintenance.length">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold text-white">Maintenance in Progress</h2>
+                        <NuxtLink to="/scheduled-events" class="text-sm text-primary-400 hover:text-primary-300">View all</NuxtLink>
+                    </div>
+                    <div class="space-y-3">
+                        <NuxtLink
+                            v-for="item in inProgressMaintenance"
+                            :key="item.id"
+                            :to="`/scheduled-events/${item.id}`"
+                            class="block rounded-xl border border-sky-900/60 bg-sky-950/20 p-4 transition-colors hover:border-sky-800 hover:bg-sky-950/30"
+                        >
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
+                                    <h3 class="font-semibold text-white">{{ item.title }}</h3>
+                                    <p class="text-xs text-slate-400">
+                                        {{ formatDate(item.scheduled_start_at) }}
+                                        <span v-if="item.scheduled_end_at"> — {{ formatDate(item.scheduled_end_at) }}</span>
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
+                                    <UBadge :color="getMaintenanceStatusColor(item.status)" variant="soft" class="capitalize">
+                                        {{ formatStatusLabel(item.status) }}
+                                    </UBadge>
+                                    <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
+                                </div>
+                            </div>
+                            <p class="text-sm text-slate-300 mt-3 line-clamp-2 whitespace-pre-line">
+                                <span v-if="item.updates[0]" class="text-slate-500">Latest update ({{ formatDate(item.updates[0].created_at) }}): </span>{{ item.updates[0]?.message ?? item.message }}
+                            </p>
+                        </NuxtLink>
                     </div>
                 </div>
 
@@ -173,53 +212,36 @@ const recentUpdates = computed(() => (pageDetails.value?.updates || []).slice(0,
                     />
                 </div>
 
-                <!-- Scheduled maintenance -->
-                <div v-if="scheduledMaintenance.length">
+                <!-- Upcoming maintenance -->
+                <div v-if="upcomingMaintenance.length">
                     <div class="flex items-center justify-between mb-3">
-                        <h2 class="text-lg font-semibold text-white">Scheduled Maintenance</h2>
+                        <h2 class="text-lg font-semibold text-white">Upcoming Maintenance</h2>
                         <NuxtLink to="/scheduled-events" class="text-sm text-primary-400 hover:text-primary-300">View all</NuxtLink>
                     </div>
                     <div class="space-y-3">
-                        <UCard
-                            v-for="item in scheduledMaintenance"
+                        <NuxtLink
+                            v-for="item in upcomingMaintenance"
                             :key="item.id"
-                            class="border-slate-800 bg-slate-900/60"
+                            :to="`/scheduled-events/${item.id}`"
+                            class="block rounded-xl border border-slate-800 bg-slate-900/60 p-4 transition-colors hover:border-slate-700 hover:bg-slate-900/80"
                         >
-                            <template #header>
-                                <div class="flex items-center justify-between">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="min-w-0">
                                     <h3 class="font-semibold text-white">{{ item.title }}</h3>
+                                    <p class="text-xs text-slate-400">
+                                        {{ formatDate(item.scheduled_start_at) }}
+                                        <span v-if="item.scheduled_end_at"> — {{ formatDate(item.scheduled_end_at) }}</span>
+                                    </p>
+                                </div>
+                                <div class="flex items-center gap-2 shrink-0">
                                     <UBadge :color="getMaintenanceStatusColor(item.status)" variant="soft" class="capitalize">
-                                        {{ item.status.replace('_', ' ') }}
+                                        {{ formatStatusLabel(item.status) }}
                                     </UBadge>
+                                    <UIcon name="i-lucide-chevron-right" class="size-4 text-slate-500" />
                                 </div>
-                            </template>
-                            <p class="text-sm text-slate-400 mb-2">
-                                {{ formatDate(item.scheduled_start_at) }}
-                                <span v-if="item.scheduled_end_at"> — {{ formatDate(item.scheduled_end_at) }}</span>
-                            </p>
-                            <p class="text-slate-300 whitespace-pre-line">{{ item.message }}</p>
-                        </UCard>
-                    </div>
-                </div>
-
-                <!-- Recent updates -->
-                <div v-if="recentUpdates.length">
-                    <h2 class="text-lg font-semibold text-white mb-3">Recent Updates</h2>
-                    <div class="space-y-3">
-                        <UCard
-                            v-for="update in recentUpdates"
-                            :key="update.id"
-                            class="border-slate-800 bg-slate-900/60"
-                        >
-                            <template #header>
-                                <div class="flex items-center justify-between">
-                                    <h3 class="font-semibold text-white">{{ update.title }}</h3>
-                                    <span class="text-xs text-slate-400 capitalize">{{ update.type }}</span>
-                                </div>
-                            </template>
-                            <p class="text-sm text-slate-400 mb-2">{{ formatDate(update.created_at) }}</p>
-                            <p class="text-slate-300 whitespace-pre-line">{{ update.message }}</p>
-                        </UCard>
+                            </div>
+                            <p class="text-sm text-slate-300 mt-3 line-clamp-2 whitespace-pre-line">{{ item.updates[0]?.message ?? item.message }}</p>
+                        </NuxtLink>
                     </div>
                 </div>
             </div>

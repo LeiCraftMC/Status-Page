@@ -13,6 +13,16 @@ export namespace StatusPageContentModel {
     export const BaseUpdate = createSelectSchema(DB.Tables.statusUpdates);
     export type BaseUpdate = z.infer<typeof BaseUpdate>;
 
+    export const IncidentWithUpdates = BaseIncident.extend({
+        updates: z.array(BaseUpdate),
+    });
+    export type IncidentWithUpdates = z.infer<typeof IncidentWithUpdates>;
+
+    export const MaintenanceWithUpdates = BaseMaintenance.extend({
+        updates: z.array(BaseUpdate),
+    });
+    export type MaintenanceWithUpdates = z.infer<typeof MaintenanceWithUpdates>;
+
     export namespace IncidentId {
         export const Params = z.object({
             incidentId: z.coerce.number().int().positive(),
@@ -50,6 +60,28 @@ export namespace StatusPageContentModel {
             { message: "At least one field must be provided" }
         );
         export type UpdateBody = z.infer<typeof UpdateBody>;
+
+        // Update entries attached to this incident
+        export const UpdateParams = z.object({
+            incidentId: z.coerce.number().int().positive(),
+            updateId: z.coerce.number().int().positive(),
+        });
+        export type UpdateParams = z.infer<typeof UpdateParams>;
+
+        export const CreateUpdateBody = z.object({
+            message: z.string().min(1).max(8192),
+            status: z.enum(['investigating', 'identified', 'monitoring', 'resolved']),
+        });
+        export type CreateUpdateBody = z.infer<typeof CreateUpdateBody>;
+
+        export const UpdateUpdateBody = z.object({
+            message: z.string().min(1).max(8192).optional(),
+            status: z.enum(['investigating', 'identified', 'monitoring', 'resolved']).optional(),
+        }).refine(
+            (data) => Object.values(data).some((value) => value !== undefined),
+            { message: "At least one field must be provided" }
+        );
+        export type UpdateUpdateBody = z.infer<typeof UpdateUpdateBody>;
     }
 
     export namespace MaintenanceId {
@@ -88,43 +120,33 @@ export namespace StatusPageContentModel {
             { message: "At least one field must be provided" }
         );
         export type UpdateBody = z.infer<typeof UpdateBody>;
-    }
 
-    export namespace UpdateId {
-        export const Params = z.object({
+        // Update entries attached to this maintenance entry
+        export const UpdateParams = z.object({
+            maintenanceId: z.coerce.number().int().positive(),
             updateId: z.coerce.number().int().positive(),
         });
-        export type Params = z.infer<typeof Params>;
+        export type UpdateParams = z.infer<typeof UpdateParams>;
 
-        export const Body = createInsertSchema(DB.Tables.statusUpdates, {
-            title: z.string().min(1).max(128),
-            message: z.string().min(1).max(4096),
-            type: z.enum(['general', 'incident', 'maintenance']),
-        }).omit({
-            id: true,
-            created_at: true,
-            updated_at: true,
+        export const CreateUpdateBody = z.object({
+            message: z.string().min(1).max(8192),
+            status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']),
         });
-        export type Body = z.infer<typeof Body>;
+        export type CreateUpdateBody = z.infer<typeof CreateUpdateBody>;
 
-        export const UpdateBody = createUpdateSchema(DB.Tables.statusUpdates, {
-            title: z.string().min(1).max(128),
-            message: z.string().min(1).max(4096),
-            type: z.enum(['general', 'incident', 'maintenance']),
-        }).omit({
-            id: true,
-            created_at: true,
-            updated_at: true,
-        }).partial().refine(
+        export const UpdateUpdateBody = z.object({
+            message: z.string().min(1).max(8192).optional(),
+            status: z.enum(['scheduled', 'in_progress', 'completed', 'cancelled']).optional(),
+        }).refine(
             (data) => Object.values(data).some((value) => value !== undefined),
             { message: "At least one field must be provided" }
         );
-        export type UpdateBody = z.infer<typeof UpdateBody>;
+        export type UpdateUpdateBody = z.infer<typeof UpdateUpdateBody>;
     }
 
     export namespace Lists {
-        export const Incidents = z.array(BaseIncident);
-        export const Maintenance = z.array(BaseMaintenance);
-        export const Updates = z.array(BaseUpdate);
+        export const Incidents = z.array(IncidentWithUpdates);
+        export const Maintenance = z.array(MaintenanceWithUpdates);
+        export const UpdateEntries = z.array(BaseUpdate);
     }
 }

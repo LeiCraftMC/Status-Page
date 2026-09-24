@@ -31,14 +31,47 @@ export namespace StatusPagesReadModel {
     });
     export type GroupSummary = z.infer<typeof GroupSummary>;
 
+    export const IncidentWithUpdates = createSelectSchema(DB.Tables.incidents).extend({
+        updates: z.array(createSelectSchema(DB.Tables.statusUpdates)),
+    });
+    export type IncidentWithUpdates = z.infer<typeof IncidentWithUpdates>;
+
+    export const MaintenanceWithUpdates = createSelectSchema(DB.Tables.maintenance).extend({
+        updates: z.array(createSelectSchema(DB.Tables.statusUpdates)),
+    });
+    export type MaintenanceWithUpdates = z.infer<typeof MaintenanceWithUpdates>;
+
     export namespace GetPage {
         export const Response = z.object({
             page: BasePage,
             groups: z.array(GroupSummary),
             ungrouped: z.array(MonitorSummary),
-            incidents: z.array(createSelectSchema(DB.Tables.incidents)),
-            maintenance: z.array(createSelectSchema(DB.Tables.maintenance)),
-            updates: z.array(createSelectSchema(DB.Tables.statusUpdates)),
+            incidents: z.array(IncidentWithUpdates),
+            maintenance: z.array(MaintenanceWithUpdates),
+        });
+        export type Response = z.infer<typeof Response>;
+    }
+
+    export namespace GetPublicIncident {
+        export const Params = z.object({
+            incidentId: z.coerce.number().int().positive(),
+        });
+        export type Params = z.infer<typeof Params>;
+
+        export const Response = z.object({
+            incident: IncidentWithUpdates,
+        });
+        export type Response = z.infer<typeof Response>;
+    }
+
+    export namespace GetPublicMaintenance {
+        export const Params = z.object({
+            maintenanceId: z.coerce.number().int().positive(),
+        });
+        export type Params = z.infer<typeof Params>;
+
+        export const Response = z.object({
+            maintenance: MaintenanceWithUpdates,
         });
         export type Response = z.infer<typeof Response>;
     }

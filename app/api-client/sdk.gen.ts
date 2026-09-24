@@ -2,7 +2,7 @@
 
 import type { Client, ClientMeta, Composable, Options as Options2, RequestResult, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeleteAccountApikeysByApiKeyIdData, DeleteAccountApikeysByApiKeyIdError, DeleteAccountApikeysByApiKeyIdResponse, DeleteAccountData, DeleteAccountError, DeleteAccountResponse, DeleteAdminUsersByUserIdData, DeleteAdminUsersByUserIdError, DeleteAdminUsersByUserIdResponse, DeleteMonitorsByMonitorIdData, DeleteMonitorsByMonitorIdError, DeleteMonitorsByMonitorIdResponse, DeleteStatusPageGroupsByGroupIdData, DeleteStatusPageGroupsByGroupIdError, DeleteStatusPageGroupsByGroupIdResponse, DeleteStatusPageIncidentsByIncidentIdData, DeleteStatusPageIncidentsByIncidentIdError, DeleteStatusPageIncidentsByIncidentIdResponse, DeleteStatusPageMaintenanceByMaintenanceIdData, DeleteStatusPageMaintenanceByMaintenanceIdError, DeleteStatusPageMaintenanceByMaintenanceIdResponse, DeleteStatusPageMonitorsByLinkIdData, DeleteStatusPageMonitorsByLinkIdError, DeleteStatusPageMonitorsByLinkIdResponse, DeleteStatusPageUpdatesByUpdateIdData, DeleteStatusPageUpdatesByUpdateIdError, DeleteStatusPageUpdatesByUpdateIdResponse, GetAccountApikeysByApiKeyIdData, GetAccountApikeysByApiKeyIdError, GetAccountApikeysByApiKeyIdResponse, GetAccountApikeysData, GetAccountApikeysResponse, GetAccountData, GetAccountError, GetAccountResponse, GetAdminSettingsData, GetAdminSettingsError, GetAdminSettingsResponse, GetAdminUsersByUserIdData, GetAdminUsersByUserIdError, GetAdminUsersByUserIdResponse, GetAdminUsersData, GetAdminUsersResponse, GetAuthSessionData, GetAuthSessionError, GetAuthSessionResponse, GetMonitorsByMonitorIdData, GetMonitorsByMonitorIdError, GetMonitorsByMonitorIdResponse, GetMonitorsData, GetMonitorsError, GetMonitorsResponse, GetPublicMonitorsByMonitorIdData, GetPublicMonitorsByMonitorIdError, GetPublicMonitorsByMonitorIdHistoryData, GetPublicMonitorsByMonitorIdHistoryError, GetPublicMonitorsByMonitorIdHistoryResponse, GetPublicMonitorsByMonitorIdResponse, GetPublicStatusPageData, GetPublicStatusPageError, GetPublicStatusPageHistoryData, GetPublicStatusPageHistoryError, GetPublicStatusPageHistoryResponse, GetPublicStatusPageIncidentsData, GetPublicStatusPageIncidentsError, GetPublicStatusPageIncidentsResponse, GetPublicStatusPageMaintenanceData, GetPublicStatusPageMaintenanceError, GetPublicStatusPageMaintenanceResponse, GetPublicStatusPageResponse, GetPublicStatusPageUpdatesData, GetPublicStatusPageUpdatesError, GetPublicStatusPageUpdatesResponse, GetStatusPageConfigData, GetStatusPageConfigError, GetStatusPageConfigResponse, GetStatusPageData, GetStatusPageError, GetStatusPageGroupsData, GetStatusPageGroupsError, GetStatusPageGroupsResponse, GetStatusPageHistoryData, GetStatusPageHistoryError, GetStatusPageHistoryResponse, GetStatusPageIncidentsData, GetStatusPageIncidentsError, GetStatusPageIncidentsResponse, GetStatusPageMaintenanceData, GetStatusPageMaintenanceError, GetStatusPageMaintenanceResponse, GetStatusPageMonitorsData, GetStatusPageMonitorsError, GetStatusPageMonitorsResponse, GetStatusPageResponse, GetStatusPageUpdatesData, GetStatusPageUpdatesError, GetStatusPageUpdatesResponse, GetUsersSearchData, GetUsersSearchError, GetUsersSearchResponse, PostAccountApikeysData, PostAccountApikeysError, PostAccountApikeysResponse, PostAdminUsersData, PostAdminUsersError, PostAdminUsersResponse, PostAuthLoginData, PostAuthLoginError, PostAuthLoginResponse, PostAuthLogoutData, PostAuthLogoutError, PostAuthLogoutResponse, PostAuthResetPasswordData, PostAuthResetPasswordError, PostAuthResetPasswordResponse, PostMonitorsByMonitorIdCheckData, PostMonitorsByMonitorIdCheckError, PostMonitorsByMonitorIdCheckResponse, PostMonitorsByMonitorIdPauseData, PostMonitorsByMonitorIdPauseError, PostMonitorsByMonitorIdPauseResponse, PostMonitorsByMonitorIdResumeData, PostMonitorsByMonitorIdResumeError, PostMonitorsByMonitorIdResumeResponse, PostMonitorsData, PostMonitorsError, PostMonitorsResponse, PostStatusPageGroupsData, PostStatusPageGroupsError, PostStatusPageGroupsResponse, PostStatusPageIncidentsData, PostStatusPageIncidentsError, PostStatusPageIncidentsResponse, PostStatusPageMaintenanceData, PostStatusPageMaintenanceError, PostStatusPageMaintenanceResponse, PostStatusPageMonitorsData, PostStatusPageMonitorsError, PostStatusPageMonitorsResponse, PostStatusPageUpdatesData, PostStatusPageUpdatesError, PostStatusPageUpdatesResponse, PutAccountData, PutAccountError, PutAccountPasswordData, PutAccountPasswordError, PutAccountPasswordResponse, PutAccountResponse, PutAdminSettingsData, PutAdminSettingsError, PutAdminSettingsResponse, PutAdminUsersByUserIdData, PutAdminUsersByUserIdError, PutAdminUsersByUserIdPasswordData, PutAdminUsersByUserIdPasswordError, PutAdminUsersByUserIdPasswordResponse, PutAdminUsersByUserIdResponse, PutMonitorsByMonitorIdData, PutMonitorsByMonitorIdError, PutMonitorsByMonitorIdResponse, PutStatusPageData, PutStatusPageError, PutStatusPageGroupsByGroupIdData, PutStatusPageGroupsByGroupIdError, PutStatusPageGroupsByGroupIdResponse, PutStatusPageGroupsReorderData, PutStatusPageGroupsReorderError, PutStatusPageGroupsReorderResponse, PutStatusPageIncidentsByIncidentIdData, PutStatusPageIncidentsByIncidentIdError, PutStatusPageIncidentsByIncidentIdResponse, PutStatusPageMaintenanceByMaintenanceIdData, PutStatusPageMaintenanceByMaintenanceIdError, PutStatusPageMaintenanceByMaintenanceIdResponse, PutStatusPageMonitorsByLinkIdData, PutStatusPageMonitorsByLinkIdError, PutStatusPageMonitorsByLinkIdResponse, PutStatusPageMonitorsReorderData, PutStatusPageMonitorsReorderError, PutStatusPageMonitorsReorderResponse, PutStatusPageResponse, PutStatusPageUpdatesByUpdateIdData, PutStatusPageUpdatesByUpdateIdError, PutStatusPageUpdatesByUpdateIdResponse } from './types.gen';
+import type { DeleteAccountApikeysByApiKeyIdData, DeleteAccountApikeysByApiKeyIdError, DeleteAccountApikeysByApiKeyIdResponse, DeleteAccountData, DeleteAccountError, DeleteAccountResponse, DeleteAdminUsersByUserIdData, DeleteAdminUsersByUserIdError, DeleteAdminUsersByUserIdResponse, DeleteMonitorsByMonitorIdData, DeleteMonitorsByMonitorIdError, DeleteMonitorsByMonitorIdResponse, DeleteStatusPageGroupsByGroupIdData, DeleteStatusPageGroupsByGroupIdError, DeleteStatusPageGroupsByGroupIdResponse, DeleteStatusPageIncidentsByIncidentIdData, DeleteStatusPageIncidentsByIncidentIdError, DeleteStatusPageIncidentsByIncidentIdResponse, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdData, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdError, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse, DeleteStatusPageMaintenanceByMaintenanceIdData, DeleteStatusPageMaintenanceByMaintenanceIdError, DeleteStatusPageMaintenanceByMaintenanceIdResponse, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdData, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdError, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse, DeleteStatusPageMonitorsByLinkIdData, DeleteStatusPageMonitorsByLinkIdError, DeleteStatusPageMonitorsByLinkIdResponse, GetAccountApikeysByApiKeyIdData, GetAccountApikeysByApiKeyIdError, GetAccountApikeysByApiKeyIdResponse, GetAccountApikeysData, GetAccountApikeysResponse, GetAccountData, GetAccountError, GetAccountResponse, GetAdminSettingsData, GetAdminSettingsError, GetAdminSettingsResponse, GetAdminUsersByUserIdData, GetAdminUsersByUserIdError, GetAdminUsersByUserIdResponse, GetAdminUsersData, GetAdminUsersResponse, GetAuthSessionData, GetAuthSessionError, GetAuthSessionResponse, GetMonitorsByMonitorIdData, GetMonitorsByMonitorIdError, GetMonitorsByMonitorIdResponse, GetMonitorsData, GetMonitorsError, GetMonitorsResponse, GetPublicIncidentsByIncidentIdData, GetPublicIncidentsByIncidentIdError, GetPublicIncidentsByIncidentIdResponse, GetPublicMaintenanceByMaintenanceIdData, GetPublicMaintenanceByMaintenanceIdError, GetPublicMaintenanceByMaintenanceIdResponse, GetPublicMonitorsByMonitorIdData, GetPublicMonitorsByMonitorIdError, GetPublicMonitorsByMonitorIdHistoryData, GetPublicMonitorsByMonitorIdHistoryError, GetPublicMonitorsByMonitorIdHistoryResponse, GetPublicMonitorsByMonitorIdResponse, GetPublicStatusPageData, GetPublicStatusPageError, GetPublicStatusPageHistoryData, GetPublicStatusPageHistoryError, GetPublicStatusPageHistoryResponse, GetPublicStatusPageIncidentsData, GetPublicStatusPageIncidentsError, GetPublicStatusPageIncidentsResponse, GetPublicStatusPageMaintenanceData, GetPublicStatusPageMaintenanceError, GetPublicStatusPageMaintenanceResponse, GetPublicStatusPageResponse, GetStatusPageConfigData, GetStatusPageConfigError, GetStatusPageConfigResponse, GetStatusPageData, GetStatusPageError, GetStatusPageGroupsData, GetStatusPageGroupsError, GetStatusPageGroupsResponse, GetStatusPageHistoryData, GetStatusPageHistoryError, GetStatusPageHistoryResponse, GetStatusPageIncidentsByIncidentIdData, GetStatusPageIncidentsByIncidentIdError, GetStatusPageIncidentsByIncidentIdResponse, GetStatusPageIncidentsByIncidentIdUpdatesData, GetStatusPageIncidentsByIncidentIdUpdatesError, GetStatusPageIncidentsByIncidentIdUpdatesResponse, GetStatusPageIncidentsData, GetStatusPageIncidentsError, GetStatusPageIncidentsResponse, GetStatusPageMaintenanceByMaintenanceIdData, GetStatusPageMaintenanceByMaintenanceIdError, GetStatusPageMaintenanceByMaintenanceIdResponse, GetStatusPageMaintenanceByMaintenanceIdUpdatesData, GetStatusPageMaintenanceByMaintenanceIdUpdatesError, GetStatusPageMaintenanceByMaintenanceIdUpdatesResponse, GetStatusPageMaintenanceData, GetStatusPageMaintenanceError, GetStatusPageMaintenanceResponse, GetStatusPageMonitorsData, GetStatusPageMonitorsError, GetStatusPageMonitorsResponse, GetStatusPageResponse, GetUsersSearchData, GetUsersSearchError, GetUsersSearchResponse, PostAccountApikeysData, PostAccountApikeysError, PostAccountApikeysResponse, PostAdminUsersData, PostAdminUsersError, PostAdminUsersResponse, PostAuthLoginData, PostAuthLoginError, PostAuthLoginResponse, PostAuthLogoutData, PostAuthLogoutError, PostAuthLogoutResponse, PostAuthResetPasswordData, PostAuthResetPasswordError, PostAuthResetPasswordResponse, PostMonitorsByMonitorIdCheckData, PostMonitorsByMonitorIdCheckError, PostMonitorsByMonitorIdCheckResponse, PostMonitorsByMonitorIdPauseData, PostMonitorsByMonitorIdPauseError, PostMonitorsByMonitorIdPauseResponse, PostMonitorsByMonitorIdResumeData, PostMonitorsByMonitorIdResumeError, PostMonitorsByMonitorIdResumeResponse, PostMonitorsData, PostMonitorsError, PostMonitorsResponse, PostStatusPageGroupsData, PostStatusPageGroupsError, PostStatusPageGroupsResponse, PostStatusPageIncidentsByIncidentIdUpdatesData, PostStatusPageIncidentsByIncidentIdUpdatesError, PostStatusPageIncidentsByIncidentIdUpdatesResponse, PostStatusPageIncidentsData, PostStatusPageIncidentsError, PostStatusPageIncidentsResponse, PostStatusPageMaintenanceByMaintenanceIdUpdatesData, PostStatusPageMaintenanceByMaintenanceIdUpdatesError, PostStatusPageMaintenanceByMaintenanceIdUpdatesResponse, PostStatusPageMaintenanceData, PostStatusPageMaintenanceError, PostStatusPageMaintenanceResponse, PostStatusPageMonitorsData, PostStatusPageMonitorsError, PostStatusPageMonitorsResponse, PutAccountData, PutAccountError, PutAccountPasswordData, PutAccountPasswordError, PutAccountPasswordResponse, PutAccountResponse, PutAdminSettingsData, PutAdminSettingsError, PutAdminSettingsResponse, PutAdminUsersByUserIdData, PutAdminUsersByUserIdError, PutAdminUsersByUserIdPasswordData, PutAdminUsersByUserIdPasswordError, PutAdminUsersByUserIdPasswordResponse, PutAdminUsersByUserIdResponse, PutMonitorsByMonitorIdData, PutMonitorsByMonitorIdError, PutMonitorsByMonitorIdResponse, PutStatusPageData, PutStatusPageError, PutStatusPageGroupsByGroupIdData, PutStatusPageGroupsByGroupIdError, PutStatusPageGroupsByGroupIdResponse, PutStatusPageGroupsReorderData, PutStatusPageGroupsReorderError, PutStatusPageGroupsReorderResponse, PutStatusPageIncidentsByIncidentIdData, PutStatusPageIncidentsByIncidentIdError, PutStatusPageIncidentsByIncidentIdResponse, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdData, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdError, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse, PutStatusPageMaintenanceByMaintenanceIdData, PutStatusPageMaintenanceByMaintenanceIdError, PutStatusPageMaintenanceByMaintenanceIdResponse, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdData, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdError, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse, PutStatusPageMonitorsByLinkIdData, PutStatusPageMonitorsByLinkIdError, PutStatusPageMonitorsByLinkIdResponse, PutStatusPageMonitorsReorderData, PutStatusPageMonitorsReorderError, PutStatusPageMonitorsReorderResponse, PutStatusPageResponse } from './types.gen';
 
 export type Options<TComposable extends Composable = '$fetch', TData extends TDataShape = TDataShape, ResT = unknown, DefaultT = undefined> = Options2<TComposable, TData, ResT, DefaultT> & {
     /**
@@ -417,6 +417,17 @@ export const deleteStatusPageIncidentsByIncidentId = <TComposable extends Compos
 });
 
 /**
+ * Get incident
+ *
+ * Retrieve a single incident with its update timeline. Readable regardless of the status page's public flag.
+ */
+export const getStatusPageIncidentsByIncidentId = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageIncidentsByIncidentIdResponse = GetStatusPageIncidentsByIncidentIdResponse>(options: Options<TComposable, GetStatusPageIncidentsByIncidentIdData, GetStatusPageIncidentsByIncidentIdResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageIncidentsByIncidentIdResponse | DefaultT, GetStatusPageIncidentsByIncidentIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/status-page/incidents/{incidentId}',
+    ...options
+});
+
+/**
  * Update incident
  *
  * Update an incident's status, severity, or message. Admin only.
@@ -469,6 +480,17 @@ export const deleteStatusPageMaintenanceByMaintenanceId = <TComposable extends C
 });
 
 /**
+ * Get maintenance
+ *
+ * Retrieve a single scheduled maintenance entry with its update timeline. Readable regardless of the status page's public flag.
+ */
+export const getStatusPageMaintenanceByMaintenanceId = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageMaintenanceByMaintenanceIdResponse = GetStatusPageMaintenanceByMaintenanceIdResponse>(options: Options<TComposable, GetStatusPageMaintenanceByMaintenanceIdData, GetStatusPageMaintenanceByMaintenanceIdResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageMaintenanceByMaintenanceIdResponse | DefaultT, GetStatusPageMaintenanceByMaintenanceIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/status-page/maintenance/{maintenanceId}',
+    ...options
+});
+
+/**
  * Update maintenance
  *
  * Update a scheduled maintenance entry. Admin only.
@@ -484,24 +506,24 @@ export const putStatusPageMaintenanceByMaintenanceId = <TComposable extends Comp
 });
 
 /**
- * List updates
+ * List incident updates
  *
- * Retrieve all general updates for the status page.
+ * Retrieve all update entries for an incident, newest first.
  */
-export const getStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageUpdatesResponse = GetStatusPageUpdatesResponse>(options: Options<TComposable, GetStatusPageUpdatesData, GetStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageUpdatesResponse | DefaultT, GetStatusPageUpdatesError, DefaultT>({
+export const getStatusPageIncidentsByIncidentIdUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageIncidentsByIncidentIdUpdatesResponse = GetStatusPageIncidentsByIncidentIdUpdatesResponse>(options: Options<TComposable, GetStatusPageIncidentsByIncidentIdUpdatesData, GetStatusPageIncidentsByIncidentIdUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageIncidentsByIncidentIdUpdatesResponse | DefaultT, GetStatusPageIncidentsByIncidentIdUpdatesError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-page/updates',
+    url: '/status-page/incidents/{incidentId}/updates',
     ...options
 });
 
 /**
- * Create update
+ * Post incident update
  *
- * Publish a new update on the status page. Admin only.
+ * Post an update on an incident. The update carries a status that is also applied to the incident (including its resolution state). Admin only.
  */
-export const postStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends PostStatusPageUpdatesResponse = PostStatusPageUpdatesResponse>(options: Options<TComposable, PostStatusPageUpdatesData, PostStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostStatusPageUpdatesResponse | DefaultT, PostStatusPageUpdatesError, DefaultT>({
+export const postStatusPageIncidentsByIncidentIdUpdates = <TComposable extends Composable = '$fetch', DefaultT extends PostStatusPageIncidentsByIncidentIdUpdatesResponse = PostStatusPageIncidentsByIncidentIdUpdatesResponse>(options: Options<TComposable, PostStatusPageIncidentsByIncidentIdUpdatesData, PostStatusPageIncidentsByIncidentIdUpdatesResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostStatusPageIncidentsByIncidentIdUpdatesResponse | DefaultT, PostStatusPageIncidentsByIncidentIdUpdatesError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-page/updates',
+    url: '/status-page/incidents/{incidentId}/updates',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -510,24 +532,76 @@ export const postStatusPageUpdates = <TComposable extends Composable = '$fetch',
 });
 
 /**
- * Delete update
+ * Delete incident update
  *
- * Remove a status page update. Admin only.
+ * Delete an update entry from an incident. Admin only.
  */
-export const deleteStatusPageUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteStatusPageUpdatesByUpdateIdResponse = DeleteStatusPageUpdatesByUpdateIdResponse>(options: Options<TComposable, DeleteStatusPageUpdatesByUpdateIdData, DeleteStatusPageUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteStatusPageUpdatesByUpdateIdResponse | DefaultT, DeleteStatusPageUpdatesByUpdateIdError, DefaultT>({
+export const deleteStatusPageIncidentsByIncidentIdUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse = DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse>(options: Options<TComposable, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdData, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse | DefaultT, DeleteStatusPageIncidentsByIncidentIdUpdatesByUpdateIdError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-page/updates/{updateId}',
+    url: '/status-page/incidents/{incidentId}/updates/{updateId}',
     ...options
 });
 
 /**
- * Update update
+ * Edit incident update
  *
- * Update a status page update. Admin only.
+ * Edit an incident update's message, or its status (which is re-applied to the incident). Admin only.
  */
-export const putStatusPageUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends PutStatusPageUpdatesByUpdateIdResponse = PutStatusPageUpdatesByUpdateIdResponse>(options: Options<TComposable, PutStatusPageUpdatesByUpdateIdData, PutStatusPageUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutStatusPageUpdatesByUpdateIdResponse | DefaultT, PutStatusPageUpdatesByUpdateIdError, DefaultT>({
+export const putStatusPageIncidentsByIncidentIdUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse = PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse>(options: Options<TComposable, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdData, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdResponse | DefaultT, PutStatusPageIncidentsByIncidentIdUpdatesByUpdateIdError, DefaultT>({
     security: [{ scheme: 'bearer', type: 'http' }],
-    url: '/status-page/updates/{updateId}',
+    url: '/status-page/incidents/{incidentId}/updates/{updateId}',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * List maintenance updates
+ *
+ * Retrieve all update entries for a scheduled maintenance entry, newest first.
+ */
+export const getStatusPageMaintenanceByMaintenanceIdUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetStatusPageMaintenanceByMaintenanceIdUpdatesResponse = GetStatusPageMaintenanceByMaintenanceIdUpdatesResponse>(options: Options<TComposable, GetStatusPageMaintenanceByMaintenanceIdUpdatesData, GetStatusPageMaintenanceByMaintenanceIdUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetStatusPageMaintenanceByMaintenanceIdUpdatesResponse | DefaultT, GetStatusPageMaintenanceByMaintenanceIdUpdatesError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/status-page/maintenance/{maintenanceId}/updates',
+    ...options
+});
+
+/**
+ * Post maintenance update
+ *
+ * Post an update during scheduled maintenance. The update carries a status that is also applied to the maintenance entry. Admin only.
+ */
+export const postStatusPageMaintenanceByMaintenanceIdUpdates = <TComposable extends Composable = '$fetch', DefaultT extends PostStatusPageMaintenanceByMaintenanceIdUpdatesResponse = PostStatusPageMaintenanceByMaintenanceIdUpdatesResponse>(options: Options<TComposable, PostStatusPageMaintenanceByMaintenanceIdUpdatesData, PostStatusPageMaintenanceByMaintenanceIdUpdatesResponse, DefaultT>): any => (options.client ?? client).post<TComposable, PostStatusPageMaintenanceByMaintenanceIdUpdatesResponse | DefaultT, PostStatusPageMaintenanceByMaintenanceIdUpdatesError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/status-page/maintenance/{maintenanceId}/updates',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * Delete maintenance update
+ *
+ * Delete an update entry from a scheduled maintenance entry. Admin only.
+ */
+export const deleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse = DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse>(options: Options<TComposable, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdData, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).delete<TComposable, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse | DefaultT, DeleteStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/status-page/maintenance/{maintenanceId}/updates/{updateId}',
+    ...options
+});
+
+/**
+ * Edit maintenance update
+ *
+ * Edit a maintenance update's message, or its status (which is re-applied to the maintenance entry). Admin only.
+ */
+export const putStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateId = <TComposable extends Composable = '$fetch', DefaultT extends PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse = PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse>(options: Options<TComposable, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdData, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse, DefaultT>): any => (options.client ?? client).put<TComposable, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdResponse | DefaultT, PutStatusPageMaintenanceByMaintenanceIdUpdatesByUpdateIdError, DefaultT>({
+    security: [{ scheme: 'bearer', type: 'http' }],
+    url: '/status-page/maintenance/{maintenanceId}/updates/{updateId}',
     ...options,
     headers: {
         'Content-Type': 'application/json',
@@ -739,6 +813,13 @@ export const getPublicStatusPageHistory = <TComposable extends Composable = '$fe
 export const getPublicStatusPageIncidents = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageIncidentsResponse = GetPublicStatusPageIncidentsResponse>(options: Options<TComposable, GetPublicStatusPageIncidentsData, GetPublicStatusPageIncidentsResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageIncidentsResponse | DefaultT, GetPublicStatusPageIncidentsError, DefaultT>({ url: '/public/status-page/incidents', ...options });
 
 /**
+ * Get public incident
+ *
+ * Public detail view of a single incident with its update timeline.
+ */
+export const getPublicIncidentsByIncidentId = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicIncidentsByIncidentIdResponse = GetPublicIncidentsByIncidentIdResponse>(options: Options<TComposable, GetPublicIncidentsByIncidentIdData, GetPublicIncidentsByIncidentIdResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicIncidentsByIncidentIdResponse | DefaultT, GetPublicIncidentsByIncidentIdError, DefaultT>({ url: '/public/incidents/{incidentId}', ...options });
+
+/**
  * Get public maintenance
  *
  * List public scheduled maintenance entries for the status page.
@@ -746,11 +827,11 @@ export const getPublicStatusPageIncidents = <TComposable extends Composable = '$
 export const getPublicStatusPageMaintenance = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageMaintenanceResponse = GetPublicStatusPageMaintenanceResponse>(options: Options<TComposable, GetPublicStatusPageMaintenanceData, GetPublicStatusPageMaintenanceResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageMaintenanceResponse | DefaultT, GetPublicStatusPageMaintenanceError, DefaultT>({ url: '/public/status-page/maintenance', ...options });
 
 /**
- * Get public updates
+ * Get public maintenance
  *
- * List public updates for the status page.
+ * Public detail view of a single scheduled maintenance entry with its update timeline.
  */
-export const getPublicStatusPageUpdates = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicStatusPageUpdatesResponse = GetPublicStatusPageUpdatesResponse>(options: Options<TComposable, GetPublicStatusPageUpdatesData, GetPublicStatusPageUpdatesResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicStatusPageUpdatesResponse | DefaultT, GetPublicStatusPageUpdatesError, DefaultT>({ url: '/public/status-page/updates', ...options });
+export const getPublicMaintenanceByMaintenanceId = <TComposable extends Composable = '$fetch', DefaultT extends GetPublicMaintenanceByMaintenanceIdResponse = GetPublicMaintenanceByMaintenanceIdResponse>(options: Options<TComposable, GetPublicMaintenanceByMaintenanceIdData, GetPublicMaintenanceByMaintenanceIdResponse, DefaultT>): any => (options.client ?? client).get<TComposable, GetPublicMaintenanceByMaintenanceIdResponse | DefaultT, GetPublicMaintenanceByMaintenanceIdError, DefaultT>({ url: '/public/maintenance/{maintenanceId}', ...options });
 
 /**
  * Get public monitor
