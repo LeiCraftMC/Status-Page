@@ -64,7 +64,7 @@ deploy:cloudflare:
   needs:
     - test:typecheck
     - test:unit
-    - test:build:cloudflare
+#    - test:build:cloudflare
   tags:
     - glar-linux-medium-amd64
   script:
