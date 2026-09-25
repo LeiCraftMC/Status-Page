@@ -47,13 +47,15 @@ function formatUptime(uptime: number): string {
             {{ formatUptime(history.uptime_percentage) }}
         </span>
 
-        <div class="flex-1 flex items-center min-w-0 h-6 overflow-x-auto scrollbar-hide">
-            <div class="flex items-center gap-[2px] min-w-full h-full">
+        <!-- Bars shrink to fit instead of scrolling, so the newest days are
+             always visible, even when 90 of them share a phone's width. -->
+        <div class="flex-1 min-w-0 h-6">
+            <div class="flex items-center gap-px sm:gap-[2px] w-full h-full">
                 <UTooltip
                     v-for="bucket in history.buckets"
                     :key="bucket.date"
-                    :popper="{ placement: 'top' }"
-                    class="flex-1 min-w-[3px] h-full"
+                    :content="{ side: 'top' }"
+                    class="flex-1 min-w-0 h-full"
                 >
                 <template #content>
                     <div class="text-xs">
