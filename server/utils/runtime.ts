@@ -289,7 +289,7 @@ export namespace Runtime.Password {
 	// ---------------------------------------------------------------------------
 
 	/** Default PBKDF2 iteration count (OWASP minimum recommendation). */
-	const PBKDF2_ITERATIONS = 600_000;
+	const PBKDF2_ITERATIONS = 100_000;
 
 	/** Salt length in bytes. */
 	const PBKDF2_SALT_BYTES = 16;
