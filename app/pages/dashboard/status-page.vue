@@ -183,8 +183,6 @@ type ConfigSchema = z.output<typeof configSchema>
 const configForm = reactive<ConfigSchema>({
     title: undefined,
     description: undefined,
-    is_public: undefined,
-    is_enabled: undefined,
     theme: undefined
 })
 
@@ -192,8 +190,6 @@ watchEffect(() => {
     if (config.value) {
         configForm.title = config.value.title
         configForm.description = config.value.description ?? ''
-        configForm.is_public = config.value.is_public
-        configForm.is_enabled = config.value.is_enabled
         configForm.theme = config.value.theme as 'light' | 'dark' | 'auto'
     }
 })
@@ -202,8 +198,6 @@ async function saveConfig() {
     const body: ConfigSchema = {
         title: configForm.title,
         description: configForm.description === '' ? null : configForm.description,
-        is_public: configForm.is_public,
-        is_enabled: configForm.is_enabled,
         theme: configForm.theme
     }
 
@@ -262,27 +256,17 @@ async function saveConfig() {
                                 <UTextarea v-model="configForm.description" class="w-full" />
                             </UFormField>
 
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                <UFormField label="Theme" name="theme">
-                                    <USelect
-                                        v-model="configForm.theme"
-                                        :items="[
-                                            { label: 'Auto', value: 'auto' },
-                                            { label: 'Light', value: 'light' },
-                                            { label: 'Dark', value: 'dark' }
-                                        ]"
-                                        class="w-full"
-                                    />
-                                </UFormField>
-
-                                <UFormField name="is_public">
-                                    <USwitch v-model="configForm.is_public" label="Public" />
-                                </UFormField>
-
-                                <UFormField name="is_enabled">
-                                    <USwitch v-model="configForm.is_enabled" label="Enabled" />
-                                </UFormField>
-                            </div>
+                            <UFormField label="Theme" name="theme">
+                                <USelect
+                                    v-model="configForm.theme"
+                                    :items="[
+                                        { label: 'Auto', value: 'auto' },
+                                        { label: 'Light', value: 'light' },
+                                        { label: 'Dark', value: 'dark' }
+                                    ]"
+                                    class="w-full sm:w-64"
+                                />
+                            </UFormField>
 
                             <div class="pt-2">
                                 <UButton type="submit" label="Save Configuration" color="primary" icon="i-lucide-save" />

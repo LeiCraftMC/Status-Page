@@ -32,12 +32,6 @@ defineProps<Props>();
         </div>
 
         <div class="flex flex-wrap gap-2">
-            <UBadge :color="page.is_public ? 'success' : 'warning'" variant="soft">
-                {{ page.is_public ? 'Public' : 'Private' }}
-            </UBadge>
-            <UBadge :color="page.is_enabled ? 'success' : 'neutral'" variant="soft">
-                {{ page.is_enabled ? 'Enabled' : 'Disabled' }}
-            </UBadge>
             <UBadge variant="soft" color="neutral" class="capitalize">
                 {{ page.theme }} theme
             </UBadge>

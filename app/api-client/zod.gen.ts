@@ -444,7 +444,8 @@ export const zPostMonitorsBody = z.object({
     follow_redirects: z.boolean().optional(),
     verify_tls: z.boolean().optional(),
     is_enabled: z.boolean().optional(),
-    is_paused: z.boolean().optional()
+    is_paused: z.boolean().optional(),
+    prefill_history: z.boolean().optional()
 });
 
 /**
@@ -1285,8 +1286,6 @@ export const zGetStatusPageResponse = z.object({
             id: z.int().gte(-9007199254740991).lte(9007199254740991),
             title: z.string(),
             description: z.string().nullable(),
-            is_public: z.boolean(),
-            is_enabled: z.boolean(),
             theme: z.string(),
             created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
             updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
@@ -1395,8 +1394,6 @@ export const zGetStatusPageResponse = z.object({
 export const zPutStatusPageBody = z.object({
     title: z.string().min(1).max(128).optional(),
     description: z.string().max(4096).nullish(),
-    is_public: z.boolean().optional(),
-    is_enabled: z.boolean().optional(),
     theme: z.enum([
         'light',
         'dark',
@@ -1415,8 +1412,6 @@ export const zPutStatusPageResponse = z.object({
         id: z.int().gte(-9007199254740991).lte(9007199254740991),
         title: z.string(),
         description: z.string().nullable(),
-        is_public: z.boolean(),
-        is_enabled: z.boolean(),
         theme: z.string(),
         created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
         updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
@@ -1435,8 +1430,6 @@ export const zGetStatusPageConfigResponse = z.object({
             id: z.int().gte(-9007199254740991).lte(9007199254740991),
             title: z.string(),
             description: z.string().nullable(),
-            is_public: z.boolean(),
-            is_enabled: z.boolean(),
             theme: z.string(),
             created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
             updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)
@@ -1523,6 +1516,56 @@ export const zPostStatusPageGroupsResponse = z.object({
         id: z.int().gte(-9007199254740991).lte(9007199254740991),
         name: z.string(),
         sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    })
+});
+
+export const zPutStatusPageGroupsReorderBody = z.object({
+    groups: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+/**
+ * Groups reordered successfully
+ */
+export const zPutStatusPageGroupsReorderResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Groups reordered successfully'),
+    data: z.object({
+        groups: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            name: z.string(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+        }))
+    })
+});
+
+export const zPutStatusPageMonitorsReorderBody = z.object({
+    links: z.array(z.object({
+        id: z.int().gte(-9007199254740991).lte(9007199254740991),
+        group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
+    }))
+});
+
+/**
+ * Monitors reordered successfully
+ */
+export const zPutStatusPageMonitorsReorderResponse = z.object({
+    success: z.literal(true),
+    code: z.literal(200),
+    message: z.literal('Monitors reordered successfully'),
+    data: z.object({
+        links: z.array(z.object({
+            id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
+            group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
+            display_name: z.string().nullable(),
+            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991),
+            monitor_name: z.string()
+        }))
     })
 });
 
@@ -1643,56 +1686,6 @@ export const zPutStatusPageMonitorsByLinkIdResponse = z.object({
     })
 });
 
-export const zPutStatusPageGroupsReorderBody = z.object({
-    groups: z.array(z.object({
-        id: z.int().gte(-9007199254740991).lte(9007199254740991),
-        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
-    }))
-});
-
-/**
- * Groups reordered successfully
- */
-export const zPutStatusPageGroupsReorderResponse = z.object({
-    success: z.literal(true),
-    code: z.literal(200),
-    message: z.literal('Groups reordered successfully'),
-    data: z.object({
-        groups: z.array(z.object({
-            id: z.int().gte(-9007199254740991).lte(9007199254740991),
-            name: z.string(),
-            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
-        }))
-    })
-});
-
-export const zPutStatusPageMonitorsReorderBody = z.object({
-    links: z.array(z.object({
-        id: z.int().gte(-9007199254740991).lte(9007199254740991),
-        group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
-        sort_order: z.int().gte(-9007199254740991).lte(9007199254740991)
-    }))
-});
-
-/**
- * Monitors reordered successfully
- */
-export const zPutStatusPageMonitorsReorderResponse = z.object({
-    success: z.literal(true),
-    code: z.literal(200),
-    message: z.literal('Monitors reordered successfully'),
-    data: z.object({
-        links: z.array(z.object({
-            id: z.int().gte(-9007199254740991).lte(9007199254740991),
-            monitor_id: z.int().gte(-9007199254740991).lte(9007199254740991),
-            group_id: z.int().gte(-9007199254740991).lte(9007199254740991).nullable(),
-            display_name: z.string().nullable(),
-            sort_order: z.int().gte(-9007199254740991).lte(9007199254740991),
-            monitor_name: z.string()
-        }))
-    })
-});
-
 /**
  * Status page retrieved successfully
  */
@@ -1705,8 +1698,6 @@ export const zGetPublicStatusPageResponse = z.object({
             id: z.int().gte(-9007199254740991).lte(9007199254740991),
             title: z.string(),
             description: z.string().nullable(),
-            is_public: z.boolean(),
-            is_enabled: z.boolean(),
             theme: z.string(),
             created_at: z.int().gte(-9007199254740991).lte(9007199254740991),
             updated_at: z.int().gte(-9007199254740991).lte(9007199254740991)

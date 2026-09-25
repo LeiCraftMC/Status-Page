@@ -177,8 +177,6 @@ export namespace StatusPageAdminModel {
         export const Body = createUpdateSchema(DB.Tables.statusPageConfig, {
             title: z.string().min(1).max(128).optional(),
             description: z.string().max(4096).optional().nullable(),
-            is_public: z.boolean().optional(),
-            is_enabled: z.boolean().optional(),
             theme: z.enum(['light', 'dark', 'auto']).optional(),
         }).omit({
             id: true,

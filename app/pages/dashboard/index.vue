@@ -211,12 +211,6 @@ function refreshAll() {
                                 <UBadge :color="pageOverallStatus === 'up' ? 'success' : pageOverallStatus === 'down' ? 'error' : pageOverallStatus === 'degraded' ? 'warning' : 'neutral'" variant="soft" class="capitalize">
                                     {{ pageOverallStatus }}
                                 </UBadge>
-                                <UBadge :color="statusPage.page.is_public ? 'success' : 'warning'" variant="soft" class="text-xs">
-                                    {{ statusPage.page.is_public ? 'Public' : 'Private' }}
-                                </UBadge>
-                                <UBadge :color="statusPage.page.is_enabled ? 'success' : 'neutral'" variant="soft" class="text-xs">
-                                    {{ statusPage.page.is_enabled ? 'On' : 'Off' }}
-                                </UBadge>
                                 <span v-if="activeIncidents > 0" class="text-sm text-red-400">{{ activeIncidents }} active incident{{ activeIncidents === 1 ? '' : 's' }}</span>
                             </div>
 

@@ -1031,6 +1031,10 @@ export type PostMonitorsData = {
         verify_tls?: boolean;
         is_enabled?: boolean;
         is_paused?: boolean;
+        /**
+         * Fill the 90 days before today with all-up uptime history (no latency data). Defaults to false.
+         */
+        prefill_history?: boolean;
     };
     path?: never;
     query?: never;
@@ -2658,8 +2662,6 @@ export type GetStatusPageResponses = {
                 id: number;
                 title: string;
                 description: string | null;
-                is_public: boolean;
-                is_enabled: boolean;
                 theme: string;
                 created_at: number;
                 updated_at: number;
@@ -2747,8 +2749,6 @@ export type PutStatusPageData = {
     body: {
         title?: string;
         description?: string | null;
-        is_public?: boolean;
-        is_enabled?: boolean;
         theme?: 'light' | 'dark' | 'auto';
     };
     path?: never;
@@ -2797,8 +2797,6 @@ export type PutStatusPageResponses = {
             id: number;
             title: string;
             description: string | null;
-            is_public: boolean;
-            is_enabled: boolean;
             theme: string;
             created_at: number;
             updated_at: number;
@@ -2841,8 +2839,6 @@ export type GetStatusPageConfigResponses = {
                 id: number;
                 title: string;
                 description: string | null;
-                is_public: boolean;
-                is_enabled: boolean;
                 theme: string;
                 created_at: number;
                 updated_at: number;
@@ -3013,6 +3009,132 @@ export type PostStatusPageGroupsResponses = {
 };
 
 export type PostStatusPageGroupsResponse = PostStatusPageGroupsResponses[keyof PostStatusPageGroupsResponses];
+
+export type PutStatusPageGroupsReorderData = {
+    body: {
+        groups: Array<{
+            id: number;
+            sort_order: number;
+        }>;
+    };
+    path?: never;
+    query?: never;
+    url: '/status-page/groups/reorder';
+};
+
+export type PutStatusPageGroupsReorderErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PutStatusPageGroupsReorderError = PutStatusPageGroupsReorderErrors[keyof PutStatusPageGroupsReorderErrors];
+
+export type PutStatusPageGroupsReorderResponses = {
+    /**
+     * Groups reordered successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Groups reordered successfully';
+        data: {
+            groups: Array<{
+                id: number;
+                name: string;
+                sort_order: number;
+            }>;
+        };
+    };
+};
+
+export type PutStatusPageGroupsReorderResponse = PutStatusPageGroupsReorderResponses[keyof PutStatusPageGroupsReorderResponses];
+
+export type PutStatusPageMonitorsReorderData = {
+    body: {
+        links: Array<{
+            id: number;
+            group_id: number | null;
+            sort_order: number;
+        }>;
+    };
+    path?: never;
+    query?: never;
+    url: '/status-page/monitors/reorder';
+};
+
+export type PutStatusPageMonitorsReorderErrors = {
+    /**
+     * Bad Request: Syntax or validation error in request
+     */
+    400: {
+        success: false;
+        code: 400;
+        message: 'Bad Request: Syntax or validation error in request';
+    };
+    /**
+     * Authentication required
+     */
+    401: {
+        success: false;
+        code: 401;
+        message: 'Authentication required';
+    };
+    /**
+     * Admin access required
+     */
+    403: {
+        success: false;
+        code: 403;
+        message: 'Admin access required';
+    };
+};
+
+export type PutStatusPageMonitorsReorderError = PutStatusPageMonitorsReorderErrors[keyof PutStatusPageMonitorsReorderErrors];
+
+export type PutStatusPageMonitorsReorderResponses = {
+    /**
+     * Monitors reordered successfully
+     */
+    200: {
+        success: true;
+        code: 200;
+        message: 'Monitors reordered successfully';
+        data: {
+            links: Array<{
+                id: number;
+                monitor_id: number;
+                group_id: number | null;
+                display_name: string | null;
+                sort_order: number;
+                monitor_name: string;
+            }>;
+        };
+    };
+};
+
+export type PutStatusPageMonitorsReorderResponse = PutStatusPageMonitorsReorderResponses[keyof PutStatusPageMonitorsReorderResponses];
 
 export type DeleteStatusPageGroupsByGroupIdData = {
     body?: never;
@@ -3373,151 +3495,12 @@ export type PutStatusPageMonitorsByLinkIdResponses = {
 
 export type PutStatusPageMonitorsByLinkIdResponse = PutStatusPageMonitorsByLinkIdResponses[keyof PutStatusPageMonitorsByLinkIdResponses];
 
-export type PutStatusPageGroupsReorderData = {
-    body: {
-        groups: Array<{
-            id: number;
-            sort_order: number;
-        }>;
-    };
-    path?: never;
-    query?: never;
-    url: '/status-page/groups/reorder';
-};
-
-export type PutStatusPageGroupsReorderErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Admin access required
-     */
-    403: {
-        success: false;
-        code: 403;
-        message: 'Admin access required';
-    };
-};
-
-export type PutStatusPageGroupsReorderError = PutStatusPageGroupsReorderErrors[keyof PutStatusPageGroupsReorderErrors];
-
-export type PutStatusPageGroupsReorderResponses = {
-    /**
-     * Groups reordered successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Groups reordered successfully';
-        data: {
-            groups: Array<{
-                id: number;
-                name: string;
-                sort_order: number;
-            }>;
-        };
-    };
-};
-
-export type PutStatusPageGroupsReorderResponse = PutStatusPageGroupsReorderResponses[keyof PutStatusPageGroupsReorderResponses];
-
-export type PutStatusPageMonitorsReorderData = {
-    body: {
-        links: Array<{
-            id: number;
-            group_id: number | null;
-            sort_order: number;
-        }>;
-    };
-    path?: never;
-    query?: never;
-    url: '/status-page/monitors/reorder';
-};
-
-export type PutStatusPageMonitorsReorderErrors = {
-    /**
-     * Bad Request: Syntax or validation error in request
-     */
-    400: {
-        success: false;
-        code: 400;
-        message: 'Bad Request: Syntax or validation error in request';
-    };
-    /**
-     * Authentication required
-     */
-    401: {
-        success: false;
-        code: 401;
-        message: 'Authentication required';
-    };
-    /**
-     * Admin access required
-     */
-    403: {
-        success: false;
-        code: 403;
-        message: 'Admin access required';
-    };
-};
-
-export type PutStatusPageMonitorsReorderError = PutStatusPageMonitorsReorderErrors[keyof PutStatusPageMonitorsReorderErrors];
-
-export type PutStatusPageMonitorsReorderResponses = {
-    /**
-     * Monitors reordered successfully
-     */
-    200: {
-        success: true;
-        code: 200;
-        message: 'Monitors reordered successfully';
-        data: {
-            links: Array<{
-                id: number;
-                monitor_id: number;
-                group_id: number | null;
-                display_name: string | null;
-                sort_order: number;
-                monitor_name: string;
-            }>;
-        };
-    };
-};
-
-export type PutStatusPageMonitorsReorderResponse = PutStatusPageMonitorsReorderResponses[keyof PutStatusPageMonitorsReorderResponses];
-
 export type GetPublicStatusPageData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/public/status-page';
 };
-
-export type GetPublicStatusPageErrors = {
-    /**
-     * Status page not found or not public
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found or not public';
-    };
-};
-
-export type GetPublicStatusPageError = GetPublicStatusPageErrors[keyof GetPublicStatusPageErrors];
 
 export type GetPublicStatusPageResponses = {
     /**
@@ -3532,8 +3515,6 @@ export type GetPublicStatusPageResponses = {
                 id: number;
                 title: string;
                 description: string | null;
-                is_public: boolean;
-                is_enabled: boolean;
                 theme: string;
                 created_at: number;
                 updated_at: number;
@@ -3626,19 +3607,6 @@ export type GetPublicStatusPageHistoryData = {
     url: '/public/status-page/history';
 };
 
-export type GetPublicStatusPageHistoryErrors = {
-    /**
-     * Status page not found or not public
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found or not public';
-    };
-};
-
-export type GetPublicStatusPageHistoryError = GetPublicStatusPageHistoryErrors[keyof GetPublicStatusPageHistoryErrors];
-
 export type GetPublicStatusPageHistoryResponses = {
     /**
      * History retrieved successfully
@@ -3676,19 +3644,6 @@ export type GetPublicStatusPageIncidentsData = {
     query?: never;
     url: '/public/status-page/incidents';
 };
-
-export type GetPublicStatusPageIncidentsErrors = {
-    /**
-     * Status page not found or not public
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found or not public';
-    };
-};
-
-export type GetPublicStatusPageIncidentsError = GetPublicStatusPageIncidentsErrors[keyof GetPublicStatusPageIncidentsErrors];
 
 export type GetPublicStatusPageIncidentsResponses = {
     /**
@@ -3735,12 +3690,12 @@ export type GetPublicIncidentsByIncidentIdData = {
 
 export type GetPublicIncidentsByIncidentIdErrors = {
     /**
-     * Incident not found or status page not public
+     * Incident not found
      */
     404: {
         success: false;
         code: 404;
-        message: 'Incident not found or status page not public';
+        message: 'Incident not found';
     };
 };
 
@@ -3789,19 +3744,6 @@ export type GetPublicStatusPageMaintenanceData = {
     url: '/public/status-page/maintenance';
 };
 
-export type GetPublicStatusPageMaintenanceErrors = {
-    /**
-     * Status page not found or not public
-     */
-    404: {
-        success: false;
-        code: 404;
-        message: 'Status page not found or not public';
-    };
-};
-
-export type GetPublicStatusPageMaintenanceError = GetPublicStatusPageMaintenanceErrors[keyof GetPublicStatusPageMaintenanceErrors];
-
 export type GetPublicStatusPageMaintenanceResponses = {
     /**
      * Maintenance retrieved successfully
@@ -3845,12 +3787,12 @@ export type GetPublicMaintenanceByMaintenanceIdData = {
 
 export type GetPublicMaintenanceByMaintenanceIdErrors = {
     /**
-     * Maintenance not found or status page not public
+     * Maintenance not found
      */
     404: {
         success: false;
         code: 404;
-        message: 'Maintenance not found or status page not public';
+        message: 'Maintenance not found';
     };
 };
 

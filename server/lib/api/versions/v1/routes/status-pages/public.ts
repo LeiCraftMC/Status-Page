@@ -17,19 +17,10 @@ export const router = new Hono().basePath('/public');
 // an admin edits content, so a short cache is invisible to visitors.
 router.use('*', publicResponseCache(30));
 
-export async function getStatusPageConfig(): Promise<DB.Models.StatusPageConfig> {
-    return getOrCreateConfig();
-}
-
 export async function buildPublicPageResponse(
     page: DB.Models.StatusPageConfig,
-    options: { includePrivate?: boolean } = {}
+    options: { includeDisabledMonitors?: boolean } = {}
 ): Promise<Omit<StatusPagesReadModel.GetPage.Response, 'incidents' | 'maintenance' | 'updates'>> {
-
-    const publicOnly = !options.includePrivate;
-    if (publicOnly && (!page.is_public || !page.is_enabled)) {
-        throw new Error("Status page is not publicly accessible");
-    }
 
     const groups = await DB.instance()
         .select()
@@ -44,9 +35,9 @@ export async function buildPublicPageResponse(
         .from(DB.Tables.monitorGroupAssignments)
         .innerJoin(DB.Tables.monitors, eq(DB.Tables.monitorGroupAssignments.monitor_id, DB.Tables.monitors.id))
         .where(
-            publicOnly
-                ? eq(DB.Tables.monitors.is_enabled, true)
-                : undefined
+            options.includeDisabledMonitors
+                ? undefined
+                : eq(DB.Tables.monitors.is_enabled, true)
         )
         .orderBy(DB.Tables.monitorGroupAssignments.sort_order);
 
@@ -132,18 +123,12 @@ router.get('/status-page',
         tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Status page retrieved successfully", StatusPagesReadModel.GetPage.Response),
-            APIResponseSpec.notFound("Status page not found or not public")
+            APIResponseSpec.success("Status page retrieved successfully", StatusPagesReadModel.GetPage.Response)
         )
     }),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page is not publicly accessible");
-        }
-
+        const page = await getOrCreateConfig();
         const response = await buildPublicPageResponse(page);
         const content = await fetchRecentContent();
 
@@ -162,20 +147,13 @@ router.get('/status-page/history',
         tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("History retrieved successfully", StatusPagesReadModel.GetHistory.Response),
-            APIResponseSpec.notFound("Status page not found or not public")
+            APIResponseSpec.success("History retrieved successfully", StatusPagesReadModel.GetHistory.Response)
         )
     }),
 
     zValidator("query", StatusPagesReadModel.GetHistory.Query),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page is not publicly accessible");
-        }
-
         // @ts-ignore — zValidator query typing is lost in middleware chains
         const { days } = c.req.valid("query") as StatusPagesReadModel.GetHistory.Query;
 
@@ -210,18 +188,11 @@ router.get('/status-page/incidents',
         tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Incidents retrieved successfully", StatusPageContentModel.Lists.Incidents),
-            APIResponseSpec.notFound("Status page not found or not public")
+            APIResponseSpec.success("Incidents retrieved successfully", StatusPageContentModel.Lists.Incidents)
         )
     }),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page is not publicly accessible");
-        }
-
         const incidents = await DB.instance()
             .select()
             .from(DB.Tables.incidents)
@@ -247,19 +218,13 @@ router.get('/incidents/:incidentId',
 
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.success("Incident retrieved successfully", StatusPagesReadModel.GetPublicIncident.Response),
-            APIResponseSpec.notFound("Incident not found or status page not public")
+            APIResponseSpec.notFound("Incident not found")
         )
     }),
 
     zValidator("param", StatusPagesReadModel.GetPublicIncident.Params),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page is not publicly accessible");
-        }
-
         // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { incidentId } = c.req.valid("param") as StatusPagesReadModel.GetPublicIncident.Params;
 
@@ -292,18 +257,11 @@ router.get('/status-page/maintenance',
         tags: [DOCS_TAGS.PUBLIC_STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
-            APIResponseSpec.success("Maintenance retrieved successfully", StatusPageContentModel.Lists.Maintenance),
-            APIResponseSpec.notFound("Status page not found or not public")
+            APIResponseSpec.success("Maintenance retrieved successfully", StatusPageContentModel.Lists.Maintenance)
         )
     }),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page || !page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page not found or not public");
-        }
-
         const maintenance = await DB.instance()
             .select()
             .from(DB.Tables.maintenance)
@@ -329,19 +287,13 @@ router.get('/maintenance/:maintenanceId',
 
         responses: APIResponseSpec.describeBasic(
             APIResponseSpec.success("Maintenance retrieved successfully", StatusPagesReadModel.GetPublicMaintenance.Response),
-            APIResponseSpec.notFound("Maintenance not found or status page not public")
+            APIResponseSpec.notFound("Maintenance not found")
         )
     }),
 
     zValidator("param", StatusPagesReadModel.GetPublicMaintenance.Params),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page || !page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page not found or not public");
-        }
-
         // @ts-ignore — zValidator param target typing is lost in middleware chains
         const { maintenanceId } = c.req.valid("param") as StatusPagesReadModel.GetPublicMaintenance.Params;
 
@@ -439,12 +391,6 @@ router.get('/monitors/:monitorId/history',
     zValidator("query", StatusPagesReadModel.GetPublicMonitorHistory.Query),
 
     async (c) => {
-        const page = await getStatusPageConfig();
-
-        if (!page.is_public || !page.is_enabled) {
-            return APIResponse.notFound(c, "Status page is not publicly accessible");
-        }
-
         // @ts-ignore — zValidator typing is lost in middleware chains
         const { monitorId } = c.req.valid("param") as StatusPagesReadModel.GetPublicMonitor.Params;
         // @ts-ignore — zValidator typing is lost in middleware chains
@@ -484,12 +430,7 @@ router.get('/monitors/:monitorId/history',
  * envelope, so it is not part of the generated OpenAPI/TypeScript API client.
  */
 router.get('/status-page/feed', async (c) => {
-    const page = await getStatusPageConfig();
-
-    if (!page.is_public || !page.is_enabled) {
-        return c.body("Status page is not publicly accessible", 404, { "Content-Type": "text/plain; charset=utf-8" });
-    }
-
+    const page = await getOrCreateConfig();
     const origin = new URL(c.req.url).origin;
 
     const incidents = await DB.instance()

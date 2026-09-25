@@ -59,8 +59,6 @@ export async function getOrCreateConfig(): Promise<DB.Models.StatusPageConfig> {
             id: CONFIG_ID,
             title: "Status Page",
             description: null,
-            is_public: true,
-            is_enabled: true,
             theme: "auto",
             created_at: now,
             updated_at: now,

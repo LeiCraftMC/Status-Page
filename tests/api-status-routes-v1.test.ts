@@ -3,6 +3,9 @@ import { DB } from "../server/db";
 import { makeAPIRequest } from "./helpers/api";
 import { seedUser, seedSession, type SeededUser } from "./helpers/seed";
 import { eq } from "drizzle-orm";
+import { MonitorStats } from "../server/utils/monitor-stats";
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 // Monitors, the single status page (config, groups, monitor links), its public
 // read endpoints, admin settings and status page content permissions.
@@ -83,6 +86,41 @@ describe("Admin monitor routes", () => {
                 timeout_seconds: 10,
             }
         }, 400);
+    });
+
+    test("POST /monitors with prefill_history fills the past days with up checks", async () => {
+        const created = await createMonitor("Prefilled Monitor", { interval_seconds: 300, prefill_history: true });
+        expect(created.prefill_history).toBeUndefined();
+
+        const now = Date.now();
+        const stats = await MonitorStats.getDailyStats(
+            [created.id],
+            MonitorStats.dayKey(now - MonitorStats.PREFILL_DAYS * DAY_MS),
+            MonitorStats.dayKey(now - DAY_MS),
+        );
+
+        expect(stats).toHaveLength(MonitorStats.PREFILL_DAYS);
+        for (const day of stats) {
+            expect(day.up_count).toBe(288); // one check every 5 minutes
+            expect(day.down_count).toBe(0);
+            expect(day.response_time_count).toBe(0);
+        }
+
+        // Today only holds the placeholder check, which does not grey out the day once real checks arrive.
+        await MonitorStats.recordChecks([{ monitor_id: created.id, status: "up", response_time_ms: 50 }]);
+        const [today] = await MonitorStats.getDailyStats([created.id], MonitorStats.dayKey(now), MonitorStats.dayKey(now));
+        expect(MonitorStats.worstStatus(today)).toBe("up");
+    });
+
+    test("POST /monitors without prefill_history has no past history", async () => {
+        const created = await createMonitor("Not Prefilled Monitor");
+        const now = Date.now();
+        const stats = await MonitorStats.getDailyStats(
+            [created.id],
+            MonitorStats.dayKey(now - MonitorStats.PREFILL_DAYS * DAY_MS),
+            MonitorStats.dayKey(now - DAY_MS),
+        );
+        expect(stats).toHaveLength(0);
     });
 
     test("PUT /monitors/:monitorId clears HTTP fields when switching to TCP", async () => {
@@ -354,16 +392,7 @@ describe("Public status page routes", () => {
         await makeAPIRequest("/v1/status-page", {
             method: "PUT",
             authToken: adminToken,
-            body: { title: "Public Test Page", is_public: true, is_enabled: true }
-        });
-    });
-
-    afterAll(async () => {
-        // Leave the singleton page publicly accessible for other test files.
-        await makeAPIRequest("/v1/status-page", {
-            method: "PUT",
-            authToken: adminToken,
-            body: { is_public: true, is_enabled: true }
+            body: { title: "Public Test Page" }
         });
     });
 
@@ -395,44 +424,17 @@ describe("Public status page routes", () => {
         expect(allMonitorIds(page)).toContain(disabledId);
     });
 
-    test("GET /public/status-page returns 404 when the page is not public", async () => {
+    test("The status page has no visibility flags to change", async () => {
+        // Unknown fields are stripped, leaving an empty (invalid) update.
         await makeAPIRequest("/v1/status-page", {
             method: "PUT",
             authToken: adminToken,
-            body: { is_public: false }
-        });
+            body: { is_public: false, is_enabled: false }
+        }, 400);
 
-        await makeAPIRequest("/v1/public/status-page", {}, 404);
-        await makeAPIRequest("/v1/public/status-page/incidents", {}, 404);
-        await makeAPIRequest("/v1/public/status-page/maintenance", {}, 404);
-
-        // Authenticated members can still read the private page.
-        const page = await makeAPIRequest("/v1/status-page", { authToken: memberToken });
-        expect(page.page.is_public).toBe(false);
-
-        await makeAPIRequest("/v1/status-page", {
-            method: "PUT",
-            authToken: adminToken,
-            body: { is_public: true }
-        });
-    });
-
-    test("GET /public/status-page returns 404 when the page is disabled", async () => {
-        await makeAPIRequest("/v1/status-page", {
-            method: "PUT",
-            authToken: adminToken,
-            body: { is_enabled: false }
-        });
-
-        await makeAPIRequest("/v1/public/status-page", {}, 404);
-
-        await makeAPIRequest("/v1/status-page", {
-            method: "PUT",
-            authToken: adminToken,
-            body: { is_enabled: true }
-        });
-
-        await makeAPIRequest("/v1/public/status-page", {});
+        const publicPage = await makeAPIRequest("/v1/public/status-page", {});
+        expect(publicPage.page.is_public).toBeUndefined();
+        expect(publicPage.page.is_enabled).toBeUndefined();
     });
 });
 

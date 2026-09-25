@@ -73,7 +73,7 @@ router.get('/',
 
     APIRouteSpec.authenticated({
         summary: "Get status page",
-        description: "Retrieve the single status page with its groups, linked monitors, and recent content. Members and admins can read this regardless of the public flag.",
+        description: "Retrieve the single status page with its groups, linked monitors, and recent content. Members and admins also see disabled monitors.",
         tags: [DOCS_TAGS.STATUS_PAGES],
 
         responses: APIResponseSpec.describeBasic(
@@ -84,7 +84,7 @@ router.get('/',
 
     async (c) => {
         const page = await getOrCreateConfig();
-        const response = await buildPublicPageResponse(page, { includePrivate: true });
+        const response = await buildPublicPageResponse(page, { includeDisabledMonitors: true });
 
         const incidents = await DB.instance()
             .select()
@@ -187,7 +187,7 @@ router.put('/',
     zValidator("json", StatusPageAdminModel.Config.Body),
     APIRouteSpec.authenticated({
         summary: "Update status page configuration",
-        description: "Update the single status page's metadata, visibility, or theme. Admin only.",
+        description: "Update the single status page's title, description or theme. Admin only.",
         tags: [DOCS_TAGS.STATUS_PAGES],
         responses: APIResponseSpec.describeWithWrongInputs(
             APIResponseSpec.success("Status page updated successfully", StatusPageAdminModel.Config.Response),

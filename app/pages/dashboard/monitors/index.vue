@@ -60,7 +60,8 @@ const defaultCreateForm: CreateSchema = {
     expected_http_status: 200,
     follow_redirects: true,
     verify_tls: true,
-    is_enabled: true
+    is_enabled: true,
+    prefill_history: false
 }
 
 const createForm = reactive<CreateSchema>({ ...defaultCreateForm })
@@ -376,6 +377,14 @@ async function onDeleteMonitor() {
                     </UFormField>
                 </div>
             </template>
+
+            <UFormField name="prefill_history">
+                <UCheckbox
+                    v-model="createForm.prefill_history"
+                    label="Prefill 90 days of uptime history"
+                    description="Shows the past 90 days as fully operational on the status page. No response time data is added."
+                />
+            </UFormField>
 
             <div class="flex justify-end gap-2 pt-4">
                 <UButton label="Cancel" color="neutral" variant="ghost" @click="showCreateModal = false" />

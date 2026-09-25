@@ -37,6 +37,8 @@ export namespace MonitorStats {
     const table = DB.Tables.monitorDailyStats;
     const checksTable = DB.Tables.monitorStatusChecks;
 
+    const DAY_MS = 24 * 60 * 60 * 1000;
+
     const LATENCY_BUCKET_COLUMNS = [
         "latency_bucket_0", "latency_bucket_1", "latency_bucket_2", "latency_bucket_3",
         "latency_bucket_4", "latency_bucket_5", "latency_bucket_6", "latency_bucket_7",
@@ -52,8 +54,11 @@ export namespace MonitorStats {
         unknown: "unknown_count",
     } as const satisfies Record<Status, keyof DB.Models.MonitorDailyStats>;
 
-    // Worst first: a day's status is the worst status seen that day.
-    const STATUS_SEVERITY: readonly Status[] = ["down", "degraded", "unknown", "up"];
+    // Worst first: a day's status is the worst status seen that day. `unknown`
+    // comes last, like in the uptime percentage: it only shows when a day has
+    // no real result (e.g. the placeholder check recorded for a new monitor
+    // must not grey out its first day).
+    const STATUS_SEVERITY: readonly Status[] = ["down", "degraded", "up", "unknown"];
 
     function chunk<T>(items: T[], size: number): T[][] {
         const parts: T[][] = [];
@@ -183,6 +188,33 @@ export namespace MonitorStats {
 
         const results = await DB.batch(nonEmpty([...inserts, ...upserts]));
         return (results.slice(0, inserts.length) as DB.Models.MonitorStatusCheck[][]).flat();
+    }
+
+    /** Days {@link MonitorStats.prefillUpHistory} fills by default: the status page's history window. */
+    export const PREFILL_DAYS = 90;
+
+    /**
+     * Fills the `days` days before today with all-up aggregates, as if the
+     * monitor had been checked every `intervalSeconds` without failure. Only
+     * the daily aggregates are written (no raw checks and no latency), so the
+     * uptime bars and percentages show a clean history while the latency
+     * statistics come from real checks only.
+     *
+     * Meant for new monitors: the counts are added to whatever the days hold.
+     */
+    export async function prefillUpHistory(monitorId: number, intervalSeconds: number, days = PREFILL_DAYS): Promise<void> {
+        if (days <= 0) return;
+
+        const checksPerDay = Math.max(1, Math.floor(DAY_MS / (intervalSeconds * 1000)));
+        const todayStart = new Date(Date.now()).setUTCHours(0, 0, 0, 0);
+
+        const upserts = Array.from({ length: days }, (_, i) => upsertDailyStats({
+            monitor_id: monitorId,
+            day: dayKey(todayStart - (i + 1) * DAY_MS),
+            up_count: checksPerDay,
+        }));
+
+        await DB.batch(nonEmpty(upserts));
     }
 
     /**

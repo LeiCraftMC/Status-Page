@@ -313,27 +313,4 @@ describe("Public update timelines", () => {
         // Message is escaped inside the HTML content
         expect(xml).not.toContain("<update>");
     });
-
-    test("public detail endpoints are hidden when the status page is not public", async () => {
-        const incident = await createIncident("Private page incident");
-
-        await makeAPIRequest("/v1/status-page", {
-            method: "PUT",
-            authToken: adminToken,
-            body: { is_public: false }
-        });
-
-        try {
-            await makeAPIRequest(`/v1/public/incidents/${incident.id}`, {}, 404);
-            // Authenticated dashboard reads still work
-            const detail = await makeAPIRequest(`/v1/status-page/incidents/${incident.id}`, { authToken: memberToken });
-            expect(detail.id).toBe(incident.id);
-        } finally {
-            await makeAPIRequest("/v1/status-page", {
-                method: "PUT",
-                authToken: adminToken,
-                body: { is_public: true }
-            });
-        }
-    });
 });

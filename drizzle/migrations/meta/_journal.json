@@ -36,6 +36,13 @@
       "when": 1790277196725,
       "tag": "0004_monitor_daily_stats",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1790337685775,
+      "tag": "0005_drop_status_page_visibility_and_old_tables",
+      "breakpoints": true
     }
   ]
 }

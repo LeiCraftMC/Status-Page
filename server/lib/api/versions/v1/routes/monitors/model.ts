@@ -1,5 +1,6 @@
 import { createSelectSchema, createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import { DB } from "../../../../../../db";
+import { MonitorStats } from "../../../../../../utils/monitor-stats";
 import { MonitorTypes } from "../../../../../../utils/monitor-types";
 import z from "zod";
 
@@ -70,6 +71,10 @@ export namespace MonitorsModel {
         }).omit({
             id: true,
             created_at: true,
+        }).extend({
+            prefill_history: z.boolean().optional().meta({
+                description: `Fill the ${MonitorStats.PREFILL_DAYS} days before today with all-up uptime history (no latency data). Defaults to false.`,
+            }),
         }).superRefine(refineTypeSpecificFields);
         export type Body = z.infer<typeof Body>;
 

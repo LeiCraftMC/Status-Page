@@ -104,7 +104,7 @@ router.post('/',
         )
     }),
     async (c) => {
-        const body = c.req.valid("json") as MonitorsModel.Create.Body;
+        const { prefill_history, ...body } = c.req.valid("json") as MonitorsModel.Create.Body;
 
         const duplicate = await DB.instance().select().from(DB.Tables.monitors).where(
             eq(DB.Tables.monitors.name, body.name)
@@ -124,6 +124,10 @@ router.post('/',
             status: 'unknown',
             response_time_ms: null,
         }]);
+
+        if (prefill_history) {
+            await MonitorStats.prefillUpHistory(created.id, created.interval_seconds);
+        }
 
         return APIResponse.created(c, "Monitor created successfully", created);
     }

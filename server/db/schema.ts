@@ -205,8 +205,6 @@ export const statusPageConfig = sqliteTable('status_page_config', {
     title: text().notNull(),
     description: text(),
 
-    is_public: integer({ mode: 'boolean' }).notNull().default(true),
-    is_enabled: integer({ mode: 'boolean' }).notNull().default(true),
     theme: text().notNull().default('auto'),
 
     created_at: SQLUtils.getCreatedAtColumn(),
