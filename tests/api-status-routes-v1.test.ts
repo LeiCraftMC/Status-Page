@@ -85,6 +85,20 @@ describe("Admin monitor routes", () => {
         }, 400);
     });
 
+    test("PUT /monitors/:monitorId clears HTTP fields when switching to TCP", async () => {
+        const monitor = await createMonitor("Switches To TCP", { expected_http_status: 204 });
+
+        const updated = await makeAPIRequest(`/v1/monitors/${monitor.id}`, {
+            method: "PUT",
+            authToken: adminToken,
+            body: { type: "tcp", target: "example.com:443" }
+        });
+
+        expect(updated.type).toBe("tcp");
+        expect(updated.http_method).toBeNull();
+        expect(updated.expected_http_status).toBeNull();
+    });
+
     test("GET /monitors lists monitors", async () => {
         const list = await makeAPIRequest("/v1/monitors", { authToken: adminToken });
 
@@ -257,6 +271,38 @@ describe("Admin status page routes", () => {
 
         const full = await makeAPIRequest("/v1/status-page/config", { authToken: adminToken });
         expect(full.links.some((l: any) => l.monitor_id === monitorId && l.monitor_name === "Linked Monitor")).toBe(true);
+    });
+
+    test("PUT /status-page/groups/reorder updates group order", async () => {
+        const result = await makeAPIRequest("/v1/status-page/groups/reorder", {
+            method: "PUT",
+            authToken: adminToken,
+            body: { groups: [{ id: groupId, sort_order: 5 }] }
+        });
+
+        expect(result.groups.find((g: any) => g.id === groupId)?.sort_order).toBe(5);
+    });
+
+    test("PUT /status-page/monitors/reorder moves a link between groups", async () => {
+        const full = await makeAPIRequest("/v1/status-page/config", { authToken: adminToken });
+        const link = full.links.find((l: any) => l.monitor_id === monitorId);
+
+        const result = await makeAPIRequest("/v1/status-page/monitors/reorder", {
+            method: "PUT",
+            authToken: adminToken,
+            body: { links: [{ id: link.id, group_id: null, sort_order: 3 }] }
+        });
+
+        const moved = result.links.find((l: any) => l.id === link.id);
+        expect(moved.group_id).toBeNull();
+        expect(moved.sort_order).toBe(3);
+
+        // Move it back for the tests below.
+        await makeAPIRequest("/v1/status-page/monitors/reorder", {
+            method: "PUT",
+            authToken: adminToken,
+            body: { links: [{ id: link.id, group_id: groupId, sort_order: 1 }] }
+        });
     });
 
     test("Member can read but cannot write the status page", async () => {

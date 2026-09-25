@@ -174,6 +174,75 @@ export namespace Runtime.Timers {
 		return new Promise((resolve) => setTimeout(resolve, ms));
 	}
 
+	/**
+	 * Resolves like `promise`, or rejects once `ms` milliseconds have passed
+	 * without it settling. The timer is cleared either way.
+	 */
+	export async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+		let timer: ReturnType<typeof setTimeout> | undefined;
+		const timeout = new Promise<never>((_, reject) => {
+			timer = setTimeout(() => reject(new Error(`Timed out after ${ms} ms`)), ms);
+		});
+		try {
+			return await Promise.race([promise, timeout]);
+		} finally {
+			clearTimeout(timer);
+		}
+	}
+
+}
+
+export namespace Runtime.Net {
+
+	// ---------------------------------------------------------------------------
+	// TCP
+	// ---------------------------------------------------------------------------
+
+	/** The part of the `cloudflare:sockets` built-in module (Workers-only) used here. */
+	interface CfSocketsModule {
+		connect(address: { hostname: string; port: number }): {
+			readonly opened: Promise<unknown>;
+			close(): Promise<void>;
+		};
+	}
+
+	/**
+	 * Opens a TCP connection to `hostname:port` and closes it again right away.
+	 *
+	 * - **Cloudflare Workers**: uses `connect()` from `cloudflare:sockets`.
+	 * - **Bun**: uses `Bun.connect()`.
+	 *
+	 * @returns `true` if the connection was established within `timeoutMs`.
+	 */
+	export async function canConnect(hostname: string, port: number, timeoutMs: number): Promise<boolean> {
+		if (Runtime.isCloudflare) {
+			// @ts-expect-error — cloudflare:sockets is a Workers built-in, not an npm package
+			const { connect }: CfSocketsModule = await import('cloudflare:sockets');
+			const socket = connect({ hostname, port });
+			try {
+				await Timers.withTimeout(socket.opened, timeoutMs);
+				return true;
+			} catch {
+				return false;
+			} finally {
+				await socket.close().catch(() => {});
+			}
+		}
+
+		if (Runtime.isBun) {
+			try {
+				const socket = await Timers.withTimeout(Bun.connect({ hostname, port, socket: { data() {} } }), timeoutMs);
+				socket.end();
+				return true;
+			} catch {
+				return false;
+			}
+		}
+
+		Logger.warn(`[Runtime] TCP connections are not implemented for runtime "${Runtime.name}"`);
+		return false;
+	}
+
 }
 
 export namespace Runtime.Crypto {

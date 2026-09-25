@@ -1,5 +1,6 @@
 import { createSelectSchema, createInsertSchema, createUpdateSchema } from "drizzle-zod";
 import { DB } from "../../../../../../db";
+import { MonitorTypes } from "../../../../../../utils/monitor-types";
 import z from "zod";
 
 export namespace MonitorsReadModel {
@@ -33,6 +34,17 @@ export namespace MonitorsReadModel {
 
 export namespace MonitorsModel {
 
+    const MonitorTypeName = z.enum(DB.Tables.monitors.type.enumValues);
+
+    /** Adds an issue for each type-specific field that does not fit the monitor type (see MonitorTypes). */
+    function refineTypeSpecificFields(data: { type?: DB.Models.Monitor["type"] } & MonitorTypes.FieldValues, ctx: z.RefinementCtx) {
+        // An update that keeps the type is not checked: the stored fields are unknown here.
+        if (!data.type) return;
+        for (const message of MonitorTypes.validateFields(data.type, data)) {
+            ctx.addIssue({ code: "custom", message });
+        }
+    }
+
     export const BaseMonitor = createSelectSchema(DB.Tables.monitors);
     export type BaseMonitor = z.infer<typeof BaseMonitor>;
 
@@ -46,7 +58,7 @@ export namespace MonitorsModel {
     export namespace Create {
         export const Body = createInsertSchema(DB.Tables.monitors, {
             name: z.string().min(1).max(128),
-            type: z.enum(['http', 'tcp']),
+            type: MonitorTypeName,
             target: z.string().min(1).max(2048),
             interval_seconds: z.number().int().min(5),
             timeout_seconds: z.number().int().min(1),
@@ -58,17 +70,7 @@ export namespace MonitorsModel {
         }).omit({
             id: true,
             created_at: true,
-        }).refine(
-            (data) => {
-                if (data.type === 'http') {
-                    return data.http_method !== undefined;
-                }
-                return data.http_method === undefined && data.expected_http_status === undefined;
-            },
-            {
-                message: "HTTP monitors require http_method; TCP monitors must not include http_method or expected_http_status",
-            }
-        );
+        }).superRefine(refineTypeSpecificFields);
         export type Body = z.infer<typeof Body>;
 
         export const Response = BaseMonitor;
@@ -78,7 +80,7 @@ export namespace MonitorsModel {
     export namespace Update {
         export const Body = createUpdateSchema(DB.Tables.monitors, {
             name: z.string().min(1).max(128).optional(),
-            type: z.enum(['http', 'tcp']).optional(),
+            type: MonitorTypeName.optional(),
             target: z.string().min(1).max(2048).optional(),
             interval_seconds: z.number().int().min(5).optional(),
             timeout_seconds: z.number().int().min(1).optional(),
@@ -93,20 +95,7 @@ export namespace MonitorsModel {
         }).refine(
             (data) => Object.values(data).some((value) => value !== undefined),
             { message: "At least one field must be provided" }
-        ).refine(
-            (data) => {
-                if (data.type === 'tcp') {
-                    return data.http_method === undefined && data.expected_http_status === undefined;
-                }
-                if (data.type === 'http') {
-                    return data.http_method !== undefined;
-                }
-                return true;
-            },
-            {
-                message: "HTTP monitors require http_method; TCP monitors must not include http_method or expected_http_status",
-            }
-        );
+        ).superRefine(refineTypeSpecificFields);
         export type Body = z.infer<typeof Body>;
 
         export const Response = BaseMonitor;

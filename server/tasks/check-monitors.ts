@@ -1,7 +1,7 @@
 import { defineTask } from "nitropack/runtime";
 import { DB } from "../db";
 import { Runtime } from "../utils/runtime";
-import { runDueMonitorChecks } from "../utils/monitor-scheduler";
+import { MonitorScheduler } from "../utils/monitor-scheduler";
 
 export default defineTask({
     meta: {
@@ -23,6 +23,6 @@ export default defineTask({
             }
         }
 
-        return { result: await runDueMonitorChecks() };
+        return { result: await MonitorScheduler.runDueChecks() };
     },
 });

@@ -158,9 +158,12 @@ async function onDeleteApiKey() {
                     </template>
                     
                     <template #description-cell="{ row }">
-                        <span class="text-slate-400 line-clamp-1 max-w-xs">
+                        <NuxtLink
+                            :to="`/dashboard/settings/apikeys/${row.original.id}`"
+                            class="text-slate-300 line-clamp-1 max-w-xs hover:text-primary-400"
+                        >
                             {{ row.original.description || '—' }}
-                        </span>
+                        </NuxtLink>
                     </template>
 
                     <template #created_at-cell="{ row }">

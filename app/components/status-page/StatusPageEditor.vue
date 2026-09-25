@@ -17,12 +17,15 @@ type MonitorHistory = PublicHistory | AuthHistory
 interface Props {
     groups: Group[]
     links: Link[]
-    monitors: Monitor[]
+    monitors?: Monitor[]
     histories?: MonitorHistory[]
     loading?: boolean
 }
 
+// monitors and histories load separately from the config and may still be
+// missing on the first render.
 const props = withDefaults(defineProps<Props>(), {
+    monitors: () => [],
     histories: () => [],
     loading: false
 })
@@ -112,9 +115,9 @@ type DragPayload =
 
 const dragState = ref<DragPayload | null>(null)
 const dragOverGroupId = ref<number | null>(null)
+// Position in dragOverGroupId's links the dragged link would be inserted at
 const dragOverLinkIndex = ref<number | null>(null)
 const dragOverGroupIndex = ref<number | null>(null)
-const dragIndicatorPosition = ref<'before' | 'after'>('before')
 
 function setDragPayload(payload: DragPayload) {
     dragState.value = payload
@@ -170,16 +173,16 @@ function onGroupDropZoneDrop(targetIndex: number, event: DragEvent) {
 
     const realGroups = props.groups.slice().sort((a, b) => a.sort_order - b.sort_order)
     const currentIndex = realGroups.findIndex(g => g.id === draggedId)
-    if (currentIndex === -1) return
-
-    const moved = realGroups.splice(currentIndex, 1)[0]
-    // targetIndex is the position *before* which to insert
+    // targetIndex is the position *before* which to insert; removing the
+    // dragged group first shifts the positions after it by one.
     const insertIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex
-    realGroups.splice(insertIndex, 0, moved)
-
-    const reordered = realGroups.map((g, idx) => ({ id: g.id, sort_order: idx }))
-    emit('reorder-groups', reordered)
     clearDragState()
+    if (currentIndex === -1 || insertIndex === currentIndex) return
+
+    const [moved] = realGroups.splice(currentIndex, 1)
+    realGroups.splice(insertIndex, 0, moved!)
+
+    emit('reorder-groups', realGroups.map((g, idx) => ({ id: g.id, sort_order: idx })))
 }
 
 // --- Monitor link drag ---
@@ -190,101 +193,60 @@ function onLinkDragStart(link: EditorLink, group: EditorGroup, event: DragEvent)
     setDragPayload({ type: 'link', id: link.id, link, sourceGroupId: group.id })
 }
 
-function getLinkDropIndex(group: EditorGroup, event: DragEvent, linkElement: HTMLElement): number | null {
-    const rect = linkElement.getBoundingClientRect()
-    const midpoint = rect.top + rect.height / 2
-    const isBefore = event.clientY < midpoint
-
-    const index = group.links.findIndex(l => l.id === Number(linkElement.dataset.linkId))
-    if (index === -1) return null
-
-    dragIndicatorPosition.value = isBefore ? 'before' : 'after'
-    return isBefore ? index : index + 1
-}
-
-function onLinkDragOver(group: EditorGroup, link: EditorLink, index: number, event: DragEvent) {
-    if (!dragState.value || dragState.value.type === 'group') return
+function onLinkDragOver(group: EditorGroup, index: number, event: DragEvent) {
+    if (dragState.value?.type !== 'link') return
     event.preventDefault()
     event.dataTransfer!.dropEffect = 'move'
 
-    const el = event.currentTarget as HTMLElement
-    const dropIndex = getLinkDropIndex(group, event, el)
-    if (dropIndex === null) return
+    // Upper half of a row inserts before it, lower half after it.
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    const isBefore = event.clientY < rect.top + rect.height / 2
 
     dragOverGroupId.value = group.id
-    dragOverLinkIndex.value = dropIndex
+    dragOverLinkIndex.value = isBefore ? index : index + 1
 }
 
 function onGroupBodyDragOver(group: EditorGroup, event: DragEvent) {
-    if (!dragState.value || dragState.value.type === 'group') return
+    if (dragState.value?.type !== 'link') return
     event.preventDefault()
     event.dataTransfer!.dropEffect = 'move'
 
-    const el = event.currentTarget as HTMLElement
-    const rect = el.getBoundingClientRect()
-    const children = Array.from(el.querySelectorAll('[data-link-row]')) as HTMLElement[]
-
-    // If empty or below all items, drop at end
-    if (children.length === 0 || event.clientY > rect.bottom - 8) {
+    // Rows set the exact position themselves (their dragover runs first);
+    // entering an empty group or the space below the rows appends.
+    const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+    if (group.links.length === 0 || event.clientY > rect.bottom - 8) {
         dragOverGroupId.value = group.id
         dragOverLinkIndex.value = group.links.length
-        dragIndicatorPosition.value = 'before'
-        return
     }
 }
 
-function onLinkOrBodyDrop(group: EditorGroup, event: DragEvent) {
+function onLinkDrop(group: EditorGroup, event: DragEvent) {
     event.preventDefault()
-    if (!dragState.value || dragState.value.type === 'group') return
+    const drag = dragState.value
+    if (drag?.type !== 'link') return
 
-    const targetGroupId = group.id
-    const draggedLinkId = dragState.value.id
-    const sourceGroupId = dragState.value.sourceGroupId
-    const insertIndex = dragOverLinkIndex.value ?? group.links.length
+    let insertIndex = dragOverGroupId.value === group.id
+        ? (dragOverLinkIndex.value ?? group.links.length)
+        : group.links.length
+    clearDragState()
 
-    // Build full new order for all groups
-    const reordered: { id: number; group_id: number | null; sort_order: number }[] = []
+    // Removing the dragged link first shifts the positions after it by one.
+    const sourceIndex = group.links.findIndex(l => l.id === drag.id)
+    if (sourceIndex !== -1 && sourceIndex < insertIndex) insertIndex--
+    if (sourceIndex === insertIndex) return
 
-    for (const g of editorGroups.value) {
-        let links = g.links.slice()
-
-        if (g.id === sourceGroupId) {
-            // Remove dragged link from source
-            links = links.filter(l => l.id !== draggedLinkId)
-        }
-
-        if (g.id === targetGroupId) {
-            // Insert or move to target index
-            const existing = g.links.find(l => l.id === draggedLinkId)
-            const sourceIndex = g.links.findIndex(l => l.id === draggedLinkId)
-
-            if (existing && g.id === sourceGroupId) {
-                // Reorder within same group
-                const moved = g.links.filter(l => l.id === draggedLinkId)[0]
-                links = g.links.filter(l => l.id !== draggedLinkId)
-                const adjustedIndex = sourceIndex !== -1 && insertIndex > sourceIndex ? insertIndex - 1 : insertIndex
-                links.splice(adjustedIndex, 0, moved)
-            } else if (existing) {
-                // Move from another group to this group
-                links = g.links.filter(l => l.id !== draggedLinkId)
-                links.splice(insertIndex, 0, existing)
-            } else {
-                // Should not happen because we handled source removal; but just in case
-                links.splice(insertIndex, 0, dragState.value.link)
-            }
-        }
-
-        links.forEach((l, idx) => {
-            reordered.push({
-                id: l.id,
-                group_id: g.id,
-                sort_order: idx
-            })
-        })
-    }
+    const reordered = editorGroups.value.flatMap((g) => {
+        const links = g.links.filter(l => l.id !== drag.id)
+        if (g.id === group.id) links.splice(insertIndex, 0, drag.link)
+        return links.map((l, idx) => ({ id: l.id, group_id: g.id, sort_order: idx }))
+    })
 
     emit('reorder-links', reordered)
-    clearDragState()
+}
+
+/** Whether the drop indicator belongs at `index` of the group's links. */
+function isDropTarget(group: EditorGroup, index: number): boolean {
+    return dragState.value?.type === 'link' && dragOverGroupId.value === group.id && dragOverLinkIndex.value === index
 }
 
 function onDragEnd() {
@@ -405,7 +367,7 @@ function confirmUnlinkLink() {
                         <UIcon v-else name="i-lucide-layers" class="size-5 text-slate-500" />
 
                         <div class="flex-1 min-w-0">
-                            <div v-if="editingGroupId === group.id" class="flex items-center gap-2">
+                            <div v-if="group.id !== null && editingGroupId === group.id" class="flex items-center gap-2">
                                 <UInput
                                     v-model="editingGroupName"
                                     size="sm"
@@ -452,38 +414,29 @@ function confirmUnlinkLink() {
                         </UDropdownMenu>
                     </div>
 
-                    <!-- Group body -->
+                    <!-- Group body. Drops are handled here only; the rows' dragover
+                         handlers set the insert position. -->
                     <div
                         class="divide-y divide-slate-800 min-h-[60px]"
                         @dragover="onGroupBodyDragOver(group, $event)"
-                        @drop="onLinkOrBodyDrop(group, $event)"
+                        @drop="onLinkDrop(group, $event)"
                     >
                         <div v-if="group.links.length === 0 && !props.loading" class="text-center py-6 text-sm text-slate-500">
                             Drag monitors here or use the + button
                         </div>
-                        <div
-                            v-if="group.links.length === 0 && !props.loading && dragState?.type === 'link' && dragOverGroupId === group.id"
-                            class="h-1 rounded bg-primary-500/70 my-1"
-                        />
 
                         <template v-for="(link, linkIndex) in group.links" :key="link.id">
-                            <!-- Drop indicator before item -->
-                            <div
-                                v-if="dragState?.type === 'link' && dragOverGroupId === group.id && dragOverLinkIndex === linkIndex && dragIndicatorPosition === 'before'"
-                                class="h-1 rounded bg-primary-500/70 my-1"
-                            />
+                            <div v-if="isDropTarget(group, linkIndex)" class="h-1 rounded bg-primary-500/70 my-1" />
 
                             <div
-                                :data-link-row="true"
-                                :data-link-id="link.id"
                                 draggable="true"
                                 class="px-4 py-3 flex gap-3 cursor-grab active:cursor-grabbing transition-colors hover:bg-slate-800/40"
                                 :class="{ 'opacity-60': dragState?.type === 'link' && dragState.id === link.id }"
                                 @dragstart="onLinkDragStart(link, group, $event)"
-                                @dragover="onLinkDragOver(group, link, linkIndex, $event)"
-                                @drop="onLinkOrBodyDrop(group, $event)"
+                                @dragover="onLinkDragOver(group, linkIndex, $event)"
                                 @dragend="onDragEnd"
                             >
+
                                 <UIcon name="i-lucide-grip-vertical" class="text-slate-500 size-4 shrink-0 mt-1" />
 
                                 <div class="flex-1 min-w-0 space-y-2">
@@ -500,9 +453,13 @@ function confirmUnlinkLink() {
                                                 />
                                             </div>
                                             <template v-else>
-                                                <p class="text-sm font-medium text-white truncate">
+                                                <NuxtLink
+                                                    :to="`/dashboard/monitors/${link.monitor_id}`"
+                                                    draggable="false"
+                                                    class="block text-sm font-medium text-white truncate hover:text-primary-400 transition-colors"
+                                                >
                                                     {{ link.display_name || link.monitor_name }}
-                                                </p>
+                                                </NuxtLink>
                                                 <p class="text-xs text-slate-400 truncate">
                                                     {{ link.display_name ? link.monitor_name : link.monitor?.target }}
                                                 </p>
@@ -541,18 +498,9 @@ function confirmUnlinkLink() {
                                 </div>
                             </div>
 
-                            <!-- Drop indicator after last item -->
-                            <div
-                                v-if="dragState?.type === 'link' && dragOverGroupId === group.id && dragOverLinkIndex === linkIndex + 1 && (linkIndex === group.links.length - 1)"
-                                class="h-1 rounded bg-primary-500/70 my-1"
-                            />
                         </template>
 
-                        <!-- Drop indicator at end of non-empty group when hovering below all items -->
-                        <div
-                            v-if="dragState?.type === 'link' && dragOverGroupId === group.id && dragOverLinkIndex === group.links.length && group.links.length > 0 && dragIndicatorPosition === 'before'"
-                            class="h-1 rounded bg-primary-500/70 my-1"
-                        />
+                        <div v-if="isDropTarget(group, group.links.length)" class="h-1 rounded bg-primary-500/70 my-1" />
                     </div>
                 </div>
 

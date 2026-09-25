@@ -242,6 +242,50 @@ router.post('/groups',
     }
 );
 
+// Registered before the /groups/:groupId and /monitors/:linkId routes: their
+// param middleware would otherwise take "reorder" for an id.
+router.put('/groups/reorder',
+    adminOnly,
+    zValidator("json", StatusPageAdminModel.ReorderGroups.Body),
+    APIRouteSpec.authenticated({
+        summary: "Reorder monitor groups",
+        description: "Bulk update group sort order. Admin only.",
+        tags: [DOCS_TAGS.STATUS_PAGES],
+        responses: APIResponseSpec.describeWithWrongInputs(
+            APIResponseSpec.success("Groups reordered successfully", StatusPageAdminModel.ReorderGroups.Response),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required")
+        )
+    }),
+    async (c) => {
+        // @ts-ignore — zValidator json typing is lost in middleware chains
+        const body = c.req.valid("json") as StatusPageAdminModel.ReorderGroups.Body;
+        const groups = await reorderGroups(body);
+        return APIResponse.success(c, "Groups reordered successfully", { groups });
+    }
+);
+
+router.put('/monitors/reorder',
+    adminOnly,
+    zValidator("json", StatusPageAdminModel.ReorderLinks.Body),
+    APIRouteSpec.authenticated({
+        summary: "Reorder linked monitors",
+        description: "Bulk update link group assignment and sort order. Admin only.",
+        tags: [DOCS_TAGS.STATUS_PAGES],
+        responses: APIResponseSpec.describeWithWrongInputs(
+            APIResponseSpec.success("Monitors reordered successfully", StatusPageAdminModel.ReorderLinks.Response),
+            APIResponseSpec.unauthorized("Authentication required"),
+            APIResponseSpec.forbidden("Admin access required")
+        )
+    }),
+    async (c) => {
+        // @ts-ignore — zValidator json typing is lost in middleware chains
+        const body = c.req.valid("json") as StatusPageAdminModel.ReorderLinks.Body;
+        const links = await reorderLinks(body);
+        return APIResponse.success(c, "Monitors reordered successfully", { links });
+    }
+);
+
 router.use('/groups/:groupId/*',
     zValidator("param", StatusPageAdminModel.GroupId.Params),
     async (c, next) => {
@@ -401,48 +445,6 @@ router.delete('/monitors/:linkId',
         const link = c.get("targetLink") as StatusPageAdminModel.BaseLink;
         await deleteLink(link.id);
         return APIResponse.successNoData(c, "Monitor unlinked successfully");
-    }
-);
-
-router.put('/groups/reorder',
-    adminOnly,
-    zValidator("json", StatusPageAdminModel.ReorderGroups.Body),
-    APIRouteSpec.authenticated({
-        summary: "Reorder monitor groups",
-        description: "Bulk update group sort order. Admin only.",
-        tags: [DOCS_TAGS.STATUS_PAGES],
-        responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.success("Groups reordered successfully", StatusPageAdminModel.ReorderGroups.Response),
-            APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required")
-        )
-    }),
-    async (c) => {
-        // @ts-ignore — zValidator json typing is lost in middleware chains
-        const body = c.req.valid("json") as StatusPageAdminModel.ReorderGroups.Body;
-        const groups = await reorderGroups(body);
-        return APIResponse.success(c, "Groups reordered successfully", { groups });
-    }
-);
-
-router.put('/monitors/reorder',
-    adminOnly,
-    zValidator("json", StatusPageAdminModel.ReorderLinks.Body),
-    APIRouteSpec.authenticated({
-        summary: "Reorder linked monitors",
-        description: "Bulk update link group assignment and sort order. Admin only.",
-        tags: [DOCS_TAGS.STATUS_PAGES],
-        responses: APIResponseSpec.describeWithWrongInputs(
-            APIResponseSpec.success("Monitors reordered successfully", StatusPageAdminModel.ReorderLinks.Response),
-            APIResponseSpec.unauthorized("Authentication required"),
-            APIResponseSpec.forbidden("Admin access required")
-        )
-    }),
-    async (c) => {
-        // @ts-ignore — zValidator json typing is lost in middleware chains
-        const body = c.req.valid("json") as StatusPageAdminModel.ReorderLinks.Body;
-        const links = await reorderLinks(body);
-        return APIResponse.success(c, "Monitors reordered successfully", { links });
     }
 );
 

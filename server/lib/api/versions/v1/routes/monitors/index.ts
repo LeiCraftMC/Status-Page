@@ -9,7 +9,7 @@ import { AuthHandler } from "../../../../utils/authHandler";
 import { MonitorsReadModel } from "./model";
 import { MonitorsModel } from "./model";
 import { DOCS_TAGS } from "../../docs";
-import { performMonitorCheck } from "../../../../../../utils/monitor-checker";
+import { MonitorTypes } from "../../../../../../utils/monitor-types";
 import { MonitorStats } from "../../../../../../utils/monitor-stats";
 
 const TARGET_MONITOR_KEY = "targetMonitor";
@@ -93,7 +93,7 @@ router.post('/',
     zValidator("json", MonitorsModel.Create.Body),
     APIRouteSpec.authenticated({
         summary: "Create monitor",
-        description: "Create a new HTTP or TCP monitor. Admin only.",
+        description: `Create a new monitor (types: ${MonitorTypes.names.join(", ")}). Admin only.`,
         tags: [DOCS_TAGS.MONITORS],
 
         responses: APIResponseSpec.describeWithWrongInputs(
@@ -116,8 +116,7 @@ router.post('/',
 
         const created = await DB.instance().insert(DB.Tables.monitors).values({
             ...body,
-            http_method: body.type === 'http' ? body.http_method : null,
-            expected_http_status: body.type === 'http' ? body.expected_http_status : null,
+            ...MonitorTypes.clearedForeignFields(body.type),
         }).returning().get();
 
         await MonitorStats.recordChecks([{
@@ -219,11 +218,10 @@ router.put('/:monitorId',
             }
         }
 
-        const setPayload: any = { ...updates };
-        if (updates.type === 'tcp') {
-            setPayload.http_method = null;
-            setPayload.expected_http_status = null;
-        }
+        const setPayload = {
+            ...updates,
+            ...(updates.type ? MonitorTypes.clearedForeignFields(updates.type) : {}),
+        };
 
         await DB.instance().update(DB.Tables.monitors).set(setPayload).where(
             eq(DB.Tables.monitors.id, monitor.id)
@@ -295,7 +293,7 @@ router.post('/:monitorId/check',
     async (c) => {
         const monitor = c.get(TARGET_MONITOR_KEY) as MonitorsModel.BaseMonitor;
 
-        const result = await performMonitorCheck(monitor);
+        const result = await MonitorTypes.check(monitor);
 
         const [check] = await MonitorStats.recordChecks([{
             monitor_id: monitor.id,

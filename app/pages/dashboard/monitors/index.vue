@@ -134,8 +134,20 @@ function openEdit(monitor: Monitor) {
     showEditModal.value = true
 }
 
-async function handleCreate(event: any) {
-    const res = await useAPI((api) => api.postMonitors({ body: event.data }))
+/** Drops the HTTP-only fields, which the API rejects for TCP monitors. */
+function withoutHttpFields<T extends CreateSchema | EditSchema>(body: T): T {
+    if (body.type !== 'tcp') return body
+    return {
+        ...body,
+        http_method: undefined,
+        expected_http_status: undefined,
+        follow_redirects: undefined,
+        verify_tls: undefined
+    }
+}
+
+async function handleCreate(event: { data: CreateSchema }) {
+    const res = await useAPI((api) => api.postMonitors({ body: withoutHttpFields(event.data) }))
     if (res.success) {
         toast.add({ title: 'Monitor created', color: 'success' })
         showCreateModal.value = false
@@ -148,13 +160,7 @@ async function handleCreate(event: any) {
 
 async function submitEdit() {
     if (!selectedMonitor.value) return
-    const body: EditSchema = { ...editForm }
-    if (body.type === 'tcp') {
-        body.http_method = undefined
-        body.expected_http_status = undefined
-        body.follow_redirects = undefined
-        body.verify_tls = undefined
-    }
+    const body = withoutHttpFields<EditSchema>({ ...editForm })
     const res = await useAPI((api) => api.putMonitorsByMonitorId({
         path: { monitorId: selectedMonitor.value!.id },
         body
@@ -263,6 +269,12 @@ async function onDeleteMonitor() {
 
                     <template #id-cell="{ row }">
                         <span class="font-mono text-sm">#{{ row.original.id }}</span>
+                    </template>
+
+                    <template #name-cell="{ row }">
+                        <NuxtLink :to="`/dashboard/monitors/${row.original.id}`" class="font-medium text-white hover:text-primary-400">
+                            {{ row.original.name }}
+                        </NuxtLink>
                     </template>
 
                     <template #type-cell="{ row }">

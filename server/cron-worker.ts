@@ -11,7 +11,7 @@ import type { D1Database, ExportedHandler } from "@cloudflare/workers-types";
 import { DB } from "./db";
 import { ConfigHandler } from "./utils/config";
 import { Logger } from "./utils/logger";
-import { runDueMonitorChecks } from "./utils/monitor-scheduler";
+import { MonitorScheduler } from "./utils/monitor-scheduler";
 
 interface Env {
     DB: D1Database;
@@ -29,7 +29,7 @@ export default {
             await DB.init(env.DB, false);
         }
 
-        const { checked } = await runDueMonitorChecks();
+        const { checked } = await MonitorScheduler.runDueChecks();
         Logger.debug(`Checked ${checked} monitors.`);
     },
 } satisfies ExportedHandler<Env>;
